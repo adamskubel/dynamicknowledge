@@ -78,7 +78,6 @@ define(function(require, exports, module) {
 		   	borderStyle : 'solid',
 		   	color : tungsten(1),
 		   	padding : '0px 0px 0px 0px',
-		    cursor: 'pointer',
 		   	fontFamily :'Helvetica',
 		   	textAlign: 'left'
 		},		
@@ -89,7 +88,6 @@ define(function(require, exports, module) {
 		   	borderStyle : 'none',
 		   	color : tungsten(1),
 		   	padding : '0px 0px 0px 0px',
-		    cursor: 'pointer',
 		   	fontFamily :'Helvetica',
 		   	textAlign: 'center'
 		},
@@ -197,7 +195,7 @@ define(function(require, exports, module) {
 	ObjectFactory.prototype.makeButtonView = function(text){
 		
 		var buttonSurface = this.makeLabelSurface(text);
-        buttonSurface.setProperties({textAlign:'center'});
+        buttonSurface.setProperties({textAlign:'center',cursor: 'pointer'});
 		var style = labelStyles.base;
 
 
@@ -238,8 +236,8 @@ define(function(require, exports, module) {
 		};
 
 		textSurface.modifier = new Modifier({
-			align:[0.5,0.5],
-			origin:[0.5,0.5],
+			//align:[0.5,0.5],
+			//origin:[0.5,0.5],
 			opacity: function(){return textSurface.opacityState.get();}
 		});
 
