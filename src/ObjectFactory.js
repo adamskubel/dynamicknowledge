@@ -41,8 +41,9 @@ define(function(require, exports, module) {
 			   	color : tungsten(1),
 			   	fontFamily :'Helvetica',
 			   	textAlign: 'left',
+				fontSize: 'small',
 			// },
-			// "background" : 
+			// "background" :
 			// {
 			   	backgroundColor : tungsten(0.1),
 			   	borderColor : tungsten(0.4),
@@ -55,6 +56,23 @@ define(function(require, exports, module) {
 			{
 			   	baseOpacity: 0.8,
 			   	focusedOpacity: 1
+			}
+		},
+		"slim" :
+		{
+			"text" : {
+				color : tungsten(1),
+				fontFamily :'Helvetica',
+				textAlign: 'left',
+				backgroundColor : tungsten(0.4),
+				borderColor : tungsten(0.8),
+				borderWidth : '1px',
+				borderStyle : 'solid'
+			},
+			"modifiers" :
+			{
+				baseOpacity: 0.4,
+				focusedOpacity: 0.9
 			}
 		}
 	};
@@ -69,7 +87,20 @@ define(function(require, exports, module) {
 		   	borderStyle : 'solid',
 		   	color : tungsten(1),
 		   	fontFamily :'Helvetica',
-		   	textAlign: 'left'
+		   	textAlign: 'left',
+			useSpan: true,
+			fontSize: 'small'
+		},
+		"compact" : {
+			backgroundColor : tungsten(0.3),
+			borderColor : tungsten(0.8),
+			borderWidth : '1px',
+			borderStyle : 'solid',
+			color : tungsten(1),
+			fontFamily :'Helvetica',
+			textAlign: 'center',
+			useSpan: false,
+			fontSize: 'small'
 		},
 		"outline" : {
 
@@ -80,7 +111,8 @@ define(function(require, exports, module) {
 		   	color : tungsten(1),
 		   	padding : '0px 0px 0px 0px',
 		   	fontFamily :'Helvetica',
-		   	textAlign: 'left'
+		   	textAlign: 'left',
+			useSpan: true
 		},		
 		"blank_center" : {
 
@@ -90,7 +122,8 @@ define(function(require, exports, module) {
 		   	color : tungsten(1),
 		   	padding : '0px 0px 0px 0px',
 		   	fontFamily :'Helvetica',
-		   	textAlign: 'center'
+		   	textAlign: 'center',
+			useSpan: true
 		},
 		"blank" : {
 
@@ -100,19 +133,22 @@ define(function(require, exports, module) {
 		   	color : tungsten(1),
 		   	padding : '0px 0px 0px 0px',
 		   	fontFamily :'Helvetica',
-		   	textAlign: 'left'
+		   	textAlign: 'left',
+			useSpan: true
 		},	
 		"text" : {
 
-		   	backgroundColor : tungsten(0.0),	
-		   	borderWidth : '0px',
-		   	borderStyle : 'none',
-		   	color : tungsten(1),
-		   	padding : '6px 6px 0px 0px',
+		   	backgroundColor : tungsten(0.1),
+			borderColor : tungsten(0.3),
+			color : tungsten(1),
+		   	borderWidth : '0px 0px 1px 0px',
+		   	borderStyle : 'solid',
+		   	padding : '2px',
 		   	fontFamily :'Helvetica',
 		   	textAlign: 'left',
-		   	surfaceClass: 'textarea',
-		   	overflow:'auto'
+		   	overflow:'auto',
+			useSpan: true,
+			minHeight: '100px'
 		}
 	};
 
@@ -125,42 +161,62 @@ define(function(require, exports, module) {
 	};
 
 
+	ObjectFactory.prototype.makeTextSurface = function (text)
+	{
+		var style = propertyMap.text;
+
+		var surface = new TextareaSurface({
+			size: [undefined, true],
+			properties: style,
+			value: text
+		});
+
+		surface.setAttributes({readonly: false});
+		surface.setProperties({resize: "none"});
+
+		surface.setText = function (value)
+		{
+			this.text = text;
+			this.setValue(value);
+		};
+		surface.getText = function ()
+		{
+			return this.text;
+		};
+
+		surface.setText(text);
+
+		return surface;
+	};
+
 	ObjectFactory.prototype.makeSurface = function makeSurface(text, type)
 	{
 		if (type == undefined)
 			type = "base";
 
+		var surfaceOptions = propertyMap[type];
 		var surface;
-		if (propertyMap[type].surfaceClass == 'textarea')
-		{
-			surface = new TextareaSurface({
-			    size : [undefined, undefined],
-			    properties : propertyMap[type],
-			    value: text
-			});	
-			surface.setAttributes({readonly:true});
-			surface.setProperties({resize:"none"});
 
-			surface.setText = function(value) {
-				this.text = text;
-				this.setValue(value);
-			};
-			surface.getText = function(){
-				return this.text;
+		surface = new Surface({
+			size : [undefined, undefined],
+			properties : propertyMap[type]
+		});
+
+		if (surfaceOptions.useSpan)
+		{
+			surface.setText = function (value)
+			{
+				var contentString = "<span><p>" + value + "</p></span>";
+				this.setContent(contentString);
 			};
 		}
 		else
 		{
-			surface = new Surface({
-			    size : [undefined, undefined],
-			    properties : propertyMap[type]
-			});
-
 			surface.setText = function(value){
-				var contentString = "<span><p>"+ value + "</p></span>";
-				this.setContent(contentString);
+				this.setContent(value);
 			};
 		}
+
 
 		surface.setText(text);
 
@@ -200,15 +256,18 @@ define(function(require, exports, module) {
 				return object.size;
 			};
 		}
-	}
+	};
 
-	ObjectFactory.prototype.makeButtonView = function(text){
-		
-		var buttonSurface = this.makeLabelSurface(text);
-        buttonSurface.setProperties({textAlign:'center',cursor: 'pointer'});
+	ObjectFactory.prototype.makeButtonView = function(text,styleName){
+
 		var style = labelStyles.base;
+		if (styleName != undefined)
+			style = labelStyles[styleName];
 
+		var buttonSurface = this.makeLabelSurface(text,styleName);
+        buttonSurface.setProperties({textAlign:'center',cursor: 'pointer'});
 
+		buttonSurface.opacityState.set(style.modifiers.baseOpacity);
         buttonSurface.on('mouseenter',function(){
             buttonSurface.opacityState.set(style.modifiers.focusedOpacity,{duration:100, curve:Easing.outQuad});
 		});
@@ -217,15 +276,12 @@ define(function(require, exports, module) {
             buttonSurface.opacityState.set(style.modifiers.baseOpacity,{duration:100, curve:Easing.outQuad});
 		});
 
-        //buttonSurface.on('click',function(data){buttonSurface._eventOutput.emit('click',data)});
-        //buttonSurface.on('click',function(data){buttonSurface._eventOutput.emit('click',data)});
-
 		return buttonSurface;
 	};
 
 
 	ObjectFactory.prototype.makeLabelSurface = function(text,styleName){
-		
+
 		var style = labelStyles.base;
 
 		if (styleName != undefined)
@@ -261,8 +317,8 @@ define(function(require, exports, module) {
 
 	ObjectFactory.prototype.makeLabelView = function(text,styleName){
 		
-		var view = new View();
-		style = labelStyles.base;
+		var view = new PositionableView();
+		var style = labelStyles.base;
 
 		if (styleName != undefined)
 			style = labelStyles[styleName];
@@ -277,10 +333,6 @@ define(function(require, exports, module) {
 			this.textSurface.setContent(contentString);
 		};
 
-		view.setSize = function(viewSize) {
-			this.size = viewSize;
-		};
-
 		var backSurface = new Surface ({
 			size : [undefined,undefined],
 			properties: style.background
@@ -292,10 +344,10 @@ define(function(require, exports, module) {
 			opacity: function(){return view.opacityState.get();}
 		}));
 
-		originNode.add(textSurface);
-		originNode.add(backSurface);
+		view.add(textSurface);
+		view.add(backSurface);
 
-		view.opacityState = new Transitionable(style.modifiers.baseOpacity);
+		//view.opacityState = new Transitionable(style.modifiers.baseOpacity);
 		view.modifier = new Modifier({size: function(){return view.size;}});
 		view.textSurface = textSurface;
 		view.backSurface = backSurface;
@@ -360,10 +412,13 @@ define(function(require, exports, module) {
 
 
 
-	ObjectFactory.prototype.createAccessView = function createAccessView()
+	ObjectFactory.prototype.createAccessView = function createAccessView(style)
 	{
 		var view = new View();
-		var surface = this.makeSurface('');
+		if (!style)
+			style = 'base';
+
+		var surface = this.makeSurface('',style);
 
 		view.accessOpacity = 0.8;
 		view.baseOpacity = 0.5;
@@ -412,7 +467,7 @@ define(function(require, exports, module) {
 
 	ObjectFactory.prototype.createNumberView = function createNumberView(initialValue,numBits)
 	{
-		var numberView = (new ObjectFactory()).createAccessView();
+		var numberView = (new ObjectFactory()).createAccessView('compact');
 
 		numberView.numBits = numBits;
 		numberView.setValue = function(number) {	
@@ -443,9 +498,9 @@ define(function(require, exports, module) {
 	};
 
 
-	ObjectFactory.prototype.createFlagView = function createFlagView(initialValue)
+	ObjectFactory.prototype.createFlagView = function createFlagView(initialValue,style)
 	{
-		var flagView = (new ObjectFactory()).createAccessView();
+		var flagView = (new ObjectFactory()).createAccessView(style);
 		flagView.offOpacity = flagView.baseOpacity;
 		
 		flagView.setValue = function(value)

@@ -16,15 +16,13 @@ define(function(require, exports, module) {
 		this.size = this.options.size;		
 		this.position = this.options.position;
 
-        this.minimumSize = this.size;
-        this.maximumSize = this.size;
-
         this.viewAlign = (this.options.viewAlign);// ? this.options.viewAlign : [0.5,0.5];
 	    //this.viewOrigin = [0.5,0.5];
 
 		this.isAnimated = PositionableView.DEFAULT_OPTIONS.isAnimated;
 		this.positionTransition =  PositionableView.DEFAULT_OPTIONS.positionTransition;
 		this.sizeTransition =  PositionableView.DEFAULT_OPTIONS.sizeTransition;
+		this.opacityTransition = undefined;
 
         this._layoutDirty = false;
 
@@ -35,6 +33,8 @@ define(function(require, exports, module) {
 		this.positionState = new Transitionable(Transform.translate(this.position[0],this.position[1],this.position[2]));
 		this.sizeState = new Transitionable(this.size);
         this.alignState = new Transitionable(this.viewAlign);
+
+		this.opacityState = new Transitionable(1);
 	}
 
 	PositionableView.prototype = Object.create(View.prototype);	
@@ -53,18 +53,22 @@ define(function(require, exports, module) {
 
 
 	PositionableView.prototype.calculateSize = function() {
+		if (this.owner)
+			return this.owner.calculateChildSize(this);
 		return this.size;
 	};	    
 
 	PositionableView.prototype.calculatePosition = function(){
+		if (this.owner)
+			return this.owner.calculateChildPosition(this);
 		return this.position;
 	};
 
-	PositionableView.prototype.calculateChildPosition = function(){
+	PositionableView.prototype.calculateChildPosition = function(child){
 		return this.calculatePosition();
 	};
 
-	PositionableView.prototype.calculateChildSize = function(){
+	PositionableView.prototype.calculateChildSize = function(child){
 		return this.calculateSize();
 	};
 
@@ -91,6 +95,10 @@ define(function(require, exports, module) {
 				origin: function() {
 					if (view.viewOrigin)
 						return view.viewOrigin;
+				},
+				opacity: function() {
+					if (view.opacityState)
+						return view.opacityState.get();
 				}
 			});
 		}
@@ -136,8 +144,8 @@ define(function(require, exports, module) {
 
     PositionableView.prototype.measure = function(requestedSize){
 		return {
-			minimumSize: this.minimumSize,
-			maximumSize: this.maximumSize
+			minimumSize: (this.minimumSize) ? this.minimumSize : this.size,
+			maximumSize: (this.maximumSize) ? this.maximumSize : this.size
 		};
 	};
 
@@ -153,6 +161,10 @@ define(function(require, exports, module) {
     PositionableView.prototype.needsLayout = function(){
         return this._layoutDirty;
     };
+
+	PositionableView.prototype.setOpacity = function(opacity){
+		this.opacityState.set(opacity,this.opacityTransition);
+	}
 
 	module.exports = PositionableView;
 });	

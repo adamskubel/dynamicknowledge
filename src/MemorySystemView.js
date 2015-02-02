@@ -1,40 +1,14 @@
 define(function(require, exports, module)
 {
-
-	var Engine = require("famous/core/Engine");
-	var Surface = require("famous/core/Surface");
-	var Transform = require("famous/core/Transform");
-	var Modifier = require("famous/core/Modifier");
-	var MouseSync = require("famous/inputs/MouseSync");
-	var Modifier = require("famous/core/Modifier");
-	var View = require("famous/core/View");
-	var Transitionable = require('famous/transitions/Transitionable');
-	var Easing = require('famous/transitions/Easing');
-	var RenderController = require("famous/views/RenderController");
-
-	var PositionableView = require('./PositioningLayouts/PositionableView');
-    var PositioningGridLayout = require('./PositioningLayouts/PositioningGridLayout');
-	var SequentialLayout = require('famous/views/SequentialLayout');
-
-	var ObjectFactory = require('./ObjectFactory');
 	var DynamicDetailView = require('./DynamicDetailView');
 	var ProcessMemoryManager = require('./ProcessMemoryManager');
-
-    var StretchyLayout = require('./PositioningLayouts/StretchyLayout2D');
-
+    var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
 	var kswapd = require('./kswapd');
 
 	function MemorySystemView(options)
 	{
 		DynamicDetailView.call(this, options);
 
-		Engine.on('prerender',function(){
-			if (DynamicDetailView.prototype.needsLayout.call(this))
-			{
-				var sizes = this.measure();
-				this.layout(sizes.minimumSize);
-			}
-		}.bind(this));
 	}
 
 	MemorySystemView.prototype = Object.create(DynamicDetailView.prototype);

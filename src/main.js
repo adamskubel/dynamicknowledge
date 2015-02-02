@@ -52,6 +52,7 @@ define(function (require, exports, module)
 	};
 
     var rootNode;
+	var dynamicNodes;
 
 	function init()
 	{
@@ -62,6 +63,8 @@ define(function (require, exports, module)
 
 		this.lines = [];
 		this.lineIndex = 0;
+		this.dynamicNodes = [];
+		dynamicNodes = this.dynamicNodes;
 
 		var mainLayout = new SequentialLayout({direction:0});
 		var mainChildren = [];
@@ -126,6 +129,19 @@ define(function (require, exports, module)
 
 		nextScene.call(this);
 		nextScene.call(this);
+
+
+		Engine.on('prerender',function(){
+			for (var i=0;i<dynamicNodes.length;i++)
+			{
+				var dn = dynamicNodes[i];
+				if (dn.needsLayout())
+				{
+					var sizes = dn.measure();
+					dn.layout(sizes.minimumSize);
+				}
+			}
+		});
 	}
 
 	var scenes = [
@@ -140,12 +156,20 @@ define(function (require, exports, module)
 		},
 		function ()
 		{
-			var pages = getPages(0,16,[300,-200],true);
+			var pages = new MemoryPagingView({
+				position:[400,0],
+				startAddress:0,
+				pageCount:16,
+				origin: [0.5,0.5]
+			});
+
+			rootNode.add(pages.getModifier()).add(pages);
+
 
 			var processes = [
-				getProcess("1",[-300,100],40),
-				getProcess("2",[-260,200],60),
-				getProcess("3",[-320,-100],80)
+				getProcess("1",[-400,100],40),
+				getProcess("2",[-360,200],60),
+				getProcess("3",[-420,-100],80)
 			];
 
             var memorySystem = new MemorySystemView({
@@ -154,6 +178,9 @@ define(function (require, exports, module)
                 position: [0,0,0]
             });
             rootNode.add(memorySystem.getModifier()).add(memorySystem);
+
+			dynamicNodes.push(pages);
+			dynamicNodes.push(memorySystem);
 		},
 		function()
 		{
@@ -198,50 +225,50 @@ define(function (require, exports, module)
 		return newProcess;
 	}
 
-	function getPage(pageNum, blockPosition, pageOnly)
-	{
-		var startAddress = pageNum * memoryConfig.pageSize;
-
-		if (pageOnly == undefined)
-		{
-			pageOnly = false;
-		}
-
-		var memBlock;
-		if (this.pages[pageNum] == undefined)
-		{
-			memBlock = new MemoryBlockView(
-				{
-					position: blockPosition,
-					startAddress: startAddress,
-					memSize: memoryConfig.pageSize,
-					responsive: false,
-					isPageOnly: pageOnly
-				});
-
-			this.pages[pageNum] = memBlock;
-			this.mainNode.add(memBlock.getModifier()).add(memBlock);
-
-		} else
-		{
-			memBlock = this.pages[pageNum];
-			memBlock.setPosition(blockPosition);
-		}
-		return memBlock;
-	}
-
-	function getPages(startNum, pageCount, startPosition,pageOnly)
-	{
-		var pages = [];
-		for (var x= 0, i=startNum;i<(startNum+pageCount);i++)
-		{
-			x += 22;
-			var position = [startPosition[0], startPosition[1]+(x)];
-			var block =  getPage(i,position,pageOnly);
-			block.setSize([60,18]);
-		}
-		return pages;
-	}
+	//function getPage(pageNum, blockPosition, pageOnly)
+	//{
+	//	var startAddress = pageNum * memoryConfig.pageSize;
+	//
+	//	if (pageOnly == undefined)
+	//	{
+	//		pageOnly = false;
+	//	}
+	//
+	//	var memBlock;
+	//	if (this.pages[pageNum] == undefined)
+	//	{
+	//		memBlock = new MemoryBlockView(
+	//			{
+	//				position: blockPosition,
+	//				startAddress: startAddress,
+	//				memSize: memoryConfig.pageSize,
+	//				responsive: false,
+	//				isPageOnly: pageOnly
+	//			});
+	//
+	//		this.pages[pageNum] = memBlock;
+	//		this.mainNode.add(memBlock.getModifier()).add(memBlock);
+	//
+	//	} else
+	//	{
+	//		memBlock = this.pages[pageNum];
+	//		memBlock.setPosition(blockPosition);
+	//	}
+	//	return memBlock;
+	//}
+	//
+	//function getPages(startNum, pageCount, startPosition,pageOnly)
+	//{
+	//	var pages = [];
+	//	for (var x= 0, i=startNum;i<(startNum+pageCount);i++)
+	//	{
+	//		x += 22;
+	//		var position = [startPosition[0], startPosition[1]+(x)];
+	//		var block =  getPage(i,position,pageOnly);
+	//		block.setSize([60,18]);
+	//	}
+	//	return pages;
+	//}
 
 
 	function showText(text, position)

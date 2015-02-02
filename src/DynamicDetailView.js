@@ -13,7 +13,6 @@ define(function(require, exports, module) {
 
 	var PositionableView = require('./PositioningLayouts/PositionableView');
 	var ObjectFactory = require('./ObjectFactory');
-	var Vector = require('./ProperVector');
 	
 	function DynamicDetailView(options) 
 	{
@@ -23,10 +22,20 @@ define(function(require, exports, module) {
 
 		this.background = (new ObjectFactory()).makeSurface('','outline');
 		this.background.modifier = new Modifier({transform: Transform.translate(0,0,-1.5)});
-		this.background.on('click',function(){
+
+		this.closeButton = (new ObjectFactory()).makeButtonView('^','slim');
+		this.closeButton.setSize([20,20]);
+
+		this.closeButton.modifier.alignFrom([1,0]);
+		this.closeButton.modifier.originFrom(function(){return [1,0];});
+		this.closeButton.modifier.transformFrom(Transform.translate(0,0,2));
+
+		this.closeButton.on('click',function(){
 			this.setLevelOfDetail(0);
 		}.bind(this));
 
+
+		_addView.call(this,this.closeButton);
         _addView.call(this,this.background);
 
 		if (options)
@@ -68,6 +77,7 @@ define(function(require, exports, module) {
         else if (view.getModifier)
             node = this.add(view.getModifier());
 
+		view.owner = this;
         node.add(new Modifier({transform: Transform.translate(0,0,1)})).add(view.renderController);
     }
 
@@ -115,6 +125,7 @@ define(function(require, exports, module) {
 			this.simpleView.show();
 			this.currentView = this.simpleView;
 			this.background.hide();
+			this.closeButton.hide();
 		}
 		else if (levelOfDetail == 1)
 		{
@@ -134,13 +145,13 @@ define(function(require, exports, module) {
 				this.simpleView.hide();
 
 			this.background.show();
+			this.closeButton.show();
 		}
 		else
 		{
 			console.error("Unknown detail level :" + levelOfDetail);
 		}
 
-		console.log("Requesting layout");
 		this.requestLayout();
     };
 
@@ -150,7 +161,7 @@ define(function(require, exports, module) {
 
 	DynamicDetailView.prototype.makeSimpleView = function()
 	{
-		var box = (new ObjectFactory()).makeSurface("MEOW",'base');
+		var box = (new ObjectFactory()).makeSurface("MEOW",'compact');
 		box.setProperties({cursor:'pointer'});
 		box.on('click',function(){
 			if (this.levelOfDetail == 0)
