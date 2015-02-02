@@ -42,6 +42,10 @@ define(function(require, exports, module) {
 	kswapd.prototype = Object.create(View.prototype);
 	kswapd.prototype.constructor = kswapd;
 
+	kswapd.DEFAULT_OPTIONS = {
+		position: [0,0,0]
+	};
+
 
 	kswapd.prototype.getModifier = function getModifier()
     {

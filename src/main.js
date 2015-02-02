@@ -26,6 +26,7 @@ define(function (require, exports, module)
 	var MemoryPagingView = require('./MemoryPagingView');
 	var MemoryBlockView = require('./MemoryBlockView');
 	var PageTableView = require('./PageTableView');
+    var MemorySystemView = require('./MemorySystemView');
 
 	var DataClusterManager = require('./DataClusterManager');
 	var ObjectFactory = require('./ObjectFactory');
@@ -35,6 +36,9 @@ define(function (require, exports, module)
 	var HeaderFooterLayout = require('famous/views/HeaderFooterLayout');
 	var FlexibleLayout = require('famous/views/FlexibleLayout');
 	var SequentialLayout = require('famous/views/SequentialLayout');
+
+    var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
+    var PositionableView = require('./PositioningLayouts/PositionableView');
 
 	var process = require('./process');
 	var Timer = require('famous/utilities/Timer');
@@ -47,6 +51,7 @@ define(function (require, exports, module)
 		pageSize: 16
 	};
 
+    var rootNode;
 
 	function init()
 	{
@@ -83,7 +88,7 @@ define(function (require, exports, module)
 		})).add(this.cameraModifier);
 
 
-		this.mainNode.add(objectFactory.makeSurface("",'outline'));
+		//this.mainNode.add(objectFactory.makeSurface("",'outline'));
 
 		for (var i = 0; i < 60; i++)
 		{
@@ -112,8 +117,15 @@ define(function (require, exports, module)
 		var wrappingView = new View();
 		wrappingView.add(nextButton.modifier).add(nextButton);
 		this.scrollView.addChild(wrappingView);
-		nextButton.on('click', function (){nextScene();});
-		nextScene();
+
+        rootNode = this.mainNode;
+
+		nextButton.on('click', function (){
+            nextScene.call(this);
+        }.bind(this));
+
+		nextScene.call(this);
+		nextScene.call(this);
 	}
 
 	var scenes = [
@@ -128,13 +140,20 @@ define(function (require, exports, module)
 		},
 		function ()
 		{
-			var pages = getPages(0,16,[100,-200],true);
+			var pages = getPages(0,16,[300,-200],true);
 
 			var processes = [
-				getProcess("1",[-100,100],40),
-				getProcess("2",[-200,200],60),
-				getProcess("3",[-120,-100],80)
+				getProcess("1",[-300,100],40),
+				getProcess("2",[-260,200],60),
+				getProcess("3",[-320,-100],80)
 			];
+
+            var memorySystem = new MemorySystemView({
+                processes:processes,
+                size: [200,300],
+                position: [0,0,0]
+            });
+            rootNode.add(memorySystem.getModifier()).add(memorySystem);
 		},
 		function()
 		{
@@ -157,7 +176,7 @@ define(function (require, exports, module)
 		var newProcess;
 		if (this.processes[name] == undefined)
 		{
-			newProcess = new process({position: processPosition, radius: processRadius});
+			newProcess = new process({position: processPosition, radius: processRadius, name: name});
 			this.mainNode.add(newProcess.getModifier()).add(newProcess);
 			newProcess.createCallstack = createCallstack;
 			this.processes[name] = newProcess;
@@ -448,6 +467,49 @@ define(function (require, exports, module)
 
 		return scrollView;
 	}
+
+    function testStretch()
+    {
+        var stretchy = new StretchyLayout({
+            size: [300, 300],
+            position: [0, 0, 0],
+            viewAlign: [0.5, 0.5]
+        });
+        stretchy.setPosition([-100, -100, 0]);
+        stretchy.setAlign([0.5, 0.5]);
+        stretchy.setOrigin([0.5, 0.5]);
+
+        var factory = new ObjectFactory();
+
+        function makepv(text) {
+            var pv = new PositionableView();
+            pv.surface = factory.makeSurface(text);
+            pv.add(pv.surface);
+
+            pv.surface.on('click', function () {
+                if (pv._stretchConfig.weight == 1)
+                    pv._stretchConfig.weight = 2;
+                else
+                    pv._stretchConfig.weight = 1;
+
+                stretchy.reflow([300, 200]);
+            });
+            return pv;
+        };
+
+        var pv1 = makepv("PV1");
+        var pv2 = makepv("PV2");
+        var pv3 = makepv("PV3");
+
+        stretchy.addChild(pv1, {weight: 1, targetSize: [200, 120], minSize: [200, 20]});
+        stretchy.addChild(pv2, {weight: 2, targetSize: [200, 250], minSize: [200, 20]});
+        stretchy.addChild(pv3, {weight: 1, targetSize: [200, 130], minSize: [200, 20]});
+
+        rootNode.add(stretchy.getModifier()).add(stretchy);
+        var s = stretchy.measure([300,200]);
+        stretchy.layout(s.minimumSize);
+    }
+
 
 
 	init();

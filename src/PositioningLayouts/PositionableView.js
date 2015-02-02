@@ -6,26 +6,35 @@ define(function(require, exports, module) {
 	var Modifier   = require("famous/core/Modifier");
 	var MouseSync  = require("famous/inputs/MouseSync");
 	var View = require('famous/core/View');
-	var Modifier   = require("famous/core/Modifier");
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
 
 	function PositionableView(options) 
 	{
-		View.apply(this, arguments);
+		View.call(this, options);
 
 		this.size = this.options.size;		
 		this.position = this.options.position;
 
-	    this.viewAlign = [0,0];
-	    this.viewOrigin = [0,0];				
+        this.minimumSize = this.size;
+        this.maximumSize = this.size;
+
+        this.viewAlign = (this.options.viewAlign);// ? this.options.viewAlign : [0.5,0.5];
+	    //this.viewOrigin = [0.5,0.5];
 
 		this.isAnimated = PositionableView.DEFAULT_OPTIONS.isAnimated;
 		this.positionTransition =  PositionableView.DEFAULT_OPTIONS.positionTransition;
 		this.sizeTransition =  PositionableView.DEFAULT_OPTIONS.sizeTransition;
 
+        this._layoutDirty = false;
+
+        if (!this.position)
+            this.position = [0,0,0];
+
+
 		this.positionState = new Transitionable(Transform.translate(this.position[0],this.position[1],this.position[2]));
 		this.sizeState = new Transitionable(this.size);
+        this.alignState = new Transitionable(this.viewAlign);
 	}
 
 	PositionableView.prototype = Object.create(View.prototype);	
@@ -35,11 +44,11 @@ define(function(require, exports, module) {
 
 	PositionableView.DEFAULT_OPTIONS = 
 	{
-        // size: [80,80],
-        // position: [0,0,0],
+        size: [0,0],
+        position: [0,0,0],
         isAnimated: true,
-        positionTransition: {duration:200, curve: Easing.outQuad},
-        sizeTransition: {duration:200, curve: Easing.outQuad}
+        positionTransition: {duration:250, curve: Easing.outQuad},
+        sizeTransition: {duration:250, curve: Easing.outQuad}
     };
 
 
@@ -72,12 +81,16 @@ define(function(require, exports, module) {
 				},
 				transform : function() {
 					return view.positionState.get();
+				}
+                ,align: function() {
+                    if (view.alignState)
+					    return view.alignState.get();
+                    else
+                        return null;
 				},
-				// align: function() {
-				// 	return view.viewAlign;
-				// },
 				origin: function() {
-					return view.viewOrigin;
+					if (view.viewOrigin)
+						return view.viewOrigin;
 				}
 			});
 		}
@@ -96,9 +109,50 @@ define(function(require, exports, module) {
 	};
 
 	PositionableView.prototype.setSize = function(newSize) {
+		this.sizeState.set(newSize, (this.isAnimated && this.size) ? this.sizeTransition : null);
 		this.size = newSize;
-		this.sizeState.set(newSize, (this.isAnimated) ? this.sizeTransation : null);
 	};
+
+    PositionableView.prototype.setAlign = function(newAlign) {
+        this.alignState.set(newAlign, (this.isAnimated && this.viewAlign) ? this.positionTransition : null);
+        this.viewAlign = newAlign;
+    };
+
+    PositionableView.prototype.setOrigin = function(newOrigin){
+        this.viewOrigin = newOrigin;
+    };
+
+    PositionableView.prototype.setDynamicSizes = function(sizes) {
+        if (sizes) {
+            this.minimumSize = sizes.minimumSize;
+            this.maximumSize = sizes.maximumSize;
+        }
+        else
+        {
+            this.minimumSize = undefined;
+            this.maximumSize = undefined;
+        }
+    };
+
+    PositionableView.prototype.measure = function(requestedSize){
+		return {
+			minimumSize: this.minimumSize,
+			maximumSize: this.maximumSize
+		};
+	};
+
+    PositionableView.prototype.layout = function(layoutSize){
+        this.setSize(layoutSize);
+		this._layoutDirty = false;
+    };
+
+    PositionableView.prototype.requestLayout = function(){
+        this._layoutDirty = true;
+    };
+
+    PositionableView.prototype.needsLayout = function(){
+        return this._layoutDirty;
+    };
 
 	module.exports = PositionableView;
 });	

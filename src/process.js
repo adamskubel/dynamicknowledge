@@ -20,22 +20,14 @@ define(function(require, exports, module) {
 
 	function process(options) 
 	{
-	    PositionableView.apply(this, arguments);
+	    PositionableView.call(this, options);
 
-	    // this.position = [options.position[0],options.position[1],0];
-	    this.setSize([options.radius,options.radius]);
+
+	    this.setSize([this.options.radius,this.options.radius]);
 	    this.radius = options.radius;
 
-	    // this.viewAlign = [0.5,0.5];
 	    this.viewOrigin = [0.5,0.5];
-				
-	    // this.calculateSize = function() {
-	    // 	return this.size;
-	    // };	    
-	    // this.calculatePosition = function(){
-	    // 	return this.position;
-	    // };
-
+        this.name = this.options.name;
 	    this.setPosition(options.position);
 
 	    _initView.call(this);

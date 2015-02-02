@@ -13,7 +13,7 @@ define(function(require, exports, module) {
 	var Easing = require('famous/transitions/Easing');
 	var MemoryBlockView = require('./MemoryBlockView');
     var CanvasSurface = require('famous/surfaces/CanvasSurface');
-
+    var PositionableView = require('./PositioningLayouts/PositionableView');
 	function ObjectFactory(options) 
 	{
 	}
@@ -28,6 +28,7 @@ define(function(require, exports, module) {
 	ObjectFactory.prototype.getTungstenColor = function(alpha){
 		return 'rgba(255,197,143,'+ alpha + ')';	
 	};
+
 
 
 	var labelStyles = 
@@ -114,6 +115,15 @@ define(function(require, exports, module) {
 		   	overflow:'auto'
 		}
 	};
+
+
+	ObjectFactory.wrapView = function(child)
+	{
+		var wrappingView = new PositionableView();
+		wrappingView.add(child.getModifier()).add(child);
+		return wrappingView;
+	};
+
 
 	ObjectFactory.prototype.makeSurface = function makeSurface(text, type)
 	{
@@ -417,7 +427,7 @@ define(function(require, exports, module) {
 				else
 					label = number;
 
-				this.surface.setValue(label);
+				this.surface.setText(label);
 			}
 		};
 

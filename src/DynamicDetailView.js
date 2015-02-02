@@ -13,22 +13,41 @@ define(function(require, exports, module) {
 
 	var PositionableView = require('./PositioningLayouts/PositionableView');
 	var ObjectFactory = require('./ObjectFactory');
+	var Vector = require('./ProperVector');
 	
 	function DynamicDetailView(options) 
 	{
-		PositionableView.apply(this, arguments);
+		PositionableView.call(this, options);
 
-		this.setLevelOfDetail(options.levelOfDetail ? 0 : options.levelOfDetail);
+        this.currentView = null;
+
+		this.background = (new ObjectFactory()).makeSurface('','outline');
+		this.background.modifier = new Modifier({transform: Transform.translate(0,0,-1.5)});
+		this.background.on('click',function(){
+			this.setLevelOfDetail(0);
+		}.bind(this));
+
+        _addView.call(this,this.background);
+
+		if (options)
+			this.setLevelOfDetail(options.levelOfDetail ? options.levelOfDetail : 0);
+		else
+			this.setLevelOfDetail(0);
+
 	}
 
 	DynamicDetailView.prototype = Object.create(PositionableView.prototype);
 	DynamicDetailView.prototype.constructor = DynamicDetailView;
 
 
-	function _addView(view)
+	function _prepareView(view)
 	{
-		view.renderController = new RenderController();
+		view.renderController = new RenderController({
+			inTransition:false,
+			outTransition:false
+		});
 
+        var dynamicView = this;
 		view.show = function(){
 			this.renderController.show(this);
 		};
@@ -37,13 +56,36 @@ define(function(require, exports, module) {
 			this.renderController.hide();
 		};
 
-		var node = this;
-		if (view.modifier)
-			node = this.add(view.modifier);
-
-		node.add(view.renderController);
 	}
 
+    function _addView(view)
+    {
+        _prepareView.call(this,view);
+
+        var node = this;
+        if (view.modifier)
+            node = this.add(view.modifier);
+        else if (view.getModifier)
+            node = this.add(view.getModifier());
+
+        node.add(new Modifier({transform: Transform.translate(0,0,1)})).add(view.renderController);
+    }
+
+    DynamicDetailView.prototype.measure = function(requestedSize){
+        return this.currentView.measure(requestedSize);
+    };
+
+    DynamicDetailView.prototype.layout = function(layoutSize){
+        if (this.currentView)
+			this.currentView.layout(layoutSize);
+
+		this._layoutDirty = false;
+		PositionableView.prototype.layout.call(this,layoutSize);
+    };
+
+    DynamicDetailView.prototype.needsLayout = function(){
+        return this._layoutDirty || ((this.currentView) ? this.currentView.needsLayout() : false);
+    };
 
     DynamicDetailView.prototype.setLevelOfDetail = function(levelOfDetail)
     {
@@ -55,12 +97,24 @@ define(function(require, exports, module) {
 			{
 				this.simpleView = this.makeSimpleView();
 				_addView.call(this,this.simpleView);
+
 			}
 
 			if (this.complexView)
 				this.complexView.hide();
 
+            if (this._stretchConfig)
+            {
+                this._stretchConfig.weight = 1;
+            }
+            else
+            {
+                this.setSize(this.simpleView.getSize());
+            }
+
 			this.simpleView.show();
+			this.currentView = this.simpleView;
+			this.background.hide();
 		}
 		else if (levelOfDetail == 1)
 		{
@@ -70,14 +124,24 @@ define(function(require, exports, module) {
 			}
 
 			this.complexView.show();
+			this.currentView = this.complexView;
+			if (this._stretchConfig)
+			{
+                this._stretchConfig.weight = 2;
+			}
 
 			if (this.simpleView)
 				this.simpleView.hide();
+
+			this.background.show();
 		}
 		else
 		{
 			console.error("Unknown detail level :" + levelOfDetail);
 		}
+
+		console.log("Requesting layout");
+		this.requestLayout();
     };
 
 	DynamicDetailView.prototype.makeComplexView = function(){
@@ -86,9 +150,37 @@ define(function(require, exports, module) {
 
 	DynamicDetailView.prototype.makeSimpleView = function()
 	{
-		var box = (new ObjectFactory()).makeSurface("",'outline');
+		var box = (new ObjectFactory()).makeSurface("MEOW",'base');
+		box.setProperties({cursor:'pointer'});
+		box.on('click',function(){
+			if (this.levelOfDetail == 0)
+				this.setLevelOfDetail(1);
+			else
+				this.setLevelOfDetail(0);
+
+		}.bind(this));
+
+		box.setSize([120,40]);
+
+        box.measure = function(){
+            return {
+                minimumSize: box.getSize(),
+                maximumSize: box.getSize()
+            }
+        }
+
+        box.layout = function(layoutSize){
+            box.setSize(layoutSize);
+        }
+
+
+		box.needsLayout = function() {return false};
+
 		return box;
 	};
+
+
+
 
 	module.exports = DynamicDetailView;
 });

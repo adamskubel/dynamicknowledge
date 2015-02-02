@@ -141,5 +141,9 @@ define(function(require, exports, module) {
 		return new Vector(this.x,this.y,this.z);
 	};
 
+    Vector.prototype.toString = function(){
+        return this.x + "," + this.y + "," + this.z;
+    };
+
 	module.exports = Vector;
 });

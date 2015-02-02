@@ -4,9 +4,8 @@ define(function(require, exports, module) {
 	var Surface    = require("famous/core/Surface");
 	var Transform  = require("famous/core/Transform");
 	var Modifier   = require("famous/core/Modifier");
-	var MouseSync  = require("famous/inputs/MouseSync");
 	var View = require('famous/core/View');
-	var Modifier   = require("famous/core/Modifier");
+
 	var PositioningGridLayout = require('./PositioningLayouts/PositioningGridLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
@@ -15,41 +14,35 @@ define(function(require, exports, module) {
 	var ObjectFactory = require('./ObjectFactory');
 	var PositioningFlexibleLayout = require('./PositioningLayouts/PositioningFlexibleLayout');
 
+    var PositionableView = require('./PositioningLayouts/PositionableView');
+
 	function PageTableView(options) 
 	{
-	    View.apply(this, arguments);
+        PositionableView.apply(this, arguments);
 
-	    this.position = options.position;
-	    this.size = options.size;
+	    this.position = this.options.position;
+	    this.size = this.options.size;
 
 	    this.pageTableEntries = {};
 	    this.indexViews = {};
 
-	    this.pageSize = 4;
-	    this.pageOffsetBits = 2;
-	    this.addressMask = 0x3;
+	    this.pageSize = 16;
+	    this.pageOffsetBits = 4;
+	    this.addressMask = 0xF;
 
-	    // this.minPageNumber = options.startAddress >> this.pageOffsetBits;
-	    this.pageCount = options.memSize / this.pageSize;
+	    this.pageCount = this.options.pageCount;
 
 	    _initView.call(this);
-
-	    this.calculateSize = function() {
-	    	return this.size;
-	    };	    
-	    this.calculatePosition = function(){
-	    	return this.position;
-	    };
-	    this.calculateChildPosition = function(){
-	    	return this.calculatePosition();
-	    };
-	    this.calculateChildSize = function(){
-	    	return this.calculateSize();
-	    };
 	}
 
-	PageTableView.prototype = Object.create(View.prototype);
+	PageTableView.prototype = Object.create(PositionableView.prototype);
 	PageTableView.prototype.constructor = PageTableView;
+
+	PageTableView.DEFAULT_OPTIONS = {
+		position: [0,0,0],
+		size: [undefined,undefined],
+		pageCount: 4
+	}
 
 	PageTableView.prototype.getModifier = function getModifier()
     {
@@ -141,27 +134,6 @@ define(function(require, exports, module) {
   			{
   				pte.access(data);
   			}
-
-/*
-  			var newAddress = pte.pageFrameNumber << this.pageOffsetBits;
-  			newAddress += pageOffset;
-
-  			if (pte.valid)
-  			{
-  				pte.setAccessed(true);
-  			}
-  			else
-  			{
-  				this._eventOutput.emit('page_fault',{
-  					virtualAddress:data.address, 
-  					pageTableEntry:pte
-  				});
-  			}	
-  			
-  			data.address = newAddress;
-  			this._eventOutput.emit('mem_access',data);
-  			*/
-  			  			
 		}).bindThis(this);		
 	}
 
