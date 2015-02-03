@@ -18,7 +18,7 @@ define(function(require, exports, module) {
 
 	function PageTableView(options) 
 	{
-        PositionableView.apply(this, arguments);
+        PositionableView.call(this, options);
 
 	    this.position = this.options.position;
 	    this.size = this.options.size;
@@ -44,18 +44,18 @@ define(function(require, exports, module) {
 		pageCount: 4
 	}
 
-	PageTableView.prototype.getModifier = function getModifier()
-    {
-    	var blockView = this;
-    	return new Modifier({
-    		size : function () {
-    			return blockView.size;
-    		},
-		    transform : function(){
-		        return Transform.translate(blockView.position[0], blockView.position[1], 0);
-		    }
-		});
-    };
+	//PageTableView.prototype.getModifier = function getModifier()
+    //{
+    //	var blockView = this;
+    //	return new Modifier({
+    //		size : function () {
+    //			return blockView.size;
+    //		},
+		//    transform : function(){
+		//        return Transform.translate(blockView.position[0], blockView.position[1], 0);
+		//    }
+		//});
+    //};
 
     PageTableView.prototype.getPageByPFN = function(physicalPageNum, callstack)
     {

@@ -24,8 +24,6 @@ define(function(require, exports, module) {
 
 	SurfaceWrappingView.DEFAULT_OPTIONS = 
 	{
-        size: [0,0],
-        position: [0,0,0],
         isAnimated: true,
         positionTransition: {duration:250, curve: Easing.outQuad},
         sizeTransition: {duration:250, curve: Easing.outQuad}
@@ -57,13 +55,15 @@ define(function(require, exports, module) {
 	};
 
 	SurfaceWrappingView.prototype.setSize = function(newSize) {
+        if (this.sizeState.isActive())
+            this.sizeState.halt();
 		this.sizeState.set(newSize, (this.isAnimated && this.size) ? this.sizeTransition : null);
 		this.size = newSize;
 	};
 
 	SurfaceWrappingView.prototype.getSize = function(){
 		var surfaceSize = this.wrapSurface._size;
-		console.log("Surface size = " + surfaceSize);
+		//console.log("Surface size = " + surfaceSize);
 		if (surfaceSize)
 			return surfaceSize;
 		return this.size;
@@ -78,8 +78,14 @@ define(function(require, exports, module) {
 
     SurfaceWrappingView.prototype.layout = function(layoutSize){
         this.setSize(layoutSize);
-		this._layoutDirty = false;
+        if (this.wrapSurface._size)
+    		this._layoutDirty = false;
     };
 
-	module.exports = SurfaceWrappingView;
+    SurfaceWrappingView.prototype.needsLayout = function(){
+        return this.size[0] != this.wrapSurface._size[0] || this._layoutDirty || this.wrapSurface._sizeDirty || this.wrapSurface._contentDirty;
+    };
+
+
+    module.exports = SurfaceWrappingView;
 });	

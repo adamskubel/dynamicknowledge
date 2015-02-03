@@ -37,18 +37,28 @@ define(function(require, exports, module) {
     StretchyLayout.prototype.addChild = function(view,config)
     {
         view.parent = this;
-        this.children.push(view);
 
         if (!config)
             config = {
-                weight: 0
+                weight: 0,
+				align: 'left'
             };
+
+        if (config.index)
+        {
+            this.children.splice(config.index,0,view);
+        }
+        else
+        {
+            this.children.push(view);
+        }
 
         view._stretchConfig = config;
 
         this.add(view.getModifier()).add(view);
 		this.requestLayout();
     };
+
 
 
     function _setModifier(view, position)
@@ -125,17 +135,29 @@ define(function(require, exports, module) {
         var currentPosition = new Vector(0,0,0);
 		currentPosition = currentPosition.add(viewSpacing);
 
+		var widthVector = Vector.fromArray(layoutSize).multiply(cross);
+
         for (var i=0;i<this.children.length;i++)
         {
             var view = this.children[i];
-            _setModifier(view,currentPosition.toArray());
+
+			var viewPosition = currentPosition.clone();
+
+
+			if (view._stretchConfig.align == 'center')
+			{
+				viewPosition = viewPosition.add(widthVector.multiply(0.5));
+			}
+
+            _setModifier(view,viewPosition.toArray());
 
 			if (view._dynamicSize.dot(cross) == 0)
 			{
-				view._dynamicSize = view._dynamicSize.add(Vector.fromArray(layoutSize).multiply(cross));
+				view._dynamicSize = view._dynamicSize.add(widthVector);
 			}
 
             view.layout(view._dynamicSize.toArray(2));
+			//console.log("Size = " + view._dynamicSize.toString());
 			currentPosition = currentPosition.add((view._dynamicSize.add(viewSpacing)).multiply(dir));
 
         }

@@ -43,6 +43,7 @@ define(function (require, exports, module)
 	var process = require('./process');
 	var Timer = require('famous/utilities/Timer');
 
+	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
 
 	var currentScene = 0;
 	var objectFactory = new ObjectFactory();
@@ -53,6 +54,8 @@ define(function (require, exports, module)
 
     var rootNode;
 	var dynamicNodes;
+	var mainLayout;
+    var strings = {};
 
 	function init()
 	{
@@ -66,11 +69,13 @@ define(function (require, exports, module)
 		this.dynamicNodes = [];
 		dynamicNodes = this.dynamicNodes;
 
-		var mainLayout = new SequentialLayout({direction:0});
-		var mainChildren = [];
-		mainLayout.sequenceFrom(mainChildren);
+		var mainView = new View();
+		this.mainNode = mainView.add(new Modifier({
+			align: [0.5,0.5],
+			origin: [0.5,0.5]
+		})).add(this.cameraModifier);
 
-		this.context.add(mainLayout);
+		this.context.add(mainView);
 
 		this.cameraModifier = new Modifier(
 			{
@@ -84,14 +89,6 @@ define(function (require, exports, module)
 		this.cameraModifier.state = new Transitionable(0);
 
 
-		var mainView = new View();
-		this.mainNode = mainView.add(new Modifier({
-			align: [0.5,0.5],
-			origin: [0.5,0.5]
-		})).add(this.cameraModifier);
-
-
-		//this.mainNode.add(objectFactory.makeSurface("",'outline'));
 
 		for (var i = 0; i < 60; i++)
 		{
@@ -100,96 +97,139 @@ define(function (require, exports, module)
 			this.mainNode.add(newLine.getModifier()).add(newLine);
 		}
 
-		this.scrollView = makeScrollview();
-		var scrollWrapperView = new View();
-		scrollWrapperView.add(this.scrollView.modifier).add(this.scrollView);
+		//this.scrollView = makeScrollview();
+		//var scrollWrapperView = new View();
+		//scrollWrapperView.add(this.scrollView.modifier).add(this.scrollView);
 
-		mainChildren.push(mainView);
-
-		var padding1 = objectFactory.makeSurface("",'blank');
-		padding1.setSize([30,undefined]);
-		mainChildren.push(padding1);
-
-		mainChildren.push(scrollWrapperView);
-		var padding2 = objectFactory.makeSurface("",'blank');
-		padding2.setSize([30,undefined]);
-		mainChildren.push(padding2);
-
-		var nextButton = objectFactory.makeButtonView("Next");
-		nextButton.setSize([300, 100]);
-		var wrappingView = new View();
-		wrappingView.add(nextButton.modifier).add(nextButton);
-		this.scrollView.addChild(wrappingView);
+		//var nextButton = objectFactory.makeButtonView("CameraMode");
+		//nextButton.setSize([300, 100]);
+		//var wrappingView = new View();
+		//wrappingView.add(nextButton.modifier).add(nextButton);
+		//this.scrollView.addChild(wrappingView);
 
         rootNode = this.mainNode;
+		mainLayout = new StretchyLayout({
+			direction:0,
+			viewSpacing:[100,0]
+		});
 
-		nextButton.on('click', function (){
-            nextScene.call(this);
-        }.bind(this));
+		//mainLayout.add(objectFactory.makeSurface('','outline'));
+		rootNode.add(mainLayout.getModifier()).add(mainLayout);
+		dynamicNodes.push(mainLayout);
 
-		nextScene.call(this);
-		nextScene.call(this);
-
+		setCameraState("2D");
 
 		Engine.on('prerender',function(){
 			for (var i=0;i<dynamicNodes.length;i++)
 			{
 				var dn = dynamicNodes[i];
-				if (dn.needsLayout())
+				if (mainLayout.needsLayout())
 				{
 					var sizes = dn.measure();
 					dn.layout(sizes.minimumSize);
 				}
 			}
 		});
+
+        nextScene.call(this);
 	}
+
+	var nextButton;
+	var textLayout;
 
 	var scenes = [
 		function ()
 		{
-			setCameraState("2D");
 
-			say("Let's explore how the Linux Kernel manages memory!");
-			say("How does it protect processes from writing to memory they aren't supposed to?");
-			say("What happens when the system runs out of room for all running processes?");
-			say("How does the system decide what processes get what memory?");
+			textLayout = new StretchyLayout({
+				direction: 1,
+				viewOrigin: [0,0.5]
+			});
+
+			var textSurface = (new ObjectFactory()).makeLabelSurface("");
+			var wrapSurface = new SurfaceWrappingView(textSurface,{size: [400,200]});
+
+			textLayout.addChild(wrapSurface,{weight:2});
+
+			nextButton = objectFactory.makeButtonView("Next");
+			nextButton.setSize([200, 80]);
+			var wrappingView = new SurfaceWrappingView(nextButton,{size:[0,100]});
+
+			textLayout.addChild(wrappingView);
+
+			nextButton.on('click', function (){
+			    nextScene.call(this);
+			}.bind(this));
+
+			mainLayout.addChild(textLayout,{weight:1, align:'center'});
+			textLayout.add(new Modifier({transform:Transform.translate(0,0,-1)})).add(objectFactory.makeSurface('','outline'));
+
+			mainLayout.requestLayout();
+
+            loadTextAsync("string1.txt", function(text){
+                textSurface.setText(text);
+                textLayout.requestLayout();
+            });
 		},
 		function ()
 		{
-			var pages = new MemoryPagingView({
-				position:[400,0],
-				startAddress:0,
-				pageCount:16,
-				origin: [0.5,0.5]
-			});
-
-			rootNode.add(pages.getModifier()).add(pages);
+            var scene2 = "Actually, the truth is that the memory is the process uses isn't real!<br/>" +
+                "The value of a pointer has no direct relationship to physical memory. Instead, the kernel maps this address into a physical address on the fly." +
+                "<br/>But this mapping isn't just a simple translation! It's a complex process that enables efficient allocation and security, while simultaneously not sacrificing performance.";
 
 
-			var processes = [
-				getProcess("1",[-400,100],40),
-				getProcess("2",[-360,200],60),
-				getProcess("3",[-420,-100],80)
-			];
+			var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(scene2),{size: [400,200]});
+            textLayout.addChild(textView,{weight: 1, index:1});
 
-            var memorySystem = new MemorySystemView({
-                processes:processes,
-                size: [200,300],
-                position: [0,0,0]
+		},
+        function ()
+        {
+            var virtualMemorySpace = new PositionableView({
+                size:[100,800]
             });
-            rootNode.add(memorySystem.getModifier()).add(memorySystem);
 
-			dynamicNodes.push(pages);
-			dynamicNodes.push(memorySystem);
-		},
-		function()
-		{
-			setCameraState("3D");
-		},
-		function()
-		{
-			setCameraState("2D");
-		}
+            var layout = new HeaderFooterLayout({
+                headerSize:30,
+                footerSize:30
+            });
+
+            virtualMemorySpace.add(layout);
+
+            layout.header.add(objectFactory.makeLabelView("0x00000000"));
+            layout.content.add(objectFactory.makeSurface('','outline'));
+            layout.footer.add(objectFactory.makeLabelView("0xFFFFFFFF"));
+
+            label(virtualMemorySpace,"This is the virtual memory space of a 32-bit process");
+
+
+
+            var scene2 = "What the process uses is <b>virtual memory</b>, meaning it uses a <b>virtual memory space</b>. " +
+                "The virtual memory space is defined as [0,2^64] for a 64 bit system. While this space in continuous and unbroken, only a small subset of will map to an actual physical memory block.";
+
+
+            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(scene2),{size: [400,200]});
+
+            textLayout.addChild(textView,{weight: 1, index:textLayout.children.length-1});
+
+            mainLayout.addChild(virtualMemorySpace);
+        },
+        function ()
+        {
+            var virtualMemory = new MemoryPagingView({
+                position:[400,0],
+                startAddress:0,
+                pageCount:16,
+                origin: [0.5,0.5]
+            });
+
+            var scene2 = "Meow!";
+
+            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(scene2),{size: [400,200]});
+
+            textLayout.addChild(textView,{weight: 1, index:textLayout.children.length-1});
+
+            mainLayout.addChild(virtualMemory);
+        }
 	];
 
 	function nextScene()
@@ -225,51 +265,24 @@ define(function (require, exports, module)
 		return newProcess;
 	}
 
-	//function getPage(pageNum, blockPosition, pageOnly)
-	//{
-	//	var startAddress = pageNum * memoryConfig.pageSize;
-	//
-	//	if (pageOnly == undefined)
-	//	{
-	//		pageOnly = false;
-	//	}
-	//
-	//	var memBlock;
-	//	if (this.pages[pageNum] == undefined)
-	//	{
-	//		memBlock = new MemoryBlockView(
-	//			{
-	//				position: blockPosition,
-	//				startAddress: startAddress,
-	//				memSize: memoryConfig.pageSize,
-	//				responsive: false,
-	//				isPageOnly: pageOnly
-	//			});
-	//
-	//		this.pages[pageNum] = memBlock;
-	//		this.mainNode.add(memBlock.getModifier()).add(memBlock);
-	//
-	//	} else
-	//	{
-	//		memBlock = this.pages[pageNum];
-	//		memBlock.setPosition(blockPosition);
-	//	}
-	//	return memBlock;
-	//}
-	//
-	//function getPages(startNum, pageCount, startPosition,pageOnly)
-	//{
-	//	var pages = [];
-	//	for (var x= 0, i=startNum;i<(startNum+pageCount);i++)
-	//	{
-	//		x += 22;
-	//		var position = [startPosition[0], startPosition[1]+(x)];
-	//		var block =  getPage(i,position,pageOnly);
-	//		block.setSize([60,18]);
-	//	}
-	//	return pages;
-	//}
+    function loadTextAsync(name, callback)
+    {
+        jQuery.get('./'+name, function(data) {
+            callback(data);
+        });
 
+
+        //var client = new XMLHttpRequest();
+        //client.open('GET', './string1.txt');
+        //client.onreadystatechange = function() {
+        //    strings.string1 = client.responseText;
+        //    if (client.readyState == 4) {
+        //        nextScene.call(this);
+        //    }
+        //}.bind(this);
+        //
+        //client.send();
+    }
 
 	function showText(text, position)
 	{
@@ -362,11 +375,12 @@ define(function (require, exports, module)
 			//noinspection JSCheckFunctionSignatures
 			this.cameraModifier.state.set(0, transition);
 		}
-		else
+		else if (cameraMode == "3D")
 		{
 			//noinspection JSCheckFunctionSignatures
 			this.cameraModifier.state.set(1, transition);
 		}
+        this.cameraMode = cameraMode;
 	}
 
 	var labelAngles = [
@@ -457,43 +471,43 @@ define(function (require, exports, module)
 		textSurface.pipe(this.scrollView);
 		this.scrollView.addChild(textSurface);
 	}
-
-	function makeScrollview()
-	{
-		var scrollView = new Scrollview();
-		scrollView.children = [];
-		scrollView.sequenceFrom(scrollView.children);
-
-		scrollView.removeChild = function (child)
-		{
-
-			for (var i = 0; i < this.children.length; i++)
-			{
-				if (this.children[i] == child)
-				{
-					break;
-				}
-			}
-			this.children.splice(i, 1);
-		};
-
-		scrollView.removeAllChildren = function ()
-		{
-			this.children.splice(0, this.children.length);
-		};
-
-		scrollView.addChild = function (child)
-		{
-			child.parent = this;
-			this.children.push(child);
-		};
-
-		scrollView.modifier = new Modifier({
-			size:[300,undefined],
-			transform: Transform.translate(0, 20, 0)});
-
-		return scrollView;
-	}
+    //
+	//function makeScrollview()
+	//{
+	//	var scrollView = new Scrollview();
+	//	scrollView.children = [];
+	//	scrollView.sequenceFrom(scrollView.children);
+    //
+	//	scrollView.removeChild = function (child)
+	//	{
+    //
+	//		for (var i = 0; i < this.children.length; i++)
+	//		{
+	//			if (this.children[i] == child)
+	//			{
+	//				break;
+	//			}
+	//		}
+	//		this.children.splice(i, 1);
+	//	};
+    //
+	//	scrollView.removeAllChildren = function ()
+	//	{
+	//		this.children.splice(0, this.children.length);
+	//	};
+    //
+	//	scrollView.addChild = function (child)
+	//	{
+	//		child.parent = this;
+	//		this.children.push(child);
+	//	};
+    //
+	//	scrollView.modifier = new Modifier({
+	//		size:[300,undefined],
+	//		transform: Transform.translate(0, 20, 0)});
+    //
+	//	return scrollView;
+	//}
 
     function testStretch()
     {

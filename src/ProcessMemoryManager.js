@@ -13,10 +13,10 @@ define(function(require, exports, module) {
 	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
 	var MemoryPagingView = require('./MemoryPagingView');
 
-	var systemDescription = "Each process is allocated portions of the system's memory." +
-		" The process is not aware of which portions of the physical memory it has been allocated. " +
-		"The kernel provides the process normalized memory space, and the mapping of this normalized memory space " +
-		"is handled by the kernel proper. The term for this normalized space is 'virtual memory'";
+	var systemDescription = "The basis of Linux memory management is 'virtual memory'." +
+        "Basically, it's a virtual memory space allocated to a process, that has some mapping to " +
+        "actual memory. This mapping enables the kernel to optimize and secure the system's memory." +
+        "The mappings from virtual to real are defined in the process's page table";
 
     function ProcessMemoryManager(options)
     {
@@ -40,24 +40,22 @@ define(function(require, exports, module) {
 		var wrapSurface = new SurfaceWrappingView(textLayout,{size: [600,100]});
 
         var pageTable = new PageTableView({
-            size: [200,120]
+            size: [200,120],
+			viewOrigin:[0,0.5]
         });
 
         var systemLayout = new StretchyLayout({
             position: [0,0,0],
-            viewSpacing: [10,10],
-			origin:[0.5,0.5],
-			align:[0.5,0.5]
+            viewSpacing: [10,10]
         });
 
 		var virtualMemory = new MemoryPagingView({pageCount: 8});
 
-		systemLayout.addChild(virtualMemory,{weight:1});
-		systemLayout.addChild(pageTable, {weight: 1});
+		systemLayout.addChild(virtualMemory,{weight:1, align: 'left'});
+		systemLayout.addChild(pageTable, {weight: 1, align:'center'});
 
 		rootLayout.addChild(wrapSurface,{weight:2});
 		rootLayout.addChild(systemLayout,{weight:2});
-
 
         rootLayout.requestLayout();
         return rootLayout;

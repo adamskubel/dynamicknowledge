@@ -18,9 +18,6 @@ define(function(require, exports, module) {
 	{
 	    PositionableView.call(this, options);
 
-	    this.position = this.options.position;
-	    this.size = this.options.size;
-
 	    this.memConfig = {
 			pageSize:4,
 			pageOffsetBits: 2,
@@ -37,19 +34,6 @@ define(function(require, exports, module) {
 		position: [0,0],
 		pageCount: 4
 	};
-
-	MemoryPagingView.prototype.getModifier = function getModifier()
-    {
-    	var blockView = this;
-    	return new Modifier({
-    		size : function () {
-    			return blockView.size;
-    		},
-		    transform : function(){
-		        return Transform.translate(blockView.position[0], blockView.position[1], 0);
-		    }
-		});
-    };
 
 	MemoryPagingView.prototype.measure = function(requestedSize){
 		return this.currentView.measure(requestedSize);

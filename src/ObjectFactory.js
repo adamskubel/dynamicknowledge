@@ -58,6 +58,31 @@ define(function(require, exports, module) {
 			   	focusedOpacity: 1
 			}
 		},
+        "base2" :
+        {
+            "text" : {
+                backgroundColor : 'rgba(0,0,0,0)',
+                borderStyle : 'none',
+                color : tungsten(1),
+                fontFamily :'Helvetica',
+                textAlign: 'left',
+                fontSize: 'small'
+            },
+            "background" :
+            {
+                backgroundColor : tungsten(0.1),
+                borderColor : tungsten(0.4),
+                borderWidth : '1px',
+                borderStyle : 'solid',
+                padding: '10px 10px 10px 10px',
+                maxWidth: '400px'
+            },
+            "modifiers" :
+            {
+                baseOpacity: 0.8,
+                focusedOpacity: 1
+            }
+        },
 		"slim" :
 		{
 			"text" : {
@@ -267,6 +292,9 @@ define(function(require, exports, module) {
 		var buttonSurface = this.makeLabelSurface(text,styleName);
         buttonSurface.setProperties({textAlign:'center',cursor: 'pointer'});
 
+		buttonSurface.modifier.alignFrom([0.5,0.5]);
+		buttonSurface.modifier.originFrom([0.5,0.5]);
+
 		buttonSurface.opacityState.set(style.modifiers.baseOpacity);
         buttonSurface.on('mouseenter',function(){
             buttonSurface.opacityState.set(style.modifiers.focusedOpacity,{duration:100, curve:Easing.outQuad});
@@ -302,8 +330,6 @@ define(function(require, exports, module) {
 		};
 
 		textSurface.modifier = new Modifier({
-			//align:[0.5,0.5],
-			//origin:[0.5,0.5],
 			opacity: function(){return textSurface.opacityState.get();}
 		});
 
@@ -318,7 +344,7 @@ define(function(require, exports, module) {
 	ObjectFactory.prototype.makeLabelView = function(text,styleName){
 		
 		var view = new PositionableView();
-		var style = labelStyles.base;
+		var style = labelStyles.base2;
 
 		if (styleName != undefined)
 			style = labelStyles[styleName];
@@ -330,7 +356,7 @@ define(function(require, exports, module) {
 		});
 
 		view.setText = function(value){
-			this.textSurface.setContent(contentString);
+			this.textSurface.setContent(value);
 		};
 
 		var backSurface = new Surface ({
@@ -344,11 +370,11 @@ define(function(require, exports, module) {
 			opacity: function(){return view.opacityState.get();}
 		}));
 
-		view.add(textSurface);
-		view.add(backSurface);
+        originNode.add(textSurface);
+        originNode.add(backSurface);
 
 		//view.opacityState = new Transitionable(style.modifiers.baseOpacity);
-		view.modifier = new Modifier({size: function(){return view.size;}});
+		//view.modifier = new Modifier({size: function(){return view.size;}});
 		view.textSurface = textSurface;
 		view.backSurface = backSurface;
 

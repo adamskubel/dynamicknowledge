@@ -1,0 +1,13 @@
+What's a memory address actually mean? As programmers, we usually don't think about the actual value of a pointer. We only deal with it on relative terms. 
+Does it represent the actual location in RAM that the program writes to?
+<br/>
+Consider the following code:
+<pre>
+void main()
+{
+	cout << *(0);
+}
+</pre>
+This is obviously going to crash. The memory at address '0' should be empty. 
+<br/>
+But it's not that the RAM cells for address '0' are unpopulated. Something else is stopping the program from reading that address. 
