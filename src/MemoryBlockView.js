@@ -100,7 +100,7 @@ define(function(require, exports, module) {
 		var count = this.maxAddress - this.minAddress;
 		var rootLayout = new StretchyLayout({
 			direction:1,
-			viewSpacing:[10,2]
+			viewSpacing:[0,2]
 		});
 		var views = [];
 
@@ -134,8 +134,8 @@ define(function(require, exports, module) {
 
 		var box = DynamicDetailView.prototype.makeSimpleView.call(this);
 		//box.setText('0x' + this.minAddress.toString(16) + ' - 0x' + this.maxAddress.toString(16));
-		box.setText('page_' + this.minAddress/this.memConfig.pageCount);
-		box.setSize([100,30]);
+		box.surface.setText('[' + this.minAddress/this.memConfig.pageCount+']');
+        box.setDynamicSizes({minimumSize:[100,18], maximumSize:[100,50]});
 		return box;
 	};
 

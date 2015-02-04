@@ -30,6 +30,8 @@ define(function(require, exports, module) {
 		this.closeButton.modifier.originFrom(function(){return [1,0];});
 		this.closeButton.modifier.transformFrom(Transform.translate(0,0,2));
 
+        this.boxLabel = this.options.boxLabel;
+
 		this.closeButton.on('click',function(){
 			this.setLevelOfDetail(0);
 		}.bind(this));
@@ -44,6 +46,10 @@ define(function(require, exports, module) {
 			this.setLevelOfDetail(0);
 
 	}
+
+    DynamicDetailView.DEFAULT_OPTIONS = {
+        boxLabel: ""
+    }
 
 	DynamicDetailView.prototype = Object.create(PositionableView.prototype);
 	DynamicDetailView.prototype.constructor = DynamicDetailView;
@@ -161,7 +167,9 @@ define(function(require, exports, module) {
 
 	DynamicDetailView.prototype.makeSimpleView = function()
 	{
-		var box = (new ObjectFactory()).makeSurface("MEOW",'compact');
+        var boxView = new PositionableView();
+
+		var box = (new ObjectFactory()).makeSurface(this.boxLabel,'compact');
 		box.setProperties({cursor:'pointer'});
 		box.on('click',function(){
 			if (this.levelOfDetail == 0)
@@ -171,23 +179,11 @@ define(function(require, exports, module) {
 
 		}.bind(this));
 
-		box.setSize([120,40]);
+        boxView.setSize(this.options.boxSize);
+        boxView.add(box);
+        boxView.surface = box;
 
-        box.measure = function(){
-            return {
-                minimumSize: box.getSize(),
-                maximumSize: box.getSize()
-            }
-        }
-
-        box.layout = function(layoutSize){
-            box.setSize(layoutSize);
-        }
-
-
-		box.needsLayout = function() {return false};
-
-		return box;
+		return boxView;
 	};
 
 

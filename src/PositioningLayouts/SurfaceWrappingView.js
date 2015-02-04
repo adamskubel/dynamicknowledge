@@ -24,9 +24,8 @@ define(function(require, exports, module) {
 
 	SurfaceWrappingView.DEFAULT_OPTIONS = 
 	{
-        isAnimated: true,
-        positionTransition: {duration:250, curve: Easing.outQuad},
-        sizeTransition: {duration:250, curve: Easing.outQuad}
+        positionTransition: {duration:250, curve: Easing.inOutBounce}
+        //sizeTransition: {duration:250, curve: Easing.inOutBounce}
     };
 
 	//SurfaceWrappingView.prototype.setWrappedSurface = function(surface){
@@ -39,14 +38,18 @@ define(function(require, exports, module) {
 	};
 
 	SurfaceWrappingView.prototype.calculateSize = function() {
-		if (this.owner)
-			return this.owner.calculateChildSize(this);
-		return this.getSize();
+		if (this.parent)
+			return this.parent.calculateChildSize(this);
+
+        var surfaceSize = this.getSize();
+        if (surfaceSize) return surfaceSize;
+        return [0,0];
 	};	    
 
 	SurfaceWrappingView.prototype.calculatePosition = function(){
-		if (this.owner)
-			return this.owner.calculateChildPosition(this);
+		if (this.parent)
+			return this.parent.calculateChildPosition(this);
+
 		return this.position;
 	};
 
@@ -83,7 +86,8 @@ define(function(require, exports, module) {
     };
 
     SurfaceWrappingView.prototype.needsLayout = function(){
-        return this.size[0] != this.wrapSurface._size[0] || this._layoutDirty || this.wrapSurface._sizeDirty || this.wrapSurface._contentDirty;
+        return ((this.wrapSurface._size && this.size) && (this.size[0] != this.wrapSurface._size[0]))
+            || this._layoutDirty || this.wrapSurface._sizeDirty || this.wrapSurface._contentDirty;
     };
 
 

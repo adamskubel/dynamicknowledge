@@ -11,3 +11,7 @@ void main()
 This is obviously going to crash. The memory at address '0' should be empty. 
 <br/>
 But it's not that the RAM cells for address '0' are unpopulated. Something else is stopping the program from reading that address. 
+
+Linux actually doesn't let processes access memory directly. Instead, it gives them <b>virtual memory</b>.
+<br/><br/>
+The particulars of a virtual memory space is architecture dependent, but it is always much larger than the amount of physical memory available in the system. 

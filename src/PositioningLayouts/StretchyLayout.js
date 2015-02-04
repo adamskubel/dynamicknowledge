@@ -31,7 +31,9 @@ define(function(require, exports, module) {
 
     StretchyLayout.DEFAULT_OPTIONS = {
         viewSpacing: [0,0],
-		direction: 0
+		direction: 0,
+        position: [0,0,0],
+        positionTransition: {duration:5000, curve: Easing.outQuad}
     };
 
     StretchyLayout.prototype.addChild = function(view,config)
@@ -44,7 +46,7 @@ define(function(require, exports, module) {
 				align: 'left'
             };
 
-        if (config.index)
+        if (config.index != undefined)
         {
             this.children.splice(config.index,0,view);
         }
@@ -59,6 +61,17 @@ define(function(require, exports, module) {
 		this.requestLayout();
     };
 
+    StretchyLayout.prototype.calculateChildPosition = function (child)
+    {
+        var p = Vector.fromArray(this.calculatePosition());
+        var s = Vector.fromArray(this.size).multiply(Vector.fromArray(this.viewOrigin));
+        return p.sub(s).add(Vector.fromArray(child.position)).toArray();
+    };
+
+    StretchyLayout.prototype.calculateChildSize = function (child)
+    {
+        return this.calculateSize();
+    };
 
 
     function _setModifier(view, position)
@@ -157,7 +170,7 @@ define(function(require, exports, module) {
 			}
 
             view.layout(view._dynamicSize.toArray(2));
-			//console.log("Size = " + view._dynamicSize.toString());
+			//console.debug(view._globalId + " Size = " + view._dynamicSize.toString());
 			currentPosition = currentPosition.add((view._dynamicSize.add(viewSpacing)).multiply(dir));
 
         }

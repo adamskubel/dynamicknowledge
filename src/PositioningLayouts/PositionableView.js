@@ -5,14 +5,22 @@ define(function (require, exports, module)
     var Surface = require("famous/core/Surface");
     var Transform = require("famous/core/Transform");
     var Modifier = require("famous/core/Modifier");
-    var MouseSync = require("famous/inputs/MouseSync");
     var View = require('famous/core/View');
     var Transitionable = require('famous/transitions/Transitionable');
     var Easing = require('famous/transitions/Easing');
+    var Globals = require('../Globals');
+
+    var id;
 
     function PositionableView(options)
     {
         View.call(this, options);
+
+        this.name = (this.options.name) ? this.options.name : this.constructor.name;
+        id = (new Globals()).nextIdentifier(this.name);
+
+        this._globalId = id;
+
 
         this.size = this.options.size;
         this.position = this.options.position;
@@ -38,6 +46,9 @@ define(function (require, exports, module)
             this.alignState = new Transitionable(this.viewAlign);
 
         this.opacityState = new Transitionable(1);
+
+
+        //console.debug("Created " + id);
     }
 
     PositionableView.prototype = Object.create(View.prototype);
@@ -54,15 +65,15 @@ define(function (require, exports, module)
 
     PositionableView.prototype.calculateSize = function ()
     {
-        if (this.owner)
-            return this.owner.calculateChildSize(this);
+        if (this.parent)
+            return this.parent.calculateChildSize(this);
         return this.size;
     };
 
     PositionableView.prototype.calculatePosition = function ()
     {
-        if (this.owner)
-            return this.owner.calculateChildPosition(this);
+        if (this.parent)
+            return this.parent.calculateChildPosition(this);
         return this.position;
     };
 
@@ -122,12 +133,13 @@ define(function (require, exports, module)
 
     PositionableView.prototype.setPosition = function (position)
     {
-        if (this.position)
+        //console.log(id + "-" + this.position + " --> " + position);
+        if (this.positionState)
         {
             if (this.positionState.isActive())
                 this.positionState.halt();
 
-            //this._eventOutput.emit('positionChange', {newPosition: position});
+            this._eventOutput.emit('positionChange', {newPosition: position});
             this.positionState.set(Transform.translate(position[0], position[1], position[2]), (this.isAnimated) ? this.positionTransition : null);
         }
         else
@@ -137,9 +149,9 @@ define(function (require, exports, module)
         this.position = position;
     };
 
-    PositionableView.prototype.setSize = function (newSize)
+    function _setSize(newSize)
     {
-        if (this.size)
+        if (this.sizeState)
         {
             if (this.sizeState.isActive())
                 this.sizeState.halt();
@@ -149,6 +161,11 @@ define(function (require, exports, module)
         {
             this.sizeState = new Transitionable(newSize);
         }
+    }
+
+    PositionableView.prototype.setSize = function (newSize)
+    {
+        _setSize.call(this,newSize);
         this.size = newSize;
     };
 
@@ -196,7 +213,7 @@ define(function (require, exports, module)
 
     PositionableView.prototype.layout = function (layoutSize)
     {
-        this.setSize(layoutSize);
+        _setSize.call(this,layoutSize);
         this._layoutDirty = false;
     };
 

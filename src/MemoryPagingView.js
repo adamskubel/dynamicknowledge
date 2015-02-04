@@ -65,7 +65,7 @@ define(function(require, exports, module) {
 	{
 		var rootLayout = new StretchyLayout({
 			direction:1,
-			viewSpacing:[4,4]
+			viewSpacing:[0,4]
 		});
 
 		this.currentView = rootLayout;
@@ -76,7 +76,7 @@ define(function(require, exports, module) {
 				startAddress:i*this.memConfig.pageSize,
 				memSize:this.memConfig.pageSize
 			});
-			rootLayout.addChild(block);
+			rootLayout.addChild(block,{weight:1});
 		}
 
 		this.add(rootLayout.getModifier()).add(rootLayout);

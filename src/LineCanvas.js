@@ -60,6 +60,7 @@ define(function(require, exports, module) {
 
     LineCanvas.prototype.setLinePoints = function setPosition(p,p2)
     {
+        console.log(p + "--> " + p2);
     	this.needsRender = true;
 
     	var topLeft = [Math.min(p[0],p2[0]),Math.min(p[1],p2[1])];
@@ -116,7 +117,10 @@ define(function(require, exports, module) {
     		},
 		    transform : function(){
 		        return Transform.translate(line.position[0], line.position[1], 0);
-		    }
+		    },
+            origin: function(){
+                return [0,0];
+            }
 		});
     };
 
