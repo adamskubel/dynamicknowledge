@@ -8,7 +8,7 @@ define(function (require, exports, module)
     var View = require('famous/core/View');
     var Transitionable = require('famous/transitions/Transitionable');
     var Easing = require('famous/transitions/Easing');
-    var Globals = require('../Globals');
+    var Utils = require('../Utils');
 
     var id;
 
@@ -17,7 +17,7 @@ define(function (require, exports, module)
         View.call(this, options);
 
         this.name = (this.options.name) ? this.options.name : this.constructor.name;
-        id = (new Globals()).nextIdentifier(this.name);
+        id = (new Utils()).nextIdentifier(this.name);
 
         this._globalId = id;
 

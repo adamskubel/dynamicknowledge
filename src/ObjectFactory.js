@@ -7,7 +7,6 @@ define(function(require, exports, module) {
 	var Modifier   = require("famous/core/Modifier");
 	var MouseSync  = require("famous/inputs/MouseSync");
 	var View = require('famous/core/View');
-	var Modifier   = require("famous/core/Modifier");
 	var FlexibleLayout = require('famous/views/FlexibleLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
@@ -83,16 +82,18 @@ define(function(require, exports, module) {
                 focusedOpacity: 1
             }
         },
-		"slim" :
+		"compact" :
 		{
 			"text" : {
 				color : tungsten(1),
 				fontFamily :'Helvetica',
 				textAlign: 'left',
-				backgroundColor : tungsten(0.4),
-				borderColor : tungsten(0.8),
+				backgroundColor : tungsten(0.1),
+				borderColor : tungsten(0.4),
 				borderWidth : '1px',
-				borderStyle : 'solid'
+                padding: '2px 2px 2px 2px',
+				borderStyle : 'solid',
+                fontSize: 'small'
 			},
 			"modifiers" :
 			{

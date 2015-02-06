@@ -11,44 +11,31 @@ define(function(require, exports, module) {
 	var MemoryBlockView = require('./MemoryBlockView');
 	var ObjectFactory = require('./ObjectFactory');
 
-	var PositionableView = require('./PositioningLayouts/PositionableView');
+	var DynamicDetailView = require('./DynamicDetailView');
 	var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
+    var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
+    var Utils = require('./Utils');
 
 	function MemoryPagingView(options) 
 	{
-	    PositionableView.call(this, options);
+        this.memConfig = {
+            pageSize:0x1000,
+            pageOffsetBits: 2,
+            addressMask:3
+        };
 
-	    this.memConfig = {
-			pageSize:4,
-			pageOffsetBits: 2,
-			addressMask:3
-		};
+        options.boxLabel = Utils.hexString(options.startAddress,8) + "  " +
+        Utils.hexString(options.startAddress+options.pageCount*0x1000);
 
-	    _initView.call(this);
+        DynamicDetailView.call(this, options);
 	}
 
-	MemoryPagingView.prototype = Object.create(PositionableView.prototype);
+	MemoryPagingView.prototype = Object.create(DynamicDetailView.prototype);
 	MemoryPagingView.prototype.constructor = MemoryPagingView;
 
 	MemoryPagingView.DEFAULT_OPTIONS = {
 		position: [0,0],
 		pageCount: 4
-	};
-
-	MemoryPagingView.prototype.measure = function(requestedSize){
-		return this.currentView.measure(requestedSize);
-	};
-
-	MemoryPagingView.prototype.layout = function(layoutSize){
-		if (this.currentView)
-			this.currentView.layout(layoutSize);
-
-		this._layoutDirty = false;
-		PositionableView.prototype.layout.call(this,layoutSize);
-	};
-
-	MemoryPagingView.prototype.needsLayout = function(){
-		return this._layoutDirty || ((this.currentView) ? this.currentView.needsLayout() : false);
 	};
 
 
@@ -61,11 +48,11 @@ define(function(require, exports, module) {
 		this.grid.views[viewIndex].access(pageOffset,data);
     };
 
-	function _initView()
+	MemoryPagingView.prototype.makeComplexView = function()
 	{
 		var rootLayout = new StretchyLayout({
 			direction:1,
-			viewSpacing:[0,4]
+			viewSpacing:[0,10]
 		});
 
 		this.currentView = rootLayout;
@@ -74,13 +61,13 @@ define(function(require, exports, module) {
 		{
 			var block = new MemoryBlockView({
 				startAddress:i*this.memConfig.pageSize,
-				memSize:this.memConfig.pageSize
+				memSize:4
 			});
 			rootLayout.addChild(block,{weight:1});
 		}
 
-		this.add(rootLayout.getModifier()).add(rootLayout);
-	}
+        return rootLayout;
+	};
 
 	module.exports = MemoryPagingView;
 });

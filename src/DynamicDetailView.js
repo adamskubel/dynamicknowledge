@@ -23,7 +23,7 @@ define(function(require, exports, module) {
 		this.background = (new ObjectFactory()).makeSurface('','outline');
 		this.background.modifier = new Modifier({transform: Transform.translate(0,0,-1.5)});
 
-		this.closeButton = (new ObjectFactory()).makeButtonView('^','slim');
+		this.closeButton = (new ObjectFactory()).makeButtonView('[]','compact');
 		this.closeButton.setSize([20,20]);
 
 		this.closeButton.modifier.alignFrom([1,0]);
@@ -150,7 +150,7 @@ define(function(require, exports, module) {
 			if (this.simpleView)
 				this.simpleView.hide();
 
-			this.background.show();
+			//this.background.show();
 			this.closeButton.show();
 		}
 		else

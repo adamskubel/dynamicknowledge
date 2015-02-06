@@ -12,7 +12,11 @@ define(function(require, exports, module) {
 	var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
 	var PositionableView   = require("./PositioningLayouts/PositionableView");
 	var ObjectFactory = require('./ObjectFactory');
-	
+    var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
+
+
+    var objectFactory = new ObjectFactory();
+
 	function MemoryBlockView(options) 
 	{
 		this.memConfig = {
@@ -97,21 +101,59 @@ define(function(require, exports, module) {
 
 	function _makeGridLayout()
 	{
-		var count = this.maxAddress - this.minAddress;
-		var rootLayout = new StretchyLayout({
-			direction:1,
-			viewSpacing:[0,2]
-		});
-		var views = [];
+		//var count = this.maxAddress - this.minAddress;
+		//var rootLayout = new StretchyLayout({
+		//	direction:1,
+		//	viewSpacing:[0,2]
+		//});
+		//var views = [];
+        //
+		//for (var i=0;i<count;i++)
+		//{
+		//	var myView = _createCellView.call(this,i);
+		//	rootLayout.addChild(myView);
+		//}
+		//this.cells = views;
+        //
+		//return rootLayout;
 
-		for (var i=0;i<count;i++)
-		{
-			var myView = _createCellView.call(this,i);
-			rootLayout.addChild(myView);
-		}
-		this.cells = views;
+        function makePageAddress(num1,num2)
+        {
+            var pageAddress = new StretchyLayout({
+                direction: 0
+            });
 
-		return rootLayout;
+            var s = objectFactory.makeLabelSurface(num1);
+            s.setProperties({padding:'4px'});
+            pageAddress.addChild(
+                new SurfaceWrappingView(s, {size: [120, 40]}),
+                {weight: 2}
+            );
+
+            s = objectFactory.makeLabelSurface(num2);
+            s.setProperties({padding:'4px'});
+            pageAddress.addChild(
+                new SurfaceWrappingView(s, {size: [120, 40]}),
+                {weight: 2}
+            );
+
+            return pageAddress;
+        }
+
+        var pages = new StretchyLayout({
+            direction:1
+        });
+
+        var pageNum = (this.minAddress/this.memConfig.pageCount).toString(16);
+        pages.addChild(makePageAddress(pageNum,"0x000"));
+        pages.addChild(makePageAddress(pageNum,"0x001"));
+        pages.addChild(makePageAddress(pageNum,"0x002"));
+
+        pages.addChild(new PositionableView({size:[10,10]}));
+
+        pages.addChild(makePageAddress(pageNum,"FFF"));
+
+        return pages;
 	}
 
 	MemoryBlockView.prototype.makeComplexView = function()
@@ -133,8 +175,11 @@ define(function(require, exports, module) {
 		this.maxAddress = this.minAddress + this.options.memSize;
 
 		var box = DynamicDetailView.prototype.makeSimpleView.call(this);
-		//box.setText('0x' + this.minAddress.toString(16) + ' - 0x' + this.maxAddress.toString(16));
-		box.surface.setText('[' + this.minAddress/this.memConfig.pageCount+']');
+
+        var pageNum = (this.minAddress/this.memConfig.pageCount).toString(16);
+
+		box.surface.setText('[' + pageNum +']');
+
         box.setDynamicSizes({minimumSize:[100,18], maximumSize:[100,50]});
 		return box;
 	};

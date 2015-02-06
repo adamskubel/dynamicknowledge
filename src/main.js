@@ -24,13 +24,16 @@ define(function (require, exports, module)
     var DynamicDetailView = require('./DynamicDetailView');
     var DynamicContainer = require('./PositioningLayouts/DynamicContainer');
 
+    var MemorySpace = require('./MemObjects/MemorySpace');
 	var process = require('./process');
 	var Timer = require('famous/utilities/Timer');
+    var Utils = require('./Utils');
 
 	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
 
 	var currentScene = 0;
 	var objectFactory = new ObjectFactory();
+
 
 	var memoryConfig = {
 		pageSize: 16
@@ -117,7 +120,7 @@ define(function (require, exports, module)
 	var textLayout;
     var virtualMemorySpace;
     var lastView;
-    var pageDemoView;
+    var virtualBlock;
 
 	var scenes = [
 		function ()
@@ -152,25 +155,12 @@ define(function (require, exports, module)
         function ()
         {
             lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
-            virtualMemorySpace = new DynamicContainer({
-                name:'bob',
+            virtualMemorySpace = new MemorySpace({
                 minimumContainerSize:[100,20]
             });
 
 
-            var pv1 = objectFactory.makeLabelView("0x00000000");
-            pv1.setSize([undefined,30]);
-            virtualMemorySpace.addChild(pv1);
 
-            pv1 = objectFactory.makeLabelView("Data!");
-            pv1.setPosition([0,30,0]);
-            pv1.setSize([undefined,700]);
-            virtualMemorySpace.addChild(pv1);
-
-            pv1 = objectFactory.makeLabelView("0xFFFFFFFF");
-            pv1.setPosition([0,730,0]);
-            pv1.setSize([undefined,30]);
-            virtualMemorySpace.addChild(pv1);
 
             var scene2 = "Let's take a look at a virtual memory space for a 32-bit system";
 
@@ -189,75 +179,58 @@ define(function (require, exports, module)
                     "The program's code is mapped entirely into the virtual memory space. " +
                 "However, this doesn't mean that the program itself is in memory!";
 
-            var string2 = "If the program requests a block of memory from the OS (via malloc)," +
-                " the resulting allocation is always contiguous, even if the physical memory is fragmented.";
 
-
-            var pv1 = new PositionableView({size:[undefined,100], position:[0,20,0]});
-            pv1.add(objectFactory.makeSurface('Instructions'));
+            var pv1 = new PositionableView({size:[undefined,100], position:[0,30,0]});
+            pv1.add(objectFactory.makeSurface('Reserved by kernel'));
             virtualMemorySpace.addChild(pv1);
 
-            pageDemoView = new DynamicDetailView({
-                size:[undefined,40],
-                position:[0,220,0],
-                boxLabel: "Data",
-                boxSize: [undefined,40]
-            });
 
-            pageDemoView.makeComplexView = function()
-            {
-                function makePageAddress(num1,num2)
-                {
-                    var pageAddress = new StretchyLayout({
-                        direction: 0
-                    });
-
-                    pageAddress.addChild(
-                        new SurfaceWrappingView(objectFactory.makeLabelSurface(num1), {size: [100, 40]}),
-                        {weight: 2}
-                    );
-
-                    pageAddress.addChild(
-                        new SurfaceWrappingView(objectFactory.makeLabelSurface(num2), {size: [100, 40]}),
-                        {weight: 2}
-                    );
-
-                    return pageAddress;
-                }
-
-                var pages = new StretchyLayout({
-                    direction:1
-                });
-
-                pages.addChild(makePageAddress("0x01001","000"));
-                pages.addChild(makePageAddress("0x01001","001"));
-                pages.addChild(makePageAddress("0x01001","002"));
-
-                pages.addChild(new PositionableView({size:[10,10]}));
-
-                pages.addChild(makePageAddress("0x01001","FFF"));
-
-                return pages;
-            };
-
-            virtualMemorySpace.addChild(pageDemoView);
-
-            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string),{size: [300,200], name:"label1"});
+            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string),{size: [300,200]});
             mainLayout.addChild(textView,{weight:1, index: 0});
 
 
-            var textView2 = new SurfaceWrappingView(objectFactory.makeLabelSurface(string2),{
-                size: [300,200],
-                position: [0,400],
-                name: 'label2'
-            });
+            //var string2 = "If the program requests a block of memory from the OS (via malloc)," +
+            //    " the resulting allocation is always contiguous, even if the physical memory is fragmented.";
+            //
+            //var textView2 = new SurfaceWrappingView(objectFactory.makeLabelSurface(string2),{
+            //    size: [300,200],
+            //    position: [0,400],
+            //    name: 'label2'
+            //});
 
-            textView.add(textView2.getModifier()).add(textView2);
+            //textView.add(textView2.getModifier()).add(textView2);
             lastView = textView;
         },
         function()
         {
             lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+            var string = "Let's focus on one particular virtual address. How does this address get mapped to physical memory?";
+
+            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string),{
+                size: [400,true],
+                position: [-20,220,0],
+                viewOrigin:[1,0.5]
+            });
+            virtualMemorySpace.add(textView.getModifier()).add(textView);
+            lastView = textView;
+
+            virtualBlock = new objectFactory.makeLabelView("0xA0000000");
+            virtualBlock.setSize([undefined,true]);
+            virtualBlock.setPosition([0,220,0]);
+            virtualMemorySpace.addChild(virtualBlock);
+
+        },
+        function()
+        {
+            lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+
+
+            var mappingBox = new objectFactory.makeLabelView("Magic box");
+            mappingBox.setSize([120,120]);
+            mappingBox.setOrigin([0.5,0.5]);
+            mainLayout.addChild(mappingBox);
+
+
 
             var string3 = "When the program accesses a virtual address, it gets translated into a physical address by the system. " +
                 "But only if that virtual address is assigned to the program. If not, a variety of failure scenarios will occur.</br><br/>" +
@@ -275,8 +248,9 @@ define(function (require, exports, module)
         },
         function ()
         {
+            return;
             lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
-            pageDemoView.setLevelOfDetail(1);
+            //pageDemoView.setLevelOfDetail(1);
 
             var string = "A virtual address has two parts: A page address, and a page offset.<br/>" +
                 " This is a 4kB page, with a page number of <b>0x01001</b>";
