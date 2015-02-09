@@ -8,7 +8,7 @@ define(function(require, exports, module) {
     var ObjectFactory = require('./ObjectFactory');
 
     var DynamicDetailView = require('./DynamicDetailView');
-    var PageTableView = require('./PageTableView');
+    var PageTableView = require('./old/PageTableView');
     var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
 	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
 	var MemoryPagingView = require('./MemoryPagingView');

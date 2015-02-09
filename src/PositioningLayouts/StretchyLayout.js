@@ -15,6 +15,8 @@ define(function(require, exports, module) {
 	var ObjectFactory = require('../ObjectFactory');
 	var Vector = require('../ProperVector');
 
+    var Utils = require('../Utils');
+
 	function StretchyLayout(options)
 	{
         PositionableView.call(this,options);
@@ -41,10 +43,19 @@ define(function(require, exports, module) {
         view.parent = this;
 
         if (!config)
+        {
             config = {
                 weight: 0,
-				align: 'left'
+                align: 'left'
             };
+        }
+
+        if (config.weight == undefined)
+            config.weight = 1;
+        if (!config.align)
+            config.align = 'left';
+
+
 
         if (config.index != undefined)
         {
@@ -73,11 +84,6 @@ define(function(require, exports, module) {
         return this.calculateSize();
     };
 
-
-    function _setModifier(view, position)
-    {
-        view.setPosition(position);
-    }
 
     StretchyLayout.prototype.measure = function(requestedSize)
 	{
@@ -141,6 +147,7 @@ define(function(require, exports, module) {
 
     function _layoutViews(layoutSize)
     {
+        var dirIndex = this.options.direction;
 		var dir = _getDirectionVector.call(this);
 		var cross =  _getWidthVector.call(this);
 		var viewSpacing = Vector.fromArray(this.options.viewSpacing);
@@ -160,9 +167,17 @@ define(function(require, exports, module) {
 			if (view._stretchConfig.align == 'center')
 			{
 				viewPosition = viewPosition.add(widthVector.multiply(0.5));
+                var currentOrigin = view.viewOrigin;
+                if (!currentOrigin)
+                    currentOrigin = [0,0];
+
+                if (dirIndex == 0)
+                    view.setOrigin([currentOrigin[0],0.5]);
+                else if (dirIndex == 1)
+                    view.setOrigin([0.5,currentOrigin[1]]);
 			}
 
-            _setModifier(view,viewPosition.toArray());
+            view.setPosition(viewPosition.toArray());
 
 			if (view._dynamicSize.dot(cross) == 0)
 			{
@@ -204,6 +219,7 @@ define(function(require, exports, module) {
 			weightSet[weight] = 0;
 
             view._dynamicMeasure = view.measure();
+            Utils.assertValidMeasure(view,view._dynamicMeasure);
 			if (weight > 1)
 				view._dynamicSize = Vector.fromArray(view._dynamicMeasure.maximumSize);
 			else if (weight <= 1)

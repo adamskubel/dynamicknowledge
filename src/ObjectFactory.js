@@ -24,7 +24,7 @@ define(function(require, exports, module) {
 		return 'rgba(255,197,143,'+ alpha + ')';
 	};
 
-	ObjectFactory.prototype.getTungstenColor = function(alpha){
+	ObjectFactory.getTungstenColor = function(alpha){
 		return 'rgba(255,197,143,'+ alpha + ')';	
 	};
 
@@ -225,7 +225,8 @@ define(function(require, exports, module) {
 
 		surface = new Surface({
 			size : [undefined, undefined],
-			properties : propertyMap[type]
+			properties : propertyMap[type],
+            classes: ['double-sided']
 		});
 
 		if (surfaceOptions.useSpan)
@@ -353,7 +354,8 @@ define(function(require, exports, module) {
 		var textSurface = new Surface({
 		    size : [true, true],
 		    properties : style.text,
-		    content:text
+		    content:text,
+            classes: ['double-sided']
 		});
 
 		view.setText = function(value){
@@ -362,7 +364,8 @@ define(function(require, exports, module) {
 
 		var backSurface = new Surface ({
 			size : [undefined,undefined],
-			properties: style.background
+			properties: style.background,
+            classes: ['double-sided']
 		});
 
 		var originNode = view.add(new Modifier({

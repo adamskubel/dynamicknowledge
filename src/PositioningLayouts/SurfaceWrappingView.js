@@ -14,24 +14,26 @@ define(function(require, exports, module) {
 	{
 		PositionableView.call(this, options);
 
-		this.wrapSurface = wrapSurface;
-		this.add(wrapSurface);
+        if (wrapSurface)
+        {
+            this.setWrapSurface(wrapSurface);
+        }
+
+        this.size = this.options.size;
 	}
+
+    SurfaceWrappingView.DEFAULT_OPTIONS = {
+        size:[true,true]
+    };
 
 	SurfaceWrappingView.prototype = Object.create(PositionableView.prototype);
 	SurfaceWrappingView.prototype.constructor = SurfaceWrappingView;
 
 
-	SurfaceWrappingView.DEFAULT_OPTIONS = 
-	{
-        positionTransition: {duration:250, curve: Easing.inOutBounce}
-        //sizeTransition: {duration:250, curve: Easing.inOutBounce}
-    };
-
-	//SurfaceWrappingView.prototype.setWrappedSurface = function(surface){
-	//	this.wrapSurface = surface;
-	//	this.add(surface);
-	//};
+	SurfaceWrappingView.prototype.setWrapSurface = function(wrapSurface){
+        this.wrapSurface = wrapSurface;
+        this.add(wrapSurface);
+	};
 
 	SurfaceWrappingView.prototype.addSurface = function(surface){
 		this.add(surface);
@@ -57,39 +59,101 @@ define(function(require, exports, module) {
 		this.isAnimated = isAnimated;
 	};
 
-	SurfaceWrappingView.prototype.setSize = function(newSize) {
-        if (this.sizeState.isActive())
-            this.sizeState.halt();
-		this.sizeState.set(newSize, (this.isAnimated && this.size) ? this.sizeTransition : null);
-		this.size = newSize;
-	};
-
 	SurfaceWrappingView.prototype.getSize = function(){
 		var surfaceSize = this.wrapSurface._size;
-		//console.log("Surface size = " + surfaceSize);
-		if (surfaceSize)
-			return surfaceSize;
-		return this.size;
+
+
+        var size;
+        if (this.size)
+            size = [this.size[0],this.size[1]];
+        else
+            size = [undefined,undefined];
+
+        if (surfaceSize)
+        {
+            if (this.size[0] == true)
+                size[0] = surfaceSize[0];
+            if (this.size[1] == true)
+                size[1] = surfaceSize[1];
+        }
+
+        //if (!size)
+        console.debug(this._globalId + " _ surfaceSize = " + surfaceSize);
+		return size;
 	};
+
+    function _getMinimumSize(){
+
+        var surfaceSize = this.wrapSurface._size;
+        var size = [this.size[0],this.size[1]];
+        if (surfaceSize)
+        {
+            if (this.size[0] == true || this.size[0] == undefined)
+                size[0] = surfaceSize[0];
+            if (this.size[1] == true || this.size[1] == undefined)
+                size[1] = surfaceSize[1];
+        }
+        //console.log(this._globalId + " _ minSize = " + size);
+        return size;
+    }
+
 
     SurfaceWrappingView.prototype.measure = function(requestedSize){
 		return {
-			minimumSize: (this.minimumSize) ? this.minimumSize : this.getSize(),
-			maximumSize: (this.maximumSize) ? this.maximumSize : this.getSize()
+			minimumSize: (this.options.minimumSize) ? this.options.minimumSize : this.getSize(), //_getMinimumSize.call(this),
+			maximumSize: (this.options.maximumSize) ? this.options.maximumSize : this.getSize()
 		};
 	};
 
     SurfaceWrappingView.prototype.layout = function(layoutSize){
-        this.setSize(layoutSize);
+        console.debug(this._globalId + " _ layoutSize = " + layoutSize);
+        PositionableView.prototype.layout.call(this,layoutSize);
         if (this.wrapSurface._size)
     		this._layoutDirty = false;
     };
 
     SurfaceWrappingView.prototype.needsLayout = function(){
-        return ((this.wrapSurface._size && this.size) && (this.size[0] != this.wrapSurface._size[0]))
-            || this._layoutDirty || this.wrapSurface._sizeDirty || this.wrapSurface._contentDirty;
+        if (this._layoutDirty  || this.wrapSurface._sizeDirty || this.wrapSurface._contentDirty)
+        {
+            return true;
+        } else if (this.size[0] == true)
+        {
+            return ((this.wrapSurface._size && this._size) && (this._size[0] != this.wrapSurface._size[0]));
+        }
+        else if (this.size[1] == true)
+        {
+            return ((this.wrapSurface._size && this._size) &&  (this._size[1] != this.wrapSurface._size[1]));
+        }
     };
 
-
     module.exports = SurfaceWrappingView;
-});	
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

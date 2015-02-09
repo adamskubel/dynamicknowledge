@@ -7,13 +7,13 @@ define(function(require, exports, module) {
 	var MouseSync  = require("famous/inputs/MouseSync");
 	var View = require('famous/core/View');
 	var Modifier   = require("famous/core/Modifier");
-	var PositioningGridLayout = require('./PositioningLayouts/PositioningGridLayout');
-	var PositioningFlexibleLayout = require('./PositioningLayouts/PositioningFlexibleLayout');
+	var PositioningGridLayout = require('./../PositioningLayouts/PositioningGridLayout');
+	var PositioningFlexibleLayout = require('./../PositioningLayouts/PositioningFlexibleLayout');
 
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-	var MemoryBlockView = require('./MemoryBlockView');
-	var ObjectFactory = require('./ObjectFactory');
+	var MemoryBlockView = require('./../MemoryBlockView');
+	var ObjectFactory = require('./../ObjectFactory');
 	var mem_map_t = require('./mem_map_t');
 
 	function mem_map(options) 

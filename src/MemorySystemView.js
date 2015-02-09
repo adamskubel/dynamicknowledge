@@ -1,55 +1,50 @@
 define(function(require, exports, module)
 {
-	var DynamicDetailView = require('./DynamicDetailView');
-	var ProcessMemoryManager = require('./ProcessMemoryManager');
-    var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
-	var kswapd = require('./kswapd');
+    var Engine     = require("famous/core/Engine");
+    var Surface    = require("famous/core/Surface");
+    var Transform  = require("famous/core/Transform");
+    var Modifier   = require("famous/core/Modifier");
+    var MouseSync  = require("famous/inputs/MouseSync");
+    var View = require('famous/core/View');
+    var Transitionable = require('famous/transitions/Transitionable');
+    var Easing = require('famous/transitions/Easing');
+    var PositionableView = require('./PositioningLayouts/PositionableView');
+
+    var MemorySpace = require('./MemObjects/MemorySpace');
+
+    var RectangularPrism = require('./RectangularPrism');
 
 	function MemorySystemView(options)
 	{
-		DynamicDetailView.call(this, options);
-
+		View.call(this, options);
+        _initView.call(this);
 	}
 
-	MemorySystemView.prototype = Object.create(DynamicDetailView.prototype);
+	MemorySystemView.prototype = Object.create(View.prototype);
 	MemorySystemView.prototype.constructor = MemorySystemView;
 
-	MemorySystemView.prototype.makeSimpleView = function()
-	{
-		var box = DynamicDetailView.prototype.makeSimpleView.call(this);
-		box.setText("Memory System");
-		box.setSize([160,500]);
-		return box;
-	};
+	function _initView()
+    {
 
-	MemorySystemView.prototype.makeComplexView = function()
-	{
-		var processes = this.options.processes;
-
-		var rootView = 	new StretchyLayout({
-            position:   [0,0,0],
-            size:       [200,200],
-            viewSpacing: [10,10],
-			direction: 1
+        var rect = new RectangularPrism({
+            size:[40,300,120],
+            viewAlign:[0.5,0.5]
         });
 
-		rootView.setOrigin([0.5,0.5]);
-		rootView.setAlign([0.5,0.5]);
+        this.add(rect.getModifier()).add(rect);
 
-		for (var i=0;i<processes.length;i++)
-		{
-			var pmem = new ProcessMemoryManager({
-                size:[80,40],
-                process: processes[i]
-            });
+        for (var angle=20;angle<60;angle +=5)
+        {
+            var memSpace = new MemorySpace({size:[80,600], position:[-400,0,0],viewOrigin:[0,0.5]});
 
-			rootView.addChild(pmem,{
-                weight: 1
-            });
-		}
+            memSpace.zRotation = new Modifier({transform:Transform.rotateY(angle*(Math.PI/180))});
 
-		return rootView;
-	};
+            this.add(memSpace.zRotation).add(memSpace.getModifier()).add(memSpace);
+        }
+
+    }
+
+
 
 	module.exports = MemorySystemView;
 });

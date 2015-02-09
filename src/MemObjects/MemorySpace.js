@@ -15,17 +15,24 @@ define(function(require, exports, module)
     var ObjectFactory = require('../ObjectFactory');
     var SurfaceWrappingView = require('../PositioningLayouts/SurfaceWrappingView');
     var DynamicContainer = require('../PositioningLayouts/DynamicContainer');
+    var BoxView = require('../PositioningLayouts/BoxView');
 
     var Utils = require('../Utils');
+
+
+    var labelHeight = 30;
 
     function MemorySpace(options){
         DynamicContainer.call(this,options);
 
         this.memConfig = this.options.memConfig;
+        this.setSize(this.options.size);
         _init.call(this);
     }
 
     MemorySpace.DEFAULT_OPTIONS = {
+        size: [100,600],
+        minimumContainerSize: [0,0],
         memConfig:{
             startAddress: 0,
             addressWidth: 8,
@@ -38,21 +45,30 @@ define(function(require, exports, module)
 
     function _init(){
 
+        var size = this.size; //|| [100,730];
+
         var objectFactory = new ObjectFactory();
         var memConfig = this.memConfig;
 
-        var pv1 = objectFactory.makeLabelView('0x' + Utils.hexString(memConfig.startAddress,memConfig.addressWidth));
-        pv1.setSize([undefined,30]);
+        var pv1 = new BoxView({
+            text: Utils.hexString(memConfig.startAddress,memConfig.addressWidth),
+            size:[size[0],labelHeight]});
         this.addChild(pv1);
 
-        pv1 = objectFactory.makeLabelView("");
-        pv1.setPosition([0,30,0]);
-        pv1.setSize([undefined,700]);
+
+        var fillingSize = [size[0],size[1]-(labelHeight*2)];
+
+        pv1 = new BoxView({
+            position: [0,labelHeight,0],
+            size:fillingSize
+        });
         this.addChild(pv1);
 
-        pv1 = objectFactory.makeLabelView('0x' + Utils.hexString(memConfig.startAddress+memConfig.memSize,memConfig.addressWidth));
-        pv1.setPosition([0,730,0]);
-        pv1.setSize([undefined,30]);
+        pv1 = new BoxView({
+            text: Utils.hexString(memConfig.startAddress + memConfig.memSize, memConfig.addressWidth),
+            position: [0,fillingSize[1],0],
+            size: [size[0],labelHeight]
+        });
         this.addChild(pv1);
     }
 

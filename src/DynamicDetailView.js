@@ -48,7 +48,8 @@ define(function(require, exports, module) {
 	}
 
     DynamicDetailView.DEFAULT_OPTIONS = {
-        boxLabel: ""
+        boxLabel: "",
+        boxSize:[10,10]
     }
 
 	DynamicDetailView.prototype = Object.create(PositionableView.prototype);

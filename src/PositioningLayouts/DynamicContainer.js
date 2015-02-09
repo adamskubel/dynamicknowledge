@@ -101,8 +101,7 @@ define(function(require, exports, module) {
             this._children[i].layout(this._children[i]._dynamicSize);
         }
 
-        this.setSize(layoutSize);
-    	this._layoutDirty = false;
+        PositionableView.prototype.layout.call(this,layoutSize);
     };
 
     DynamicContainer.prototype.needsLayout = function(){

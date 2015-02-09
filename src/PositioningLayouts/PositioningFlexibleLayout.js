@@ -1,20 +1,32 @@
 define(function(require, exports, module) {
-    var FlexibleLayout = require('famous/views/FlexibleLayout');
 
-    /**
-     * A surface containing image content.
-     *   This extends the Surface class.
-     *
-     * @class ImageSurface
-     *
-     * @extends Surface
-     * @constructor
-     * @param {Object} [options] overrides of default options
-     */
+
+    var FlexibleLayout = require('famous/views/FlexibleLayout');
+    var PositionableView = require('./PositionableView');
+
+    var childArray;
+    var flexLayout;
+
     function PositioningFlexibleLayout(options) {
-        FlexibleLayout.apply(this, arguments);
+        PositionableView.call(this, options);
+
+        flexLayout = new FlexibleLayout({
+            ratios: this.options.ratios,
+            direction: this.options.direction
+        });
+
+        childArray = [];
+        flexLayout.sequenceFrom(childArray);
+
+        this.add(flexLayout);
     }
-    PositioningFlexibleLayout.prototype = Object.create(FlexibleLayout.prototype);
+
+    PositioningFlexibleLayout.DEFAULT_OPTIONS = {
+        ratios:[1],
+        direction:0
+    }
+
+    PositioningFlexibleLayout.prototype = Object.create(PositionableView.prototype);
     PositioningFlexibleLayout.prototype.constructor = PositioningFlexibleLayout;
 
     PositioningFlexibleLayout.prototype.calculateChildPosition = function calculateChildPosition(child)
@@ -37,7 +49,8 @@ define(function(require, exports, module) {
       
         //console.log('Index = ' + index);
         //console.log('CellSize: ' + cellSize);
-        //console.log('Offset: ' +  myOffset);        
+        //console.log('Offset: ' +  myOffset);
+
 
         return childPosition;
     };
@@ -75,23 +88,29 @@ define(function(require, exports, module) {
     };
 
 
-    PositioningFlexibleLayout.prototype.setChildren = function(children) {
-        var newChildren = [];
-        this.sequenceFrom(newChildren);
+    //PositioningFlexibleLayout.prototype.setChildren = function(children) {
+    //    var newChildren = [];
+    //    this.sequenceFrom(newChildren);
+    //
+    //    for (var i=0;i<children.length;i++)
+    //    {
+    //        children[i].owner = this;
+    //        children[i].calculateSize = function() {
+    //            return this.owner.calculateChildSize(this);
+    //        };
+    //        children[i].calculatePosition = function() {
+    //            return this.owner.calculateChildPosition(this);
+    //        };
+    //
+    //        newChildren.push(children[i]);
+    //    }
+    //
+    //};
 
-        for (var i=0;i<children.length;i++)
-        {
-            children[i].owner = this;
-            children[i].calculateSize = function() {
-                return this.owner.calculateChildSize(this);
-            };
-            children[i].calculatePosition = function() {
-                return this.owner.calculateChildPosition(this);
-            };
+    PositioningFlexibleLayout.prototype.addChild = function(child){
 
-            newChildren.push(children[i]);
-        }
-
+        childArray.push(child);
+        child.parent = this;
     };
 
     module.exports = PositioningFlexibleLayout;

@@ -10,8 +10,8 @@ define(function(require, exports, module) {
 	var GridLayout = require('famous/views/GridLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-	var MemoryBlockView = require('./MemoryBlockView');
-	var ObjectFactory = require('./ObjectFactory');
+	var MemoryBlockView = require('./../MemoryBlockView');
+	var ObjectFactory = require('./../ObjectFactory');
 
 	function kswapd(options, memMap,swapFile,dataObjects,pageTable) 
 	{

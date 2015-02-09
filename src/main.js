@@ -8,13 +8,13 @@ define(function (require, exports, module)
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
 	var RenderController = require("famous/views/RenderController");
-
+    var MouseSync = require('famous/inputs/MouseSync');
 	var LineCanvas = require('./LineCanvas');
 	var BracketView = require('./BracketView');
 
 	var MemoryPagingView = require('./MemoryPagingView');
 	var MemoryBlockView = require('./MemoryBlockView');
-	var PageTableView = require('./PageTableView');
+	var PageTableView = require('./old/PageTableView');
     var MemorySystemView = require('./MemorySystemView');
 	var ObjectFactory = require('./ObjectFactory');
 	var HeaderFooterLayout = require('famous/views/HeaderFooterLayout');
@@ -30,9 +30,12 @@ define(function (require, exports, module)
     var Utils = require('./Utils');
 
 	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
+    var BoxView = require('./PositioningLayouts/BoxView');
+    var PageLookupTable = require('./MemObjects/PageLookupTable');
 
 	var currentScene = 0;
 	var objectFactory = new ObjectFactory();
+
 
 
 	var memoryConfig = {
@@ -43,14 +46,13 @@ define(function (require, exports, module)
 	var dynamicNodes;
 	var mainLayout;
     var strings = {};
+    var cameraAngles = [0,0];
 
 	function init()
     {
 		this.context = Engine.createContext(null);
 
 		this.processes = {};
-		this.pages = {};
-
 		this.lines = [];
 		this.lineIndex = 0;
 		this.dynamicNodes = [];
@@ -58,8 +60,9 @@ define(function (require, exports, module)
 
 
 		this.cameraModifier = new Modifier({
-				transform: function () {return Transform.rotate(Math.PI * (-1 / 6) * this.state.get(), Math.PI * (1 / 4) * this.state.get(), 0);}
-			});
+				//transform: function () {return Transform.rotate(Math.PI * (-1 / 6) * this.state.get(), Math.PI * (1 / 4) * this.state.get(), 0);}
+                transform: function () {return Transform.rotate(cameraAngles[0]*(Math.PI/180),cameraAngles[1]*(Math.PI/180), 0);}
+        });
 		this.cameraModifier.state = new Transitionable(0);
 
 
@@ -92,6 +95,13 @@ define(function (require, exports, module)
             viewOrigin: [0,0.5]
         });
 
+        textLayout.add(new BoxView({
+            size:[undefined,undefined]
+        }));
+
+        var mouseCaptureSurface = new Surface();
+        this.context.add(new Modifier({transform:Transform.translate(0,0,-100)})).add(mouseCaptureSurface);
+
 		rootNode.add(mainLayout.getModifier()).add(mainLayout);
         rootNode.add(textLayout.getModifier()).add(textLayout);
 		dynamicNodes.push(mainLayout);
@@ -111,163 +121,216 @@ define(function (require, exports, module)
 				}
 			}
 		});
-            //,1000);
 
-        nextScene.call(this);
+        //var cameraSync = new MouseSync();
+        //
+        //mouseCaptureSurface.pipe(cameraSync);
+        //cameraSync.on('update',function(data){
+        //    cameraAngles[0] += data.delta[1]*-0.2;
+        //    cameraAngles[1] += data.delta[0]*0.2;
+        //});
+
+        for (var i=0;i<5;i++)
+            nextScene.call(this);
+
+        //Timer.setInterval(function() {nextScene.call(this);},100);
 	}
 
-	var nextButton;
-	var textLayout;
+    var nextButton;
+    var textLayout;
     var virtualMemorySpace;
-    var lastView;
+    var activeTextView;
     var virtualBlock;
+    var mappingBox;
+    var annoColor = 4600;
+    var pageTable;
+    var physicalMemorySpace;
 
-	var scenes = [
+    function addText(string, pointAt){
+
+
+    }
+
+
+
+    var scenes = [
+        //function()
+        //{
+        //    setCameraState("3D");
+        //    var systemView = new MemorySystemView();
+        //    rootNode.add(systemView);
+        //},
 		function ()
 		{
 
+            setCameraState("2D");
 
-			var textSurface = (new ObjectFactory()).makeLabelSurface("");
-			var wrapSurface = new SurfaceWrappingView(textSurface,{size: [400,200]});
+            activeTextView = new BoxView({size:[400,true], tintColor:annoColor});
+			textLayout.addChild(activeTextView,{weight:2});
 
-			textLayout.addChild(wrapSurface,{weight:2});
-            lastView = wrapSurface;
-
-			nextButton = objectFactory.makeButtonView("Next");
-			nextButton.setSize([200, 80]);
-			var wrappingView = new SurfaceWrappingView(nextButton,{size:[0,100]});
-
-			textLayout.addChild(wrappingView);
+			nextButton = new BoxView({text: "Next", size:[200,80], clickable:true, tintColor:2800});
+			textLayout.addChild(nextButton);
 
 			nextButton.on('click', function (){
 			    nextScene.call(this);
 			}.bind(this));
 
-			//textLayout.add(new Modifier({transform:Transform.translate(0,0,-1)})).add(objectFactory.makeSurface('','outline'));
-
 			mainLayout.requestLayout();
 
-            loadTextAsync("string1.txt", function(text){
-                textSurface.setText(text);
-                textLayout.requestLayout();
-            });
+
 		},
         function ()
         {
-            lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
             virtualMemorySpace = new MemorySpace({
-                minimumContainerSize:[100,20]
+                size:[100,700]
             });
 
-
-
-
             var scene2 = "Let's take a look at a virtual memory space for a 32-bit system";
+            activeTextView = new BoxView({text: scene2, size: [400,true], textAlign:[0,0.5], tintColor:annoColor});
 
-            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(scene2),{size: [400,200]});
-
-            textLayout.addChild(textView,{weight: 1, index:textLayout.children.length-1});
-            lastView = textView;
+            textLayout.addChild(activeTextView,{weight: 1, index:textLayout.children.length-1});
             mainLayout.addChild(virtualMemorySpace,{weight:1, index:0});
         },
         function()
         {
 
-            lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
 
             var string = "This is the virtual memory space of a process. It's big, but mostly empty.<br/>" +
                     "The program's code is mapped entirely into the virtual memory space. " +
                 "However, this doesn't mean that the program itself is in memory!";
 
-
-            var pv1 = new PositionableView({size:[undefined,100], position:[0,30,0]});
-            pv1.add(objectFactory.makeSurface('Reserved by kernel'));
+            var pv1 = new BoxView({
+                text:'Reserved by kernel',
+                size:[100,100],
+                position:[0,30,0],
+                textAlign:[0,0]
+            });
             virtualMemorySpace.addChild(pv1);
 
+            activeTextView = new BoxView({
+                text:string,
+                size: [300,true],
+                tintColor:annoColor
+            });
 
-            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string),{size: [300,200]});
-            mainLayout.addChild(textView,{weight:1, index: 0});
-
-
-            //var string2 = "If the program requests a block of memory from the OS (via malloc)," +
-            //    " the resulting allocation is always contiguous, even if the physical memory is fragmented.";
-            //
-            //var textView2 = new SurfaceWrappingView(objectFactory.makeLabelSurface(string2),{
-            //    size: [300,200],
-            //    position: [0,400],
-            //    name: 'label2'
-            //});
-
-            //textView.add(textView2.getModifier()).add(textView2);
-            lastView = textView;
+            mainLayout.addChild(activeTextView,{weight:1, index: 0});
         },
         function()
         {
-            lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
             var string = "Let's focus on one particular virtual address. How does this address get mapped to physical memory?";
 
-            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string),{
-                size: [400,true],
+            activeTextView = new BoxView({
+                text:string,
+                size: [300,true],
                 position: [-20,220,0],
-                viewOrigin:[1,0.5]
+                viewOrigin:[1,0.5],
+                tintColor:annoColor
             });
-            virtualMemorySpace.add(textView.getModifier()).add(textView);
-            lastView = textView;
 
-            virtualBlock = new objectFactory.makeLabelView("0xA0000000");
-            virtualBlock.setSize([undefined,true]);
-            virtualBlock.setPosition([0,220,0]);
+            dynamicNodes.push(activeTextView);
+            virtualMemorySpace.add(activeTextView.getModifier()).add(activeTextView);
+
+            virtualBlock = new BoxView({
+                text:"0xA0000000",
+                size:[undefined,true],
+                clickable:true,
+                position: [0,220,0],
+                textAlign: [0,0.5]
+            });
+            virtualBlock._memAddress = 0xA0000000;
             virtualMemorySpace.addChild(virtualBlock);
-
         },
         function()
         {
-            lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+            mappingBox = new DynamicDetailView({
+                boxLabel:"Magic!",
+                boxSize: [120,120]
+            });
+            mappingBox.setOrigin([0,0.5]);
+            mainLayout.addChild(mappingBox,{align: 'center'});
+
+            pageTable = new PageLookupTable({
+                startPage: 0xA0000,
+                pageMappings: [
+                    0x10520,
+                    0x21234,
+                    0x0F2D4
+                ]
+            });
+
+            mappingBox.makeComplexView = function(){
+                return pageTable;
+            };
 
 
-            var mappingBox = new objectFactory.makeLabelView("Magic box");
-            mappingBox.setSize([120,120]);
-            mappingBox.setOrigin([0.5,0.5]);
-            mainLayout.addChild(mappingBox);
+
+            physicalMemorySpace = new MemorySpace({
+                memConfig:{
+                    startAddress:0,
+                    addressWidth:8,
+                    memSize:0x40000000
+                },
+                size:[100,500]
+            });
+
+            mainLayout.addChild(physicalMemorySpace,{align:'center'});
+
+            var physicalBlock = new BoxView({
+                text:"0x10520000",
+                size:[undefined,true],
+                textAlign: [0,0.5]
+            });
+
+            physicalMemorySpace.addChild(physicalBlock);
 
 
+            var dragController = new MouseSync();
+            dragController.on('update',function(data){
+                var ypos = virtualBlock.position[1] + data.delta[1];
+                ypos = Math.max(220,ypos);
+                ypos = Math.min(420,ypos);
 
-            var string3 = "When the program accesses a virtual address, it gets translated into a physical address by the system. " +
-                "But only if that virtual address is assigned to the program. If not, a variety of failure scenarios will occur.</br><br/>" +
-                "This mapping is done in fixed-size blocks called <b>pages</b>." +
-                "A page of virtual memory maps to a page of physical memory, or maybe a page on the disk. <br/>" +
-                "Pages are the currency of the memory manager. Their size varies, but a common size is 4kB. <br/>" +
-                "You can check your page size on most distros (and OSX!) with the command" +
-                "<pre>getconf PAGESIZE</pre><br/><br/>Let's look at how this grouping is done.";
+                virtualBlock.setAnimated(false);
+                virtualBlock.setPosition([virtualBlock.position[0],ypos,virtualBlock.position[2]]);
 
-            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string3),{size: [400,200]});
+                var newAddr = Math.round(0xA0000000+(0x2FFF*((ypos-220)/200)));
+                virtualBlock._memAddress = newAddr;
+                virtualBlock.setText(Utils.hexString(newAddr,8));
+                var pageNum = pageTable.access(virtualBlock._memAddress >>> 12);
+
+                var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
+
+                var ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
+                physicalBlock.setPosition([0,ypos,0]);
+                physicalBlock.pulse(50,500);
+                physicalBlock.setText(Utils.hexString(address,8));
+
+            });
+            virtualBlock.backSurface.pipe(dragController);
 
 
-            textLayout.addChild(textView,{weight: 1, index:textLayout.children.length-1});
-            lastView = textView;
+            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
+            var string = "Memory mapping isn't done per-address. Instead, addresses are grouped into 4kB blocks called pages.<br/>" +
+                "The page of an address can be found simply by shifting the bits. For a 4kB page, we can just drop the last 3 hex digits";
+            activeTextView = new BoxView({text:string, size:[400,true], position:[-20,300,0], viewOrigin:[1,0.5], tintColor:annoColor});
+
+
+            virtualMemorySpace.add(activeTextView.getModifier()).add(activeTextView);
+            dynamicNodes.push(activeTextView);
         },
         function ()
         {
-            return;
-            lastView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
-            //pageDemoView.setLevelOfDetail(1);
+            var string = "This page number is then used as an offset into a <b>Page Lookup Table</b>. " +
+                "The entry at that offset is then concatenated with the 12 bits shifted out earlier, to determine the physical memory address.<br/><br/>" +
+                "Drag the virtual address to see the mapping in action!";
+            activeTextView = new BoxView({text: string, size: [400,true], textAlign:[0,0.5], tintColor:annoColor});
 
-            var string = "A virtual address has two parts: A page address, and a page offset.<br/>" +
-                " This is a 4kB page, with a page number of <b>0x01001</b>";
-
-            var textView = new SurfaceWrappingView(objectFactory.makeLabelSurface(string),{
-                size: [400,true],
-                position: [-20,240,0],
-                viewOrigin:[1,0.5]
-            });
-            virtualMemorySpace.add(textView.getModifier()).add(textView);
-
-            //var virtualMemory = new MemoryPagingView({
-            //    position:[400,0],
-            //    startAddress:0,
-            //    pageCount:32,
-            //    viewOrigin: [0,0.5]
-            //});
+            addText(string,pageTable);
+            //textLayout.addChild(activeTextView,{weight: 1, index:textLayout.children.length-1});
+            mappingBox.setLevelOfDetail(1);
         },
         function(){
             mainLayout.requestLayout();
@@ -277,35 +340,7 @@ define(function (require, exports, module)
 
 	function nextScene()
 	{
-		scenes[currentScene++]();
-	}
-
-	function getProcess(name, processPosition, processRadius)
-	{
-
-		var newProcess;
-		if (this.processes[name] == undefined)
-		{
-			newProcess = new process({position: processPosition, radius: processRadius, name: name});
-			this.mainNode.add(newProcess.getModifier()).add(newProcess);
-			newProcess.createCallstack = createCallstack;
-			this.processes[name] = newProcess;
-		}
-		else
-		{
-			newProcess = this.processes[name];
-
-			if (processPosition)
-			{
-				newProcess.setPosition(processPosition, 600);
-			}
-
-			if (processRadius)
-			{
-				newProcess.setRadius(processRadius);
-			}
-		}
-		return newProcess;
+		scenes[currentScene++].call(this);
 	}
 
     function loadTextAsync(name, callback)
@@ -347,6 +382,9 @@ define(function (require, exports, module)
 	function setCameraState(cameraMode)
 	{
 		var transition = {duration: 500, curve: Easing.inOutQuad};
+
+        if (this.cameraModifier.state.isActive())
+            this.cameraModifier.state.halt();
 		if (cameraMode == "2D")
 		{
 			//noinspection JSCheckFunctionSignatures
@@ -463,7 +501,7 @@ define(function (require, exports, module)
                 stretchy.reflow([300, 200]);
             });
             return pv;
-        };
+        }
 
         var pv1 = makepv("PV1");
         var pv2 = makepv("PV2");

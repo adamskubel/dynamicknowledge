@@ -34,7 +34,26 @@ define(function (require, exports, module)
         var z = '0';
         width = width || 8;
         n = n.toString(16).toUpperCase() + '';
-        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+        var string =  (n.length >= width ? n : new Array(width - n.length + 1).join(z) + n);
+        return '0x' + string;
+    };
+
+    Utils.assertValidMeasure = function(view,measure){
+
+        if (measure == undefined)
+            console.error("Invalid measureObject. View = " + view._globalId);
+
+        if (measure.minimumSize == undefined)
+            console.error("Invalid minSize. View = " + view._globalId);
+
+
+        if (measure.maximumSize == undefined)
+            console.error("Invalid maxSize. View = " + view._globalId);
+    };
+
+    Utils.assertValidSize = function(size){
+        if (size == undefined)
+            console.error("Invalid size. View = " + view._globalId);
     };
 
     Utils.nameMap = {};

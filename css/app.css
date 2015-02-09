@@ -16,3 +16,8 @@ div span {
     flex-direction:column; 
       justify-content:center;
 }
+
+.double-sided {
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+}

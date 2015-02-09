@@ -6,15 +6,15 @@ define(function(require, exports, module) {
 	var Modifier   = require("famous/core/Modifier");
 	var View = require('famous/core/View');
 
-	var PositioningGridLayout = require('./PositioningLayouts/PositioningGridLayout');
+	var PositioningGridLayout = require('./../PositioningLayouts/PositioningGridLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-	var MemoryBlockView = require('./MemoryBlockView');
+	var MemoryBlockView = require('./../MemoryBlockView');
 	var PageTableEntry = require('./PageTableEntry');
-	var ObjectFactory = require('./ObjectFactory');
-	var PositioningFlexibleLayout = require('./PositioningLayouts/PositioningFlexibleLayout');
+	var ObjectFactory = require('./../ObjectFactory');
+	var PositioningFlexibleLayout = require('./../PositioningLayouts/PositioningFlexibleLayout');
 
-    var PositionableView = require('./PositioningLayouts/PositionableView');
+    var PositionableView = require('./../PositioningLayouts/PositionableView');
 
 	function PageTableView(options) 
 	{
@@ -43,19 +43,6 @@ define(function(require, exports, module) {
 		size: [undefined,undefined],
 		pageCount: 4
 	}
-
-	//PageTableView.prototype.getModifier = function getModifier()
-    //{
-    //	var blockView = this;
-    //	return new Modifier({
-    //		size : function () {
-    //			return blockView.size;
-    //		},
-		//    transform : function(){
-		//        return Transform.translate(blockView.position[0], blockView.position[1], 0);
-		//    }
-		//});
-    //};
 
     PageTableView.prototype.getPageByPFN = function(physicalPageNum, callstack)
     {

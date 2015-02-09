@@ -166,6 +166,7 @@ define(function (require, exports, module)
     PositionableView.prototype.setSize = function (newSize)
     {
         _setSize.call(this,newSize);
+        //console.log(this._globalId + " SetSize = " + newSize);
         this.size = newSize;
     };
 
@@ -214,6 +215,7 @@ define(function (require, exports, module)
     PositionableView.prototype.layout = function (layoutSize)
     {
         _setSize.call(this,layoutSize);
+        this._size = layoutSize;
         this._layoutDirty = false;
     };
 

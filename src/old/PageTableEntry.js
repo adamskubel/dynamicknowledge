@@ -7,10 +7,10 @@ define(function(require, exports, module) {
 	var MouseSync  = require("famous/inputs/MouseSync");
 	var View = require('famous/core/View');
 	var Modifier   = require("famous/core/Modifier");
-	var PositioningFlexibleLayout = require('./PositioningLayouts/PositioningFlexibleLayout');
+	var PositioningFlexibleLayout = require('./../PositioningLayouts/PositioningFlexibleLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-	var ObjectFactory = require('./ObjectFactory');
+	var ObjectFactory = require('./../ObjectFactory');
 
 	/**
 	PTE: 2 words, 16 bits
