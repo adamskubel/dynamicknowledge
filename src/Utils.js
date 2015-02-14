@@ -1,6 +1,8 @@
 define(function (require, exports, module)
 {
 
+    var Vector = require('./ProperVector');
+
     function Utils(){
 
 
@@ -55,6 +57,21 @@ define(function (require, exports, module)
         if (size == undefined)
             console.error("Invalid size. View = " + view._globalId);
     };
+
+    Utils.getDirectionVector = function (dirIndex){
+        if (dirIndex == 0)
+        {
+            return new Vector(1,0,0);
+        }
+        else if (dirIndex == 1)
+        {
+            return new Vector(0,1,0);
+        }
+        else
+        {
+            console.error("Unexpected direction: " + this.direction);
+        }
+    }
 
     Utils.nameMap = {};
 

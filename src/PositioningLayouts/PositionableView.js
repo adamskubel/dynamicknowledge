@@ -57,6 +57,7 @@ define(function (require, exports, module)
 
     PositionableView.DEFAULT_OPTIONS =
     {
+        position:[0,0,0],
         isAnimated: true,
         positionTransition: {duration: 250, curve: Easing.outQuad},
         sizeTransition: {duration: 250, curve: Easing.outQuad}
@@ -133,7 +134,7 @@ define(function (require, exports, module)
 
     PositionableView.prototype.setPosition = function (position)
     {
-        //console.log(id + "-" + this.position + " --> " + position);
+        console.debug(this._globalId + "_POS: " + this.position + " --> " + position);
         if (this.positionState)
         {
             if (this.positionState.isActive())
@@ -151,11 +152,12 @@ define(function (require, exports, module)
 
     function _setSize(newSize)
     {
+        console.debug(this._globalId + "_SIZE: " + this._size + " --> " + newSize);
         if (this.sizeState)
         {
             if (this.sizeState.isActive())
                 this.sizeState.halt();
-            this.sizeState.set(newSize, (this.isAnimated && this.size) ? this.sizeTransition : null);
+            this.sizeState.set(newSize, (this.isAnimated && this._size) ? this.sizeTransition : null);
         }
         else
         {

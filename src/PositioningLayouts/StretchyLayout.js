@@ -75,7 +75,16 @@ define(function(require, exports, module) {
     StretchyLayout.prototype.calculateChildPosition = function (child)
     {
         var p = Vector.fromArray(this.calculatePosition());
-        var s = Vector.fromArray(this.size).multiply(Vector.fromArray(this.viewOrigin));
+        var s = new Vector(0,0,0);
+        if (this.viewOrigin && this._size)
+            s = Vector.fromArray(this._size).multiply(Vector.fromArray(this.viewOrigin));
+
+        if (!child.position)
+        {
+            console.error(child._globalId + " has no def. position!");
+            return undefined;
+        }
+
         return p.sub(s).add(Vector.fromArray(child.position)).toArray();
     };
 
@@ -98,7 +107,7 @@ define(function(require, exports, module) {
     StretchyLayout.prototype.layout = function(layoutSize)
     {
         _layoutViews.call(this,layoutSize);
-        this.setSize(layoutSize);
+        PositionableView.prototype.layout.call(this,layoutSize);
     };
 
     StretchyLayout.prototype.needsLayout = function()

@@ -4,40 +4,57 @@ define(function(require, exports, module) {
 	var Surface    = require("famous/core/Surface");
 	var Transform  = require("famous/core/Transform");
 	var Modifier   = require("famous/core/Modifier");
-	var MouseSync  = require("famous/inputs/MouseSync");
-	var Modifier   = require("famous/core/Modifier");
 	var View   = require("famous/core/View");
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
     var RenderController = require("famous/views/RenderController");
 
 	var PositionableView = require('./PositioningLayouts/PositionableView');
+    var BoxView = require('./PositioningLayouts/BoxView');
 	var ObjectFactory = require('./ObjectFactory');
 	
 	function DynamicDetailView(options) 
 	{
 		PositionableView.call(this, options);
 
+        this.complexViews = {};
+
         this.currentView = null;
+        this.boxLabel = this.options.boxLabel;
 
 		this.background = (new ObjectFactory()).makeSurface('','outline');
 		this.background.modifier = new Modifier({transform: Transform.translate(0,0,-1.5)});
 
-		this.closeButton = (new ObjectFactory()).makeButtonView('[]','compact');
-		this.closeButton.setSize([20,20]);
+		this.reduceButton = new BoxView({
+            text: '-',
+            clickable: true,
+            size: [20,20],
+            viewAlign:[0,0],
+            viewOrigin:[0,1],
+            position:[0,0,2]
+        });
 
-		this.closeButton.modifier.alignFrom([1,0]);
-		this.closeButton.modifier.originFrom(function(){return [1,0];});
-		this.closeButton.modifier.transformFrom(Transform.translate(0,0,2));
-
-        this.boxLabel = this.options.boxLabel;
-
-		this.closeButton.on('click',function(){
-			this.setLevelOfDetail(0);
+		this.reduceButton.on('click',function(){
+            var newLevel = Math.max(0,this.levelOfDetail-1);
+			this.setLevelOfDetail(newLevel);
 		}.bind(this));
 
+        this.plusButton = new BoxView({
+            text: '+',
+            clickable: true,
+            size: [20,20],
+            viewAlign:[0,0],
+            viewOrigin:[0,1],
+            position:[20,0,2]
+        });
 
-		_addView.call(this,this.closeButton);
+        this.plusButton.on('click',function(){
+            var newLevel = Math.min(this.options.maxDetail,this.levelOfDetail+1);
+            this.setLevelOfDetail(newLevel);
+        }.bind(this));
+
+		_addView.call(this,this.reduceButton);
+        _addView.call(this,this.plusButton);
         _addView.call(this,this.background);
 
 		if (options)
@@ -49,7 +66,8 @@ define(function(require, exports, module) {
 
     DynamicDetailView.DEFAULT_OPTIONS = {
         boxLabel: "",
-        boxSize:[10,10]
+        boxSize:[10,10],
+        maxDetail: 1
     }
 
 	DynamicDetailView.prototype = Object.create(PositionableView.prototype);
@@ -59,19 +77,21 @@ define(function(require, exports, module) {
 	function _prepareView(view)
 	{
 		view.renderController = new RenderController({
-			inTransition:false,
-			outTransition:false
+			inTransition:true,
+			outTransition:true
 		});
+
+        view.renderController.inTransformFrom(function(state) { return Transform.scale(state,1,1);});
+        //view.renderController.outTransformFrom(function(state) { return Transform.scale(1-state,1,1);});
 
         var dynamicView = this;
 		view.show = function(){
-			this.renderController.show(this);
+			this.renderController.show(this, {duration:200, curve: Easing.outQuad});
 		};
 
 		view.hide = function(){
-			this.renderController.hide();
+			this.renderController.hide({duration:200, curve: Easing.outQuad});
 		};
-
 	}
 
     function _addView(view)
@@ -114,11 +134,7 @@ define(function(require, exports, module) {
 			{
 				this.simpleView = this.makeSimpleView();
 				_addView.call(this,this.simpleView);
-
 			}
-
-			if (this.complexView)
-				this.complexView.hide();
 
             if (this._stretchConfig)
             {
@@ -129,30 +145,26 @@ define(function(require, exports, module) {
                 this.setSize(this.simpleView.getSize());
             }
 
-			this.simpleView.show();
-			this.currentView = this.simpleView;
+            this.plusButton.hide();
 			this.background.hide();
-			this.closeButton.hide();
-		}
-		else if (levelOfDetail == 1)
-		{
-			if (!this.complexView){
-				this.complexView = this.makeComplexView();
-				_addView.call(this,this.complexView);
-			}
+			this.reduceButton.hide();
 
-			this.complexView.show();
-			this.currentView = this.complexView;
+            _setActiveView.call(this,this.simpleView);
+
+		}
+		else if (levelOfDetail > 0)
+		{
+            var complexView = _getComplexView.call(this,levelOfDetail);
+
 			if (this._stretchConfig)
 			{
                 this._stretchConfig.weight = 2;
 			}
 
-			if (this.simpleView)
-				this.simpleView.hide();
+            this.plusButton.show();
+			this.reduceButton.show();
 
-			//this.background.show();
-			this.closeButton.show();
+            _setActiveView.call(this,complexView);
 		}
 		else
 		{
@@ -162,17 +174,44 @@ define(function(require, exports, module) {
 		this.requestLayout();
     };
 
+
+    function _setActiveView(view)
+    {
+        if (this.currentView)
+            this.currentView.hide();
+
+        this.currentView = view;
+        this.currentView.show();
+    }
+
+    function _getComplexView(levelOfDetail)
+    {
+        var complexView = this.complexViews[levelOfDetail];
+
+        if (!complexView){
+            complexView = this.makeComplexView(levelOfDetail);
+            this.complexViews[levelOfDetail] = complexView;
+            _addView.call(this,complexView);
+        }
+
+        return complexView;
+    }
+
+
 	DynamicDetailView.prototype.makeComplexView = function(){
 		return null;
 	};
 
 	DynamicDetailView.prototype.makeSimpleView = function()
 	{
-        var boxView = new PositionableView();
+        var boxView = new BoxView({
+            size: this.options.boxSize,
+            text: this.options.boxLabel,
+            textAlign: [0.5,0.5],
+            clickable: true
+        });
 
-		var box = (new ObjectFactory()).makeSurface(this.boxLabel,'compact');
-		box.setProperties({cursor:'pointer'});
-		box.on('click',function(){
+		boxView.on('click',function(){
 			if (this.levelOfDetail == 0)
 				this.setLevelOfDetail(1);
 			else
@@ -180,9 +219,6 @@ define(function(require, exports, module) {
 
 		}.bind(this));
 
-        boxView.setSize(this.options.boxSize);
-        boxView.add(box);
-        boxView.surface = box;
 
 		return boxView;
 	};

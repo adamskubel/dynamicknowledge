@@ -12,23 +12,45 @@ define(function(require, exports, module) {
 
     var Colors = require('../Colors');
 
-    function makeStyle(colorName)
+    var opacityMap = {
+        "base":{
+            font: 1,
+            background:0.25,
+            border:1
+        },
+        "textOnly":{
+            font:1,
+            background:0,
+            border:0
+        },
+        "noBorder":{
+            font:1,
+            background:0.25,
+            border:0
+        }
+    };
+
+    function makeStyle(colorName,styleName,fontSize)
     {
+        var opacity = opacityMap.base;
+        if (styleName)
+            opacity = opacityMap[styleName];
+
         return {
             "text" :
             {
                 backgroundColor : Colors.Transparent(),
                 borderStyle : 'none',
-                color : Colors.get(colorName,1),
+                color : Colors.get(colorName,opacity.font),
                 fontFamily :'Helvetica',
                 textAlign: 'left',
-                fontSize: 'small',
+                fontSize: fontSize,
                 padding: '6px'
             },
             "background" :
             {
-                backgroundColor : Colors.get(colorName,0.25),
-                borderColor : Colors.get(colorName,1),
+                backgroundColor : Colors.get(colorName,opacity.background),
+                borderColor : Colors.get(colorName,opacity.border),
                 borderWidth : '1px',
                 borderStyle : 'solid'
             },
@@ -42,7 +64,7 @@ define(function(require, exports, module) {
     }
 
     var opacityTransition = {
-        pulseRise: {duration: 500,curve:Easing.inQuad},
+        pulseRise: {duration: 50,curve:Easing.inQuad},
         pulseFall: {duration: 500,curve:Easing.outQuad}
     };
 
@@ -54,7 +76,7 @@ define(function(require, exports, module) {
         SurfaceWrappingView.call(this, null,options);
 
 
-        this.activeStyle = makeStyle(this.options.tintColor);
+        this.activeStyle = makeStyle(this.options.color,this.options.style,this.options.fontSize);
 
         this.textSurface = new Surface({
             size: [true,true],
@@ -65,6 +87,9 @@ define(function(require, exports, module) {
         //Make text surface
         if (this.options.size && this.options.size[0] != undefined && this.options.size[0] != true)
         {
+            if (this.options.scrollviewSizeHack)
+                this.textSurface.setSize([this.options.size[0],true]);
+
             this.textSurface.setProperties({maxWidth: this.options.size[0] + 'px'});
         }
 
@@ -96,9 +121,11 @@ define(function(require, exports, module) {
 
     BoxView.DEFAULT_OPTIONS = {
         clickable: false,
-        tintColor:3500,
+        scrollviewSizeHack: false,
+        color:3500,
         text:"",
-        textAlign:[0.5,0.5]
+        textAlign:[0.5,0.5],
+        fontSize:'small'
     };
 
     BoxView.prototype.setPadding = function(padding)
@@ -108,7 +135,7 @@ define(function(require, exports, module) {
         });
     };
 
-    BoxView.prototype.setTintColor = function(tintColor){
+    BoxView.prototype.setcolor = function(color){
 
     };
 
@@ -125,6 +152,22 @@ define(function(require, exports, module) {
 
                 this.textSurface.on('click',this._onClick );
                 this.backSurface.on('click',this._onClick );
+
+                this.textSurface.on('mouseenter',function(){
+                    this.setHighlighted(true);
+                }.bind(this));
+
+                this.textSurface.on('mouseleave',function(){
+                    this.setHighlighted(false);
+                }.bind(this));
+
+                this.backSurface.on('mouseenter',function(){
+                    this.setHighlighted(true);
+                }.bind(this));
+
+                this.backSurface.on('mouseleave',function(){
+                    this.setHighlighted(false);
+                }.bind(this));
             }
         }
     };
@@ -136,12 +179,7 @@ define(function(require, exports, module) {
 
     BoxView.prototype.pulse = function(){
 
-        if (this.bgOpacityState.isActive())
-            this.bgOpacityState.halt();
-
-        this.bgOpacityState.set(this.activeStyle.modifier.highlightOpacity,opacityTransition.pulseRise, function(){
-            this.bgOpacityState.set(this.activeStyle.modifier.baseOpacity,opacityTransition.pulseFall);
-        }.bind(this));
+       this.pulse(opacityTransition.pulseRise,opacityTransition.pulseFall);
     };
 
     BoxView.prototype.pulse = function(riseTime,fallTime){
@@ -160,7 +198,7 @@ define(function(require, exports, module) {
             this.bgOpacityState.halt();
 
         var o = (highlighted) ? this.activeStyle.modifier.highlightOpacity : this.activeStyle.modifier.baseOpacity;
-        this.bgOpacityState.set(o,opacityTransition.pulseRise);
+        this.bgOpacityState.set(o,(highlighted) ? opacityTransition.pulseRise : opacityTransition.pulseFall);
     };
 
     BoxView.prototype.setTextAlignment = function(textAlign){

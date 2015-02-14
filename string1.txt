@@ -15,3 +15,4 @@ But it's not that the RAM cells for address '0' are unpopulated. Something else 
 Linux actually doesn't let processes access memory directly. Instead, it gives them <b>virtual memory</b>.
 <br/><br/>
 The particulars of a virtual memory space is architecture dependent, but it is always much larger than the amount of physical memory available in the system. 
+{LINK}VirtualSpace{/LINK}

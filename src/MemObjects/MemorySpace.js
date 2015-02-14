@@ -31,6 +31,7 @@ define(function(require, exports, module)
     }
 
     MemorySpace.DEFAULT_OPTIONS = {
+        position: [0,0,0],
         size: [100,600],
         minimumContainerSize: [0,0],
         memConfig:{

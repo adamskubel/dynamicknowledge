@@ -28,10 +28,13 @@ define(function (require, exports, module)
 	var process = require('./process');
 	var Timer = require('famous/utilities/Timer');
     var Utils = require('./Utils');
+    var Vector = require('./ProperVector');
 
 	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
     var BoxView = require('./PositioningLayouts/BoxView');
     var PageLookupTable = require('./MemObjects/PageLookupTable');
+
+    var PScrollView = require('./PositioningLayouts/PositioningScrollView');
 
 	var currentScene = 0;
 	var objectFactory = new ObjectFactory();
@@ -47,6 +50,8 @@ define(function (require, exports, module)
 	var mainLayout;
     var strings = {};
     var cameraAngles = [0,0];
+
+    var objectRegistry = {};
 
 	function init()
     {
@@ -86,24 +91,43 @@ define(function (require, exports, module)
 			direction:0,
 			viewSpacing:[40,0],
             viewOrigin:[1,0.5],
+            viewAlign:[0.5,0.5],
             isAnimated:false
 		});
 
 
-        textLayout = new StretchyLayout({
+        var textWidth = this.context.getSize()[0]*0.4;
+        textLayout = new PScrollView({
             direction: 1,
-            viewOrigin: [0,0.5]
+            viewOrigin: [0,0.5],
+            viewAlign: [0.6,0.5],
+            size:[textWidth,undefined]
         });
+        textLayout.textWidth= textWidth;
 
-        textLayout.add(new BoxView({
-            size:[undefined,undefined]
-        }));
+        textLayout.setPosition([0,0,0]);
+
+        textLayout.calculatePosition = function(){
+            var p = Vector.fromArray(textLayout.position);
+            var s = this.context.getSize();
+            if (s)
+            {
+                p = p.sub(Vector.fromArray(s).multiply(new Vector(-0.1, 0.5, 0)));
+            }
+            return p.toArray();
+        }.bind(this);
+
+        //textLayout.add(new BoxView({
+        //    color:6000,
+        //    size:[undefined,undefined]
+        //}));
 
         var mouseCaptureSurface = new Surface();
         this.context.add(new Modifier({transform:Transform.translate(0,0,-100)})).add(mouseCaptureSurface);
 
 		rootNode.add(mainLayout.getModifier()).add(mainLayout);
         rootNode.add(textLayout.getModifier()).add(textLayout);
+        //mainLayout.addChild(textLayout,{weight:2});
 		dynamicNodes.push(mainLayout);
         dynamicNodes.push(textLayout);
 
@@ -130,10 +154,27 @@ define(function (require, exports, module)
         //    cameraAngles[1] += data.delta[0]*0.2;
         //});
 
-        for (var i=0;i<5;i++)
-            nextScene.call(this);
 
         //Timer.setInterval(function() {nextScene.call(this);},100);
+
+        jQuery.get('./text.txt', function(data)
+        {
+            var blocks = parseText.call(this,data);
+
+            for (var i=0;i<5;i++)
+            {
+                nextScene.call(this);
+            }
+
+            for (var i=0;i<blocks.length;i++)
+            {
+                var block = blocks[i];
+                var pointAt = objectRegistry[block.name];
+                addText.call(this,block.text,pointAt);
+            }
+
+        }.bind(this));
+
 	}
 
     var nextButton;
@@ -142,65 +183,84 @@ define(function (require, exports, module)
     var activeTextView;
     var virtualBlock;
     var mappingBox;
-    var annoColor = 4600;
+    var annoColor = 6000;
     var pageTable;
     var physicalMemorySpace;
 
     function addText(string, pointAt){
 
+        var textView = new BoxView({
+            size:[textLayout.textWidth,true],
+            color:annoColor,
+            text:string,
+            textAlign:[0,0],
+            style:(pointAt) ? 'noBorder' : 'noBorder',
+            fontSize:'normal',
+            scrollviewSizeHack: true
+        });
 
+        if (pointAt)
+        {
+            var pointLine = new LineCanvas();
+            pointLine.setLineObjects(textView, pointAt);
+            rootNode.add(pointLine.getModifier()).add(pointLine);
+            textLayout.on('positionUpdate',function(){
+                pointLine.update();
+            });
+
+            if (pointAt.annoClick)
+            {
+                textView.setClickable(true);
+                textView.on('click', function ()
+                {
+                    pointAt.annoClick();
+                });
+            }
+        }
+
+        textLayout.addChild(textView);
+        return textView;
     }
+
+    //function addTextAsync(string,pointAt){
+    //
+    //    var textView = addText("",pointAt);
+    //    loadTextAsync(string,function(data){
+    //        textView.setText(data);
+    //        textLayout.requestLayout();
+    //    });
+    //    return textView;
+    //}
 
 
 
     var scenes = [
-        //function()
-        //{
-        //    setCameraState("3D");
-        //    var systemView = new MemorySystemView();
-        //    rootNode.add(systemView);
-        //},
 		function ()
 		{
 
             setCameraState("2D");
 
-            activeTextView = new BoxView({size:[400,true], tintColor:annoColor});
-			textLayout.addChild(activeTextView,{weight:2});
-
-			nextButton = new BoxView({text: "Next", size:[200,80], clickable:true, tintColor:2800});
-			textLayout.addChild(nextButton);
+			nextButton = new BoxView({text: "Next", size:[200,80], clickable:true, color:6000,viewAlign:[1,1],viewOrigin:[1,1]});
+            textLayout.add(nextButton.getModifier()).add(nextButton);
 
 			nextButton.on('click', function (){
 			    nextScene.call(this);
 			}.bind(this));
 
 			mainLayout.requestLayout();
-
-
 		},
         function ()
         {
-            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
             virtualMemorySpace = new MemorySpace({
                 size:[100,700]
             });
 
-            var scene2 = "Let's take a look at a virtual memory space for a 32-bit system";
-            activeTextView = new BoxView({text: scene2, size: [400,true], textAlign:[0,0.5], tintColor:annoColor});
+            objectRegistry["VirtualSpace"] = virtualMemorySpace;
 
-            textLayout.addChild(activeTextView,{weight: 1, index:textLayout.children.length-1});
             mainLayout.addChild(virtualMemorySpace,{weight:1, index:0});
         },
         function()
         {
-
-            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
-
-            var string = "This is the virtual memory space of a process. It's big, but mostly empty.<br/>" +
-                    "The program's code is mapped entirely into the virtual memory space. " +
-                "However, this doesn't mean that the program itself is in memory!";
-
             var pv1 = new BoxView({
                 text:'Reserved by kernel',
                 size:[100,100],
@@ -208,31 +268,9 @@ define(function (require, exports, module)
                 textAlign:[0,0]
             });
             virtualMemorySpace.addChild(pv1);
-
-            activeTextView = new BoxView({
-                text:string,
-                size: [300,true],
-                tintColor:annoColor
-            });
-
-            mainLayout.addChild(activeTextView,{weight:1, index: 0});
         },
         function()
         {
-            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
-            var string = "Let's focus on one particular virtual address. How does this address get mapped to physical memory?";
-
-            activeTextView = new BoxView({
-                text:string,
-                size: [300,true],
-                position: [-20,220,0],
-                viewOrigin:[1,0.5],
-                tintColor:annoColor
-            });
-
-            dynamicNodes.push(activeTextView);
-            virtualMemorySpace.add(activeTextView.getModifier()).add(activeTextView);
-
             virtualBlock = new BoxView({
                 text:"0xA0000000",
                 size:[undefined,true],
@@ -246,11 +284,12 @@ define(function (require, exports, module)
         function()
         {
             mappingBox = new DynamicDetailView({
-                boxLabel:"Magic!",
-                boxSize: [120,120]
+                boxLabel:"Memory mapping subsystem",
+                boxSize: [120,120],
+                maxDetail: 2
             });
             mappingBox.setOrigin([0,0.5]);
-            mainLayout.addChild(mappingBox,{align: 'center'});
+            mainLayout.addChild(mappingBox,{align: 'center',index:1});
 
             pageTable = new PageLookupTable({
                 startPage: 0xA0000,
@@ -261,8 +300,48 @@ define(function (require, exports, module)
                 ]
             });
 
-            mappingBox.makeComplexView = function(){
-                return pageTable;
+            objectRegistry["PageTable"] = mappingBox;
+
+
+            mappingBox.makeComplexView = function(detail){
+                if (detail == 1)
+                    return pageTable;
+                else if (detail == 2)
+                {
+                    var dc = new DynamicContainer();
+                    var pageTable2 = new PageLookupTable({
+                        startPage: 0xA0000,
+                        pageMappings: [
+                            0x10520,
+                            0x21234,
+                            0x0F2D4
+                        ]
+                    });
+
+                    var label1 = new BoxView({
+                        text: "Label #1!",
+                        position: [-110,-10,0],
+                        viewOrigin: [0,0],
+                        size: [100,30]
+                    });
+
+                    var label2 = new BoxView({
+                        text: "Hi am label 2",
+                        position: [140,50,0],
+                        size: [100,40]
+                    });
+
+                    dc.addChild(pageTable2);
+                    dc.addChild(label1);
+                    dc.addChild(label2);
+
+
+                    return dc;
+                }
+            };
+
+            mappingBox.annoClick = function () {
+                mappingBox.setLevelOfDetail(1);
             };
 
 
@@ -276,7 +355,9 @@ define(function (require, exports, module)
                 size:[100,500]
             });
 
-            mainLayout.addChild(physicalMemorySpace,{align:'center'});
+            objectRegistry["PhysicalMemory"] = physicalMemorySpace;
+
+            mainLayout.addChild(physicalMemorySpace,{align:'center',index:2});
 
             var physicalBlock = new BoxView({
                 text:"0x10520000",
@@ -311,25 +392,9 @@ define(function (require, exports, module)
             });
             virtualBlock.backSurface.pipe(dragController);
 
-
-            activeTextView.opacityState.set(0.7,{duration: 200, curve:Easing.outQuad});
-            var string = "Memory mapping isn't done per-address. Instead, addresses are grouped into 4kB blocks called pages.<br/>" +
-                "The page of an address can be found simply by shifting the bits. For a 4kB page, we can just drop the last 3 hex digits";
-            activeTextView = new BoxView({text:string, size:[400,true], position:[-20,300,0], viewOrigin:[1,0.5], tintColor:annoColor});
-
-
-            virtualMemorySpace.add(activeTextView.getModifier()).add(activeTextView);
-            dynamicNodes.push(activeTextView);
         },
         function ()
         {
-            var string = "This page number is then used as an offset into a <b>Page Lookup Table</b>. " +
-                "The entry at that offset is then concatenated with the 12 bits shifted out earlier, to determine the physical memory address.<br/><br/>" +
-                "Drag the virtual address to see the mapping in action!";
-            activeTextView = new BoxView({text: string, size: [400,true], textAlign:[0,0.5], tintColor:annoColor});
-
-            addText(string,pageTable);
-            //textLayout.addChild(activeTextView,{weight: 1, index:textLayout.children.length-1});
             mappingBox.setLevelOfDetail(1);
         },
         function(){
@@ -350,6 +415,48 @@ define(function (require, exports, module)
         });
     }
 
+    function parseText(text){
+
+        var textBlocks = [];
+
+        var openTag = "{LINK=";
+        var closeTag = "{/LINK}";
+
+        var i =0;
+        while (i < text.length)
+        {
+
+            var index = text.indexOf(openTag, i);
+
+            if (index != i)
+            {
+                var end = index;
+                if (index < 0)
+                    end = text.length;
+                textBlocks.push({
+                    name:"",
+                    text:text.slice(i,end)
+                });
+            }
+
+            if (index < 0)
+                break;
+
+            var nameEndIndex = text.indexOf("}",index);
+            var closingIndex = text.indexOf(closeTag,index);
+
+            textBlocks.push({
+                name:text.slice(index + openTag.length, nameEndIndex),
+                text:text.slice(nameEndIndex+1, closingIndex)
+            });
+
+            i = closingIndex+closeTag.length;
+            if (i < 0)
+                break;
+        }
+
+        return textBlocks;
+    }
 
 	function drawLine(fromPoint, toPoint)
 	{

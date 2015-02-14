@@ -1,0 +1,76 @@
+What's a memory address actually mean? As programmers, we usually don't think about the actual value of a pointer. We only deal with it on relative terms. 
+Does it represent the actual location in RAM that the program writes to?
+<br/>
+Consider the following code:
+<pre>
+void main()
+{
+	cout << *(0);
+}
+</pre>
+This is obviously going to crash. The memory at address '0' should be empty. 
+<br/>
+But it's not that the RAM cells for address '0' are unpopulated. Something else is stopping the program from reading that address. 
+
+Linux actually doesn't let processes access memory directly. Instead, it gives them <b>virtual memory</b>.
+<br/><br/>
+{LINK=VirtualSpace}
+The size of the virtual memory space is dependent on the system architecture; x86 would have a 2^32 possible virtual addresses, 
+and a 64-bit system would have 2^64 virtual addresses. However, only a subset of this space is available for use by the application.  
+<br/>
+For sake of simplicity, we'll work with a 32-bit memory space. 
+{/LINK}
+
+Virtual memory is mapped to physical memory by the operating system. This mapping is done in blocks called pages. 
+A page of virtual memory maps to a page of physical memory.
+
+{LINK=PageTable}
+This virtual -> physical mapping is defined in the <b>page table</b>. 
+{/LINK}
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>

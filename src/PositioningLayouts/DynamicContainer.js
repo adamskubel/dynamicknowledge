@@ -20,6 +20,8 @@ define(function(require, exports, module) {
         this.minimumContainerSize = this.options.minimumContainerSize;
         this.size = this.minimumSize;
 
+        this.offsetState = new Transitionable(Transform.translate(0,0,0));
+        this.offsetNode = this.add(new Modifier({transform: function(){return this.offsetState.get();}.bind(this)}));
 	}
 
 	DynamicContainer.prototype = Object.create(PositionableView.prototype);
@@ -29,9 +31,8 @@ define(function(require, exports, module) {
 	DynamicContainer.DEFAULT_OPTIONS = 
 	{
         minimumContainerSize: [0,0],
-        isAnimated: true
-        //positionTransition: {duration:250, curve: Easing.outQuad},
-        //sizeTransition: {duration:250, curve: Easing.outQuad}
+        isAnimated: true,
+        position: [0,0,0]
     };
 
 	DynamicContainer.prototype.addChild = function(child){
@@ -39,7 +40,7 @@ define(function(require, exports, module) {
         if (child instanceof PositionableView)
         {
             this._children.push(child);
-            this.add(child.getModifier()).add(child);
+            this.offsetNode.add(child.getModifier()).add(child);
             this._layoutDirty = true;
         }
         else
@@ -55,15 +56,17 @@ define(function(require, exports, module) {
         var size = Vector.fromArray(child.measure().minimumSize);
         var topLeft = new Vector(0,0,0);
 
-
-        var bottomRight = size.clone();
-
         if (child.position)
             topLeft = Vector.fromArray(child.position);
 
+        var bottomRight = size.add(topLeft);
+
         child._dynamicSize = size.toArray(2);
 
-        return topLeft.add(bottomRight);
+        return {
+            bottomRight:bottomRight,
+            topLeft:topLeft
+        }
     }
 
     DynamicContainer.prototype.measure = function(requestedSize){
@@ -71,12 +74,27 @@ define(function(require, exports, module) {
         var containerSize = Vector.fromArray(this.minimumContainerSize);
         var children = this._children;
 
+        var bottomRight = new Vector(0,0,0);
+        var topLeft = new Vector(0,0,0);
+
         for (var i=0;i<children.length;i++)
         {
-            var childExtents = _measureChildExtents(children[i],containerSize);
-            containerSize.x = Math.max(childExtents.x,containerSize.x);
-            containerSize.y = Math.max(childExtents.y,containerSize.y);
+            var childExtents = _measureChildExtents(children[i]);
+
+            bottomRight.x = Math.max(childExtents.bottomRight.x,bottomRight.x);
+            bottomRight.y = Math.max(childExtents.bottomRight.y,bottomRight.y);
+
+            topLeft.x = Math.min(childExtents.topLeft.x,topLeft.x);
+            topLeft.y = Math.min(childExtents.topLeft.y,topLeft.y);
         }
+
+        var sizeVector = bottomRight.sub(topLeft);
+
+        topLeft = topLeft.multiply(-1);
+        this.offsetState.set(Transform.translate(topLeft.x,topLeft.y,topLeft.z));//, {duration:500, curve:Easing.outQuad});
+
+        containerSize.x = Math.max(sizeVector.x,containerSize.x);
+        containerSize.y = Math.max(sizeVector.y,containerSize.y);
 
         for (var i=0;i<children.length;i++)
         {
