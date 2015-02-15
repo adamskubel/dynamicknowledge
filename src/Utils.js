@@ -2,6 +2,7 @@ define(function (require, exports, module)
 {
 
     var Vector = require('./ProperVector');
+    var RenderController = require("famous/views/RenderController");
 
     function Utils(){
 
@@ -71,7 +72,21 @@ define(function (require, exports, module)
         {
             console.error("Unexpected direction: " + this.direction);
         }
-    }
+    };
+
+    Utils.attachRenderController = function(object){
+
+        object.renderController = new RenderController();
+
+        object.show = function(){
+            this.renderController.show(this);
+        };
+
+        object.hide = function(){
+            this.renderController.hide();
+        }
+
+    };
 
     Utils.nameMap = {};
 

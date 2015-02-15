@@ -9,6 +9,7 @@ define(function (require, exports, module)
     var Transitionable = require('famous/transitions/Transitionable');
     var Easing = require('famous/transitions/Easing');
     var Utils = require('../Utils');
+    var Vector = require('../ProperVector');
 
     var id;
 
@@ -66,21 +67,39 @@ define(function (require, exports, module)
 
     PositionableView.prototype.calculateSize = function ()
     {
+
+        if (this._size)
+            return this._size;
         if (this.parent)
             return this.parent.calculateChildSize(this);
-        return this.size;
+
+        if (this.size)
+            return this.size;
+        else
+            return [0,0];
     };
 
-    PositionableView.prototype.calculatePosition = function ()
+    PositionableView.prototype.calculatePosition = function (relativeTo)
     {
-        if (this.parent)
-            return this.parent.calculateChildPosition(this);
+        if (relativeTo == this)
+            return [0,0,0];
+        else if (this.parent)
+            return this.parent.calculateChildPosition(this,relativeTo);
+
         return this.position;
     };
 
-    PositionableView.prototype.calculateChildPosition = function (child)
+    PositionableView.prototype.calculateChildPosition = function (child, relativeTo)
     {
-        return this.calculatePosition();
+        var myPosition = Vector.fromArray(this.calculatePosition(relativeTo));
+        var childOffset = (child.position) ? Vector.fromArray(child.position) : new Vector(0,0,0);
+
+        var originAdjustment = (child.viewAlign) ? Vector.fromArray(child.viewAlign) : new Vector(0,0,0);
+        var myOrigin = (this.viewOrigin) ? Vector.fromArray(this.viewOrigin) : new Vector(0,0,0);
+
+        originAdjustment = originAdjustment.sub(myOrigin).multiply(Vector.fromArray(this.calculateSize()));
+
+        return myPosition.add(childOffset).add(originAdjustment).toArray();
     };
 
     PositionableView.prototype.calculateChildSize = function (child)
@@ -141,7 +160,7 @@ define(function (require, exports, module)
                 this.positionState.halt();
 
             this._eventOutput.emit('positionChange', {newPosition: position});
-            this.positionState.set(Transform.translate(position[0], position[1], position[2]), (this.isAnimated) ? this.positionTransition : null);
+            this.positionState.set(Transform.translate(position[0], position[1], position[2]), (this.isAnimated && false) ? this.positionTransition : null);
         }
         else
         {
@@ -157,7 +176,7 @@ define(function (require, exports, module)
         {
             if (this.sizeState.isActive())
                 this.sizeState.halt();
-            this.sizeState.set(newSize, (this.isAnimated && this._size) ? this.sizeTransition : null);
+            this.sizeState.set(newSize, (this.isAnimated && this._size && false) ? this.sizeTransition : null);
         }
         else
         {

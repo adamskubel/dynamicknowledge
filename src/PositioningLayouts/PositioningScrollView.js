@@ -48,7 +48,6 @@ define(function(require, exports, module) {
 
         var dirVector = Utils.getDirectionVector(dir);
 
-        //parentPosition.add()
         parentPosition = parentPosition.sub(dirVector.multiply(Math.round(this.scrollView._displacement)));
 
         var myOffset = [0,0];
@@ -59,9 +58,7 @@ define(function(require, exports, module) {
             myOffset[dir] += cellSize[dir];
         }
 
-        //var mySize = Vector.fromArray(this.calculateSize());
-
-        var childPosition = parentPosition.add(Vector.fromArray(myOffset));//.add(mySize);
+        var childPosition = parentPosition.add(Vector.fromArray(myOffset));
 
         return childPosition.toArray();
     };

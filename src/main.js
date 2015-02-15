@@ -25,7 +25,6 @@ define(function (require, exports, module)
     var DynamicContainer = require('./PositioningLayouts/DynamicContainer');
 
     var MemorySpace = require('./MemObjects/MemorySpace');
-	var process = require('./process');
 	var Timer = require('famous/utilities/Timer');
     var Utils = require('./Utils');
     var Vector = require('./ProperVector');
@@ -78,23 +77,23 @@ define(function (require, exports, module)
 
         this.context.add(mainView);
 
-
-		//for (var i = 0; i < 60; i++)
-		//{
-		//	var newLine = new LineCanvas();
-		//	this.lines.push(newLine);
-		//	rootNode.add(newLine.getModifier()).add(newLine);
-		//}
-
-
 		mainLayout = new StretchyLayout({
 			direction:0,
 			viewSpacing:[40,0],
-            viewOrigin:[1,0.5],
-            viewAlign:[0.5,0.5],
+            viewOrigin:[0.5,0.5],
+            viewAlign:[0.3,0.5],
             isAnimated:false
 		});
 
+        mainLayout.calculatePosition = function(){
+            var p = Vector.fromArray(mainLayout.position);
+            var s = this.context.getSize();
+            if (s)
+            {
+                p = p.sub(Vector.fromArray(s).multiply(new Vector(0.2, 0, 0)));
+            }
+            return p.toArray();
+        }.bind(this);
 
         var textWidth = this.context.getSize()[0]*0.4;
         textLayout = new PScrollView({
@@ -116,11 +115,6 @@ define(function (require, exports, module)
             }
             return p.toArray();
         }.bind(this);
-
-        //textLayout.add(new BoxView({
-        //    color:6000,
-        //    size:[undefined,undefined]
-        //}));
 
         var mouseCaptureSurface = new Surface();
         this.context.add(new Modifier({transform:Transform.translate(0,0,-100)})).add(mouseCaptureSurface);
@@ -157,14 +151,13 @@ define(function (require, exports, module)
 
         //Timer.setInterval(function() {nextScene.call(this);},100);
 
+        _initUI.call(this);
+
         jQuery.get('./text.txt', function(data)
         {
             var blocks = parseText.call(this,data);
 
-            for (var i=0;i<5;i++)
-            {
-                nextScene.call(this);
-            }
+            nextScene.call(this);
 
             for (var i=0;i<blocks.length;i++)
             {
@@ -177,13 +170,12 @@ define(function (require, exports, module)
 
 	}
 
-    var nextButton;
     var textLayout;
     var virtualMemorySpace;
-    var activeTextView;
     var virtualBlock;
     var mappingBox;
     var annoColor = 6000;
+    var editColor = 12000;
     var pageTable;
     var physicalMemorySpace;
 
@@ -233,6 +225,189 @@ define(function (require, exports, module)
     //}
 
 
+    function _initUI()
+    {
+        var nextButton = new BoxView({text: "Next", size:[200,80], clickable:true, color:6000,viewAlign:[1,1],viewOrigin:[1,1],fontSize:'large'});
+        textLayout.add(nextButton.getModifier()).add(nextButton);
+
+        nextButton.on('click', function (){
+            nextScene.call(this);
+        }.bind(this));
+
+        var editButton = new BoxView({text: "Edit", size:[100,80], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        rootNode.add(editButton.getModifier()).add(editButton);
+
+        editButton.on('click',function(){
+            _setEditMode.call(this,true);
+        }.bind(this));
+    }
+
+    function _addAnnotationButton(object)
+    {
+        var annotateObjectButton = new BoxView({text: "An", size:[50,50], clickable:true, color:annoColor, position:[0,0,5]});
+
+        annotateObjectButton.renderController = new RenderController();
+        object.add(annotateObjectButton.getModifier()).add(annotateObjectButton.renderController);
+
+        annotateObjectButton.renderController.show(annotateObjectButton);
+
+        object._annotateObjectButton = annotateObjectButton;
+
+        annotateObjectButton.on('click',function(){
+
+            _makeObjectAnnotated.call(this,object);
+            annotateObjectButton.renderController.hide();
+        });
+    }
+
+    function _makeObjectAnnotated(object)
+    {
+        var dc = new DynamicContainer({
+            edgePadding:[10,10],
+            isAnimated: false
+        });
+
+        var containerBackground = new BoxView({
+            color:annoColor,
+            style: 'borderOnly'
+        });
+
+        dc.setAnimated(false);
+        dc.add(containerBackground.getModifier()).add(containerBackground);
+
+        //object.add(dc.getModifier()).add(dc);
+
+        object.setPosition([0,object.position[1],0]);
+
+        //object.setOrigin([0,0]);
+        dc.addChild(object);
+
+        dynamicNodes.push(dc);
+        dc.requestLayout();
+
+        var addLabelButton = new BoxView({text: "+", size:[40,40], clickable:true, color:annoColor,
+            position:[0,0,5], viewAlign:[0,0], viewOrigin:[0,1], fontSize:'large'});
+
+        dc.add(addLabelButton.getModifier()).add(addLabelButton);
+
+        addLabelButton.on('click',function(){
+            _addLabelBox.call(this,dc,object);
+        });
+
+        var index = mainLayout.children.indexOf(object);
+
+        mainLayout.removeChild(object);
+        mainLayout.addChild(dc,{weight:2, index:index});
+
+        var saveButton = new BoxView({text: "[]", size:[40,40], clickable:true, color:annoColor,
+            position:[40,0,5], viewAlign:[0,0], viewOrigin:[0,1], fontSize:'large'});
+
+        dc.add(saveButton.getModifier()).add(saveButton);
+
+        saveButton.on('click',function(){
+            _saveAnnotations.call(this,dc);
+        });
+
+        var lineButton = new BoxView({text: "|", size:[40,40], clickable:true, color:annoColor,
+            position:[80,0,5], viewAlign:[0,0], viewOrigin:[0,1], fontSize:'large'});
+
+        dc.add(lineButton.getModifier()).add(lineButton);
+
+        lineButton.on('click',function(){
+            _startLineDraw.call(this,dc);
+        });
+    }
+
+    function _saveAnnotations(dc)
+    {
+        for (var i=0;i<dc._children.length;i++)
+        {
+            if ( dc._children[i] instanceof BoxView)
+                dc._children[i].setEditable(false);
+        }
+    }
+
+    function _addLabelBox(dc, object)
+    {
+        var newLabel = new BoxView({
+            text: "_label_",
+            position: [0,-10,0],
+            viewOrigin: [0,0],
+            size: [200,100],
+            color:annoColor,
+            editable: true
+        });
+
+        newLabel.setAnimated(false);
+
+        _makeBoxMovable(dc, newLabel);
+        _makeBoxResizable(newLabel);
+        dc.addChild(newLabel);
+    }
+
+    function _startLineDraw(dc)
+    {
+        for (var i=0;i<dc._children.length;i++)
+        {
+            if ( dc._children[i] instanceof BoxView)
+                _makeLineAnchors.call(this,dc._children[i]);
+        }
+    }
+
+    function _makeLineAnchors(box)
+    {
+
+    }
+
+    function _makeBoxMovable(dc, box){
+
+        var moveButton = new BoxView({text: "", size:[30,30], clickable:true, color:annoColor,
+            position:[0,0,5], viewAlign:[0,0], viewOrigin:[0.8,0.8], fontSize:'large'});
+
+        box.add(moveButton.getModifier()).add(moveButton);
+
+        var dragController = new MouseSync();
+        dragController.on('update',function(data)
+        {
+            var offset = Vector.fromArray(data.delta);
+            var newPos = Vector.fromArray(box.position).add(offset);
+
+            box.setPosition(newPos.toArray());
+            box.requestLayout();
+        });
+        moveButton.backSurface.pipe(dragController);
+    }
+
+    function _makeBoxResizable(box){
+
+        var resizeButton = new BoxView({text: "", size:[30,30], clickable:true, color:annoColor,
+            position:[0,0,5], viewAlign:[1,1], viewOrigin:[0.2,0.2], fontSize:'large'});
+
+        box.add(resizeButton.getModifier()).add(resizeButton);
+
+        var dragController = new MouseSync();
+
+        dragController.on('update',function(data)
+        {
+            var offset = Vector.fromArray(data.delta);
+            var newSize = Vector.fromArray(box.size).add(offset);
+
+            box.setSize(newSize.toArray());
+            box.requestLayout();
+        });
+        resizeButton.backSurface.pipe(dragController);
+    }
+
+    function _setEditMode(editMode)
+    {
+
+        for (var key in objectRegistry)
+        {
+            var object = objectRegistry[key];
+            _addAnnotationButton(object);
+        }
+    }
+
 
     var scenes = [
 		function ()
@@ -240,17 +415,8 @@ define(function (require, exports, module)
 
             setCameraState("2D");
 
-			nextButton = new BoxView({text: "Next", size:[200,80], clickable:true, color:6000,viewAlign:[1,1],viewOrigin:[1,1]});
-            textLayout.add(nextButton.getModifier()).add(nextButton);
-
-			nextButton.on('click', function (){
-			    nextScene.call(this);
-			}.bind(this));
-
 			mainLayout.requestLayout();
-		},
-        function ()
-        {
+
             virtualMemorySpace = new MemorySpace({
                 size:[100,700]
             });
@@ -258,9 +424,7 @@ define(function (require, exports, module)
             objectRegistry["VirtualSpace"] = virtualMemorySpace;
 
             mainLayout.addChild(virtualMemorySpace,{weight:1, index:0});
-        },
-        function()
-        {
+
             var pv1 = new BoxView({
                 text:'Reserved by kernel',
                 size:[100,100],
@@ -268,9 +432,7 @@ define(function (require, exports, module)
                 textAlign:[0,0]
             });
             virtualMemorySpace.addChild(pv1);
-        },
-        function()
-        {
+
             virtualBlock = new BoxView({
                 text:"0xA0000000",
                 size:[undefined,true],
@@ -280,13 +442,11 @@ define(function (require, exports, module)
             });
             virtualBlock._memAddress = 0xA0000000;
             virtualMemorySpace.addChild(virtualBlock);
-        },
-        function()
-        {
+
             mappingBox = new DynamicDetailView({
                 boxLabel:"Memory mapping subsystem",
                 boxSize: [120,120],
-                maxDetail: 2
+                maxDetail: 1
             });
             mappingBox.setOrigin([0,0.5]);
             mainLayout.addChild(mappingBox,{align: 'center',index:1});
@@ -308,7 +468,17 @@ define(function (require, exports, module)
                     return pageTable;
                 else if (detail == 2)
                 {
-                    var dc = new DynamicContainer();
+                    var dc = new DynamicContainer({
+                        edgePadding:[10,10]
+                    });
+
+                    var containerBackground = new BoxView({
+                        color:annoColor,
+                        style: 'borderOnly'
+                    });
+
+                    dc.add(containerBackground.getModifier()).add(containerBackground);
+
                     var pageTable2 = new PageLookupTable({
                         startPage: 0xA0000,
                         pageMappings: [
@@ -512,116 +682,76 @@ define(function (require, exports, module)
         -Math.PI* (3/4)
 	];
 
-	function label(object, text, labelIndex)
-	{
-		if (labelIndex == undefined)
-		{
-			labelIndex = 0;
-		}
+	//function label(object, text, labelIndex)
+	//{
+	//	if (labelIndex == undefined)
+	//	{
+	//		labelIndex = 0;
+	//	}
+    //
+	//	var angle = labelAngles[labelIndex];
+    //
+	//	var _labelSurface = objectFactory.makeLabelSurface(text);
+     //   var labelSurface = new SurfaceWrappingView(_labelSurface);
+     //   labelSurface.renderController = new RenderController();
+     //   labelSurface.renderController.show(labelSurface);
+    //
+     //   if (object.labels == undefined || object.labels[labelIndex] == undefined)
+	//	{
+	//		var labelLine = new LineCanvas({opacityRange: [1, 1]});
+    //
+    //
+	//		var updatePosition;
+	//		updatePosition = function ()
+	//		{
+     //           var objectPos = Vector.fromArray(object.calculatePosition());
+     //           var objectSize = Vector.fromArray(object.calculateSize());
+	//			var offset = (Vector.fromAngles(0, angle).multiply(80));
+     //           //objectPos.x += objectSize.x;
+	//			labelSurface.setPosition(objectPos.add(offset).toArray());
+	//		};
+    //
+	//		updatePosition();
+    //
+     //       rootNode.add(labelLine.getModifier()).add(labelLine);
+     //       rootNode.add(labelSurface.getModifier()).add(labelSurface.renderController);
+    //
+	//		labelLine.setLineObjects(object, labelSurface);
+    //
+	//		object.on('positionChange', function ()
+	//		{
+	//			updatePosition();
+	//			labelLine.update();
+	//		});
+    //
+	//		object.labels = [];
+	//		object.labels[labelIndex] = [labelSurface];
+	//	} else
+	//	{
+	//		var labelViews = object.labels[labelIndex];
+	//		var lastView = labelViews[labelViews.length - 1];
+    //
+	//		updatePosition = function ()
+	//		{
+	//			var objectPos = Vector.fromArray(lastView.calculatePosition());
+	//			var objectSize = Vector.fromArray(lastView.calculateSize());
+	//			var labelPos = objectPos.add(new Vector(0, objectSize.y, 0));
+	//			labelSurface.setPosition(labelPos.toArray());
+	//		};
+    //
+	//		updatePosition();
+	//		object.on('positionChange', function ()
+	//		{
+	//			updatePosition();
+	//		});
+    //
+	//		rootNode.add(labelSurface.getModifier()).add(labelSurface);
+	//		labelViews.push(labelSurface);
+	//	}
+     //   labelSurface.wrapSurface.setMaxSize([300, true]);
+	//}
 
-		var angle = labelAngles[labelIndex];
 
-		var _labelSurface = objectFactory.makeLabelSurface(text);
-        var labelSurface = new SurfaceWrappingView(_labelSurface);
-        labelSurface.renderController = new RenderController();
-        labelSurface.renderController.show(labelSurface);
-
-        if (object.labels == undefined || object.labels[labelIndex] == undefined)
-		{
-			var labelLine = new LineCanvas({opacityRange: [1, 1]});
-
-
-			var updatePosition;
-			updatePosition = function ()
-			{
-                var objectPos = Vector.fromArray(object.calculatePosition());
-                var objectSize = Vector.fromArray(object.calculateSize());
-				var offset = (Vector.fromAngles(0, angle).multiply(80));
-                //objectPos.x += objectSize.x;
-				labelSurface.setPosition(objectPos.add(offset).toArray());
-			};
-
-			updatePosition();
-
-            rootNode.add(labelLine.getModifier()).add(labelLine);
-            rootNode.add(labelSurface.getModifier()).add(labelSurface.renderController);
-
-			labelLine.setLineObjects(object, labelSurface);
-
-			object.on('positionChange', function ()
-			{
-				updatePosition();
-				labelLine.update();
-			});
-
-			object.labels = [];
-			object.labels[labelIndex] = [labelSurface];
-		} else
-		{
-			var labelViews = object.labels[labelIndex];
-			var lastView = labelViews[labelViews.length - 1];
-
-			updatePosition = function ()
-			{
-				var objectPos = Vector.fromArray(lastView.calculatePosition());
-				var objectSize = Vector.fromArray(lastView.calculateSize());
-				var labelPos = objectPos.add(new Vector(0, objectSize.y, 0));
-				labelSurface.setPosition(labelPos.toArray());
-			};
-
-			updatePosition();
-			object.on('positionChange', function ()
-			{
-				updatePosition();
-			});
-
-			rootNode.add(labelSurface.getModifier()).add(labelSurface);
-			labelViews.push(labelSurface);
-		}
-        labelSurface.wrapSurface.setMaxSize([300, true]);
-	}
-
-    function testStretch()
-    {
-        var stretchy = new StretchyLayout({
-            size: [300, 300],
-            position: [0, 0, 0],
-            viewAlign: [0.5, 0.5]
-        });
-        stretchy.setPosition([-100, -100, 0]);
-        stretchy.setAlign([0.5, 0.5]);
-        stretchy.setOrigin([0.5, 0.5]);
-
-        var factory = new ObjectFactory();
-
-        function makepv(text) {
-            var pv = new PositionableView();
-            pv.surface = factory.makeSurface(text);
-            pv.add(pv.surface);
-
-            pv.surface.on('click', function () {
-                if (pv._stretchConfig.weight == 1)
-                    pv._stretchConfig.weight = 2;
-                else
-                    pv._stretchConfig.weight = 1;
-
-                stretchy.reflow([300, 200]);
-            });
-            return pv;
-        }
-
-        var pv1 = makepv("PV1");
-        var pv2 = makepv("PV2");
-        var pv3 = makepv("PV3");
-
-        stretchy.addChild(pv1, {weight: 1, targetSize: [200, 120], minSize: [200, 20]});
-        stretchy.addChild(pv2, {weight: 2, targetSize: [200, 250], minSize: [200, 20]});
-        stretchy.addChild(pv3, {weight: 1, targetSize: [200, 130], minSize: [200, 20]});
-
-        rootNode.add(stretchy.getModifier()).add(stretchy);
-        var s = stretchy.measure([300,200]);
-        stretchy.layout(s.minimumSize);
-    }
 
 
 

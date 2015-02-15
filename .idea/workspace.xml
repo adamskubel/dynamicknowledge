@@ -5,17 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6c333645-3d83-442d-86ac-b26ffcd79358" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/BoxView.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/BoxView.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DynamicDetailView.js" afterPath="$PROJECT_DIR$/src/DynamicDetailView.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/LineCanvas.js" afterPath="$PROJECT_DIR$/src/LineCanvas.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/MemObjects/MemorySpace.js" afterPath="$PROJECT_DIR$/src/MemObjects/MemorySpace.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Utils.js" afterPath="$PROJECT_DIR$/src/Utils.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/test/TestStretchLayout.js" />
+      <change type="DELETED" beforePath="C:\Users\Adam\Google Drive\DynamicKnowledge\famous-webstorm\src\scenes\oldscenes.js" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/css/app.css" afterPath="$PROJECT_DIR$/css/app.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/string1.txt" afterPath="$PROJECT_DIR$/string1.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Utils.js" afterPath="$PROJECT_DIR$/src/Utils.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/MemObjects/MemorySpace.js" afterPath="$PROJECT_DIR$/src/MemObjects/MemorySpace.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/BoxView.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/BoxView.js" />
+      <change type="MOVED" beforePath="C:\Users\Adam\Google Drive\DynamicKnowledge\famous-webstorm\src\process.js" afterPath="$PROJECT_DIR$/src/old/process.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js" afterPath="$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="famous-webstorm.iws" />
@@ -40,31 +42,34 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="LineCanvas.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/LineCanvas.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="2730">
-              <caret line="39" column="13" selection-start-line="39" selection-start-column="13" selection-end-line="39" selection-end-column="13" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="main.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3900" max-vertical-offset="9885">
-              <caret line="260" column="10" selection-start-line="260" selection-start-column="10" selection-end-line="260" selection-end-column="10" />
+            <state vertical-scroll-proportion="0.6721698" vertical-offset="4575" max-vertical-offset="10755">
+              <caret line="362" column="0" selection-start-line="358" selection-start-column="0" selection-end-line="362" selection-end-column="0" />
+              <folding>
+                <element signature="e#19908#19991#0" expanded="false" />
+                <element signature="e#19995#20037#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="StretchyLayout.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="1149" max-vertical-offset="5250">
+              <caret line="96" column="17" selection-start-line="96" selection-start-column="17" selection-end-line="96" selection-end-column="17" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DynamicDetailView.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/DynamicDetailView.js">
+      <file leaf-file-name="PositionableView.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1380" max-vertical-offset="4110">
-              <caret line="92" column="78" selection-start-line="92" selection-start-column="78" selection-end-line="92" selection-end-column="78" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="851" max-vertical-offset="3960">
+              <caret line="86" column="35" selection-start-line="86" selection-start-column="35" selection-end-line="86" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -73,58 +78,8 @@
       <file leaf-file-name="DynamicContainer.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="480" max-vertical-offset="2190">
-              <caret line="32" column="36" selection-start-line="31" selection-start-column="5" selection-end-line="32" selection-end-column="36" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="StretchyLayout.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1665" max-vertical-offset="4920">
-              <caret line="111" column="0" selection-start-line="110" selection-start-column="5" selection-end-line="111" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MemorySpace.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/MemObjects/MemorySpace.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1245">
-              <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="BoxView.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/BoxView.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1845" max-vertical-offset="3255">
-              <caret line="123" column="26" selection-start-line="123" selection-start-column="8" selection-end-line="123" selection-end-column="26" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PositioningScrollView.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="465" max-vertical-offset="2100">
-              <caret line="31" column="5" selection-start-line="31" selection-start-column="5" selection-end-line="31" selection-end-column="5" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PositionableView.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.18442623" vertical-offset="2700" max-vertical-offset="3675">
-              <caret line="189" column="63" selection-start-line="189" selection-start-column="63" selection-end-line="189" selection-end-column="63" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1023" max-vertical-offset="2295">
+              <caret line="115" column="16" selection-start-line="115" selection-start-column="16" selection-end-line="115" selection-end-column="16" />
               <folding />
             </state>
           </provider>
@@ -152,16 +107,18 @@
         <option value="$PROJECT_DIR$/src/Colors.js" />
         <option value="$PROJECT_DIR$/src/PositioningLayouts/SurfaceWrappingView.js" />
         <option value="$PROJECT_DIR$/src/MemObjects/PageLookupTable.js" />
-        <option value="$PROJECT_DIR$/src/MemObjects/MemorySpace.js" />
-        <option value="$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js" />
         <option value="$PROJECT_DIR$/src/Utils.js" />
         <option value="$PROJECT_DIR$/src/LineCanvas.js" />
+        <option value="$PROJECT_DIR$/src/DynamicDetailView.js" />
         <option value="$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js" />
         <option value="$PROJECT_DIR$/src/PositioningLayouts/BoxView.js" />
+        <option value="$PROJECT_DIR$/src/MemObjects/MemorySpace.js" />
+        <option value="$PROJECT_DIR$/src/test/TestStretchLayout.js" />
+        <option value="$PROJECT_DIR$/src/EditObjects/DragButton.js" />
+        <option value="$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js" />
+        <option value="$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js" />
         <option value="$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js" />
         <option value="$PROJECT_DIR$/src/main.js" />
-        <option value="$PROJECT_DIR$/src/DynamicDetailView.js" />
-        <option value="$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js" />
       </list>
     </option>
   </component>
@@ -171,8 +128,8 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
-    <option name="width" value="1456" />
-    <option name="height" value="886" />
+    <option name="width" value="2576" />
+    <option name="height" value="1426" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -197,6 +154,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -247,27 +205,8 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="famous-webstorm" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="famous-webstorm" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MemObjects" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -289,8 +228,8 @@
       <recent name="$PROJECT_DIR$/src/MemObjects" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Adam\Google Drive\DynamicKnowledge\famous-webstorm\src\old" />
       <recent name="$PROJECT_DIR$/src/old" />
+      <recent name="C:\Users\Adam\Google Drive\DynamicKnowledge\famous-webstorm\src\old" />
       <recent name="$PROJECT_DIR$/dist" />
     </key>
   </component>
@@ -361,7 +300,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1456" height="886" extended-state="6" />
+    <frame x="-8" y="-8" width="2576" height="1426" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32973805" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -369,7 +308,9 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24970461" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.12755461" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14848365" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26887518" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -377,9 +318,7 @@
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32896763" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.27118644" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39984593" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
@@ -422,29 +361,15 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="47" />
+      <option name="time" value="50" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js">
+    <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1035" max-vertical-offset="4020">
-          <caret line="69" column="5" selection-start-line="69" selection-start-column="5" selection-end-line="69" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/old/PageTableView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="165" max-vertical-offset="2775">
-          <caret line="72" column="79" selection-start-line="72" selection-start-column="79" selection-end-line="72" selection-end-column="79" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1260" max-vertical-offset="8700">
-          <caret line="111" column="0" selection-start-line="111" selection-start-column="0" selection-end-line="111" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="2070" max-vertical-offset="3675">
+          <caret line="138" column="9" selection-start-line="138" selection-start-column="9" selection-end-line="138" selection-end-column="9" />
           <folding />
         </state>
       </provider>
@@ -488,7 +413,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1260" max-vertical-offset="8700">
           <caret line="111" column="0" selection-start-line="111" selection-start-column="0" selection-end-line="111" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#19908#19991#0" expanded="false" />
+            <element signature="e#19995#20037#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -510,7 +438,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="8700">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#19908#19991#0" expanded="false" />
+            <element signature="e#19995#20037#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -532,7 +463,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="2280" max-vertical-offset="8700">
           <caret line="152" column="17" selection-start-line="152" selection-start-column="17" selection-end-line="152" selection-end-column="17" />
-          <folding />
+          <folding>
+            <element signature="e#19908#19991#0" expanded="false" />
+            <element signature="e#19995#20037#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -554,7 +488,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="2190" max-vertical-offset="8595">
           <caret line="146" column="17" selection-start-line="146" selection-start-column="17" selection-end-line="146" selection-end-column="17" />
-          <folding />
+          <folding>
+            <element signature="e#19908#19991#0" expanded="false" />
+            <element signature="e#19995#20037#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -600,7 +537,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/process.js">
+    <entry file="file://$PROJECT_DIR$/src/old/process.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1684" max-vertical-offset="3725">
           <caret line="124" column="42" selection-start-line="124" selection-start-column="42" selection-end-line="124" selection-end-column="42" />
@@ -621,38 +558,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/MemorySystemView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="214" max-vertical-offset="1524">
-          <caret line="18" column="33" selection-start-line="18" selection-start-column="33" selection-end-line="18" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/old/PageTableView.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.05597015" vertical-offset="1200" max-vertical-offset="3279">
           <caret line="83" column="30" selection-start-line="83" selection-start-column="30" selection-end-line="83" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/MemoryPagingView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2454">
-          <caret line="54" column="30" selection-start-line="54" selection-start-column="30" selection-end-line="54" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dist/famous-global.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334" vertical-offset="189977" max-vertical-offset="285309">
-          <caret line="12683" column="4" selection-start-line="12683" selection-start-column="4" selection-end-line="12683" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/MemoryBlockView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2299" max-vertical-offset="3495">
-          <caret line="116" column="10" selection-start-line="116" selection-start-column="10" selection-end-line="116" selection-end-column="10" />
         </state>
       </provider>
     </entry>
@@ -703,7 +612,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.8349057" vertical-offset="213" max-vertical-offset="1845">
           <caret line="85" column="69" selection-start-line="85" selection-start-column="69" selection-end-line="85" selection-end-column="69" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -729,14 +637,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/BoxView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="765" max-vertical-offset="3255">
-          <caret line="123" column="26" selection-start-line="123" selection-start-column="8" selection-end-line="123" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/LineCanvas.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="495" max-vertical-offset="2730">
@@ -745,59 +645,117 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.js">
+    <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/BoxView.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2535" max-vertical-offset="9885">
-          <caret line="260" column="10" selection-start-line="260" selection-start-column="10" selection-end-line="260" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/DynamicDetailView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="525" max-vertical-offset="4110">
-          <caret line="92" column="78" selection-start-line="92" selection-start-column="78" selection-end-line="92" selection-end-column="78" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="378" max-vertical-offset="2100">
-          <caret line="31" column="5" selection-start-line="31" selection-start-column="5" selection-end-line="31" selection-end-column="5" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4029">
+          <caret line="30" column="22" selection-start-line="30" selection-start-column="22" selection-end-line="30" selection-end-column="22" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MemObjects/MemorySpace.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1245">
-          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1959">
+          <caret line="36" column="26" selection-start-line="36" selection-start-column="26" selection-end-line="36" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/DynamicDetailView.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.9701493" vertical-offset="2295" max-vertical-offset="4809">
+          <caret line="101" column="26" selection-start-line="101" selection-start-column="26" selection-end-line="101" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/TestStretchLayout.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.74626863" vertical-offset="0" max-vertical-offset="1389">
+          <caret line="40" column="1" selection-start-line="40" selection-start-column="1" selection-end-line="40" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositioningScrollView.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="945" max-vertical-offset="2754">
+          <caret line="19" column="34" selection-start-line="19" selection-start-column="34" selection-end-line="19" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MemorySystemView.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1524">
+          <caret line="18" column="33" selection-start-line="18" selection-start-column="33" selection-end-line="18" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/DataClusterManager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3489">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MemoryBlockView.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4194">
+          <caret line="116" column="10" selection-start-line="116" selection-start-column="10" selection-end-line="116" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MemoryPagingView.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2454">
+          <caret line="54" column="30" selection-start-line="54" selection-start-column="30" selection-end-line="54" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dist/famous-global.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.16542289" vertical-offset="22397" max-vertical-offset="285309">
+          <caret line="1502" column="31" selection-start-line="1502" selection-start-column="31" selection-end-line="1502" selection-end-column="31" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/DynamicContainer.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="90" max-vertical-offset="2190">
-          <caret line="32" column="36" selection-start-line="31" selection-start-column="5" selection-end-line="32" selection-end-column="36" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1023" max-vertical-offset="2295">
+          <caret line="115" column="16" selection-start-line="115" selection-start-column="16" selection-end-line="115" selection-end-column="16" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/StretchyLayout.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1035" max-vertical-offset="4920">
-          <caret line="111" column="0" selection-start-line="110" selection-start-column="5" selection-end-line="111" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="789" max-vertical-offset="5250">
+          <caret line="96" column="17" selection-start-line="96" selection-start-column="17" selection-end-line="96" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/PositioningLayouts/PositionableView.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.18442623" vertical-offset="2700" max-vertical-offset="3675">
-          <caret line="189" column="63" selection-start-line="189" selection-start-column="63" selection-end-line="189" selection-end-column="63" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="851" max-vertical-offset="3960">
+          <caret line="86" column="35" selection-start-line="86" selection-start-column="35" selection-end-line="86" selection-end-column="35" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6721698" vertical-offset="4575" max-vertical-offset="10755">
+          <caret line="362" column="0" selection-start-line="358" selection-start-column="0" selection-end-line="362" selection-end-column="0" />
+          <folding>
+            <element signature="e#19908#19991#0" expanded="false" />
+            <element signature="e#19995#20037#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>

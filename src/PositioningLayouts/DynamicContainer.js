@@ -19,6 +19,7 @@ define(function(require, exports, module) {
 
         this.minimumContainerSize = this.options.minimumContainerSize;
         this.size = this.minimumSize;
+        this.offsetVector = new Vector(0,0,0);
 
         this.offsetState = new Transitionable(Transform.translate(0,0,0));
         this.offsetNode = this.add(new Modifier({transform: function(){return this.offsetState.get();}.bind(this)}));
@@ -31,24 +32,22 @@ define(function(require, exports, module) {
 	DynamicContainer.DEFAULT_OPTIONS = 
 	{
         minimumContainerSize: [0,0],
-        isAnimated: true,
-        position: [0,0,0]
+        isAnimated: false,
+        position: [0,0,0],
+        edgePadding: [0,0]
     };
 
 	DynamicContainer.prototype.addChild = function(child){
 
         if (child instanceof PositionableView)
         {
+            child.parent = this;
             this._children.push(child);
             this.offsetNode.add(child.getModifier()).add(child);
             this._layoutDirty = true;
         }
         else
             console.error("Child must be PositionableView");
-	};
-
-	DynamicContainer.prototype.setAnimated = function(isAnimated) {
-		this.isAnimated = isAnimated;
 	};
 
     function _measureChildExtents(child)
@@ -69,6 +68,12 @@ define(function(require, exports, module) {
         }
     }
 
+    DynamicContainer.prototype.calculateChildPosition = function(child, relativeTo){
+
+        var basePosition = Vector.fromArray(PositionableView.prototype.calculateChildPosition.call(this,child,relativeTo));
+        return basePosition.add(this.offsetVector).toArray();
+    };
+
     DynamicContainer.prototype.measure = function(requestedSize){
 
         var containerSize = Vector.fromArray(this.minimumContainerSize);
@@ -88,10 +93,12 @@ define(function(require, exports, module) {
             topLeft.y = Math.min(childExtents.topLeft.y,topLeft.y);
         }
 
-        var sizeVector = bottomRight.sub(topLeft);
+        var edgePadding = this.options.edgePadding;
+        var sizeVector = (bottomRight.sub(topLeft)).add(new Vector(edgePadding[0],edgePadding[1],0));
 
         topLeft = topLeft.multiply(-1);
-        this.offsetState.set(Transform.translate(topLeft.x,topLeft.y,topLeft.z));//, {duration:500, curve:Easing.outQuad});
+        this.offsetVector = topLeft.clone();
+        this.offsetState.set(Transform.translate(topLeft.x,topLeft.y,topLeft.z));
 
         containerSize.x = Math.max(sizeVector.x,containerSize.x);
         containerSize.y = Math.max(sizeVector.y,containerSize.y);

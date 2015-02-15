@@ -38,6 +38,13 @@ define(function(require, exports, module) {
         positionTransition: {duration:5000, curve: Easing.outQuad}
     };
 
+    StretchyLayout.prototype.removeChild = function(view)
+    {
+        var r = this.children.indexOf(view);
+        this.children.splice(r,1);
+        view._renderController.hide();
+    };
+
     StretchyLayout.prototype.addChild = function(view,config)
     {
         view.parent = this;
@@ -67,31 +74,33 @@ define(function(require, exports, module) {
         }
 
         view._stretchConfig = config;
+        view._renderController = new RenderController();
 
-        this.add(view.getModifier()).add(view);
+        this.add(view.getModifier()).add(view._renderController);
+        view._renderController.show(view);
 		this.requestLayout();
     };
+    //
+    //StretchyLayout.prototype.calculateChildPosition = function (child)
+    //{
+    //    var p = Vector.fromArray(this.calculatePosition());
+    //    var s = new Vector(0,0,0);
+    //    if (this.viewOrigin && this._size)
+    //        s = Vector.fromArray(this._size).multiply(Vector.fromArray(this.viewOrigin));
+    //
+    //    if (!child.position)
+    //    {
+    //        console.error(child._globalId + " has no def. position!");
+    //        return undefined;
+    //    }
+    //
+    //    return p.sub(s).add(Vector.fromArray(child.position)).toArray();
+    //};
 
-    StretchyLayout.prototype.calculateChildPosition = function (child)
-    {
-        var p = Vector.fromArray(this.calculatePosition());
-        var s = new Vector(0,0,0);
-        if (this.viewOrigin && this._size)
-            s = Vector.fromArray(this._size).multiply(Vector.fromArray(this.viewOrigin));
-
-        if (!child.position)
-        {
-            console.error(child._globalId + " has no def. position!");
-            return undefined;
-        }
-
-        return p.sub(s).add(Vector.fromArray(child.position)).toArray();
-    };
-
-    StretchyLayout.prototype.calculateChildSize = function (child)
-    {
-        return this.calculateSize();
-    };
+    //StretchyLayout.prototype.calculateChildSize = function (child)
+    //{
+    //    return this.calculateSize();
+    //};
 
 
     StretchyLayout.prototype.measure = function(requestedSize)
@@ -108,6 +117,13 @@ define(function(require, exports, module) {
     {
         _layoutViews.call(this,layoutSize);
         PositionableView.prototype.layout.call(this,layoutSize);
+
+        if (this.originLockSize)
+        {
+            var newOrigin = [(layoutSize[0]-this.originLockSize[0])/layoutSize[0],this.viewOrigin[1]];
+            this.viewOrigin = newOrigin;
+            console.log("NewOrigin=" + newOrigin);
+        }
     };
 
     StretchyLayout.prototype.needsLayout = function()
@@ -122,6 +138,12 @@ define(function(require, exports, module) {
         }
 
         return false;
+    };
+
+
+    StretchyLayout.prototype.lockOriginPosition = function(){
+
+        this.originLockSize = this._size;
     };
 
 	function _getDirectionVector(){

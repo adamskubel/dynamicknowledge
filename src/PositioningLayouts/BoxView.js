@@ -9,6 +9,10 @@ define(function(require, exports, module) {
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
 	var SurfaceWrappingView = require('./SurfaceWrappingView');
+    var TextareaSurface    = require("famous/surfaces/TextareaSurface");
+    var RenderController = require("famous/views/RenderController");
+    var Utils = require('../Utils');
+
 
     var Colors = require('../Colors');
 
@@ -27,6 +31,11 @@ define(function(require, exports, module) {
             font:1,
             background:0.25,
             border:0
+        },
+        "borderOnly":{
+            font:1,
+            background:0,
+            border:1
         }
     };
 
@@ -78,26 +87,29 @@ define(function(require, exports, module) {
 
         this.activeStyle = makeStyle(this.options.color,this.options.style,this.options.fontSize);
 
-        this.textSurface = new Surface({
-            size: [true,true],
-            properties: this.activeStyle.text,
-            content:this.options.text
-        });
-
-        //Make text surface
-        if (this.options.size && this.options.size[0] != undefined && this.options.size[0] != true)
-        {
-            if (this.options.scrollviewSizeHack)
-                this.textSurface.setSize([this.options.size[0],true]);
-
-            this.textSurface.setProperties({maxWidth: this.options.size[0] + 'px'});
-        }
 
         this.textAlignState = new Transitionable(this.options.textAlign);
         var textAlignState = this.textAlignState;
-        this.add(new Modifier({align:function(){return textAlignState.get();},origin:function(){return textAlignState.get()}}))
-            .add(this.textSurface);
+        this.textNode = this.add(new Modifier({
+            transform:Transform.translate(0,0,1),
+            align:function(){return textAlignState.get();},
+            origin:function(){return textAlignState.get()}
+        }));
 
+        if (this.options.editable)
+        {
+            this.editTextSurface = _makeEditTextSurface.call(this);
+            this.textNode.add(this.editTextSurface.renderController);
+            this.wrapSurface = this.editTextSurface;
+            this.editTextSurface.show();
+        }
+        else
+        {
+            this.textSurface = _makeTextSurface.call(this);
+            this.textNode.add(this.textSurface.renderController);
+            this.wrapSurface = this.textSurface;
+            this.textSurface.show();
+        }
 
         //Make background surface
         this.backSurface = new Surface({
@@ -113,8 +125,43 @@ define(function(require, exports, module) {
         //Configuration
         this.setClickable(this.options.clickable);
         this.setText(this.options.text);
-        this.wrapSurface = this.textSurface;
 	}
+
+    function _makeTextSurface()
+    {
+        var textSurface = new Surface({
+            size: [true, true],
+            properties: this.activeStyle.text,
+            content: this.options.text
+        });
+
+        Utils.attachRenderController(textSurface);
+
+        if (this.options.size && this.options.size[0] != undefined && this.options.size[0] != true)
+        {
+            if (this.options.scrollviewSizeHack)
+                textSurface.setSize([this.options.size[0],true]);
+
+            textSurface.setProperties({maxWidth: this.options.size[0] + 'px'});
+        }
+
+        return textSurface;
+    }
+
+    function _makeEditTextSurface(){
+
+        var editTextSurface = new TextareaSurface({
+            size:[undefined,undefined],
+            properties:this.activeStyle.text,
+            value: this.options.text
+        });
+
+        editTextSurface.setProperties({resize: "none"});
+
+        Utils.attachRenderController(editTextSurface);
+
+        return editTextSurface;
+    }
 
 	BoxView.prototype = Object.create(SurfaceWrappingView.prototype);
 	BoxView.prototype.constructor = BoxView;
@@ -125,7 +172,8 @@ define(function(require, exports, module) {
         color:3500,
         text:"",
         textAlign:[0.5,0.5],
-        fontSize:'small'
+        fontSize:'small',
+        editable:false
     };
 
     BoxView.prototype.setPadding = function(padding)
@@ -172,9 +220,45 @@ define(function(require, exports, module) {
         }
     };
 
+    BoxView.prototype.setEditable = function(editable){
+
+        if (editable)
+        {
+            if (this.textSurface)
+                this.textSurface.hide();
+
+            if (!this.editTextSurface)
+            {
+                this.editTextSurface = _makeEditTextSurface.call(this);
+                this.textNode.add(this.editTextSurface.renderController);
+            }
+            this.editTextSurface.show();
+        }
+        else
+        {
+            if (!this.textSurface)
+            {
+                this.textSurface = _makeTextSurface.call(this);
+                this.textNode.add(this.textSurface.renderController);
+            }
+            this.textSurface.show();
+
+            if (this.editTextSurface)
+                this.editTextSurface.hide();
+        }
+
+        this.setText(this._text);
+
+    };
+
     BoxView.prototype.setText = function(text){
         this._text = text;
-        this.textSurface.setContent(text);
+
+        if (this.editTextSurface)
+            this.editTextSurface.setValue(text);
+
+        if (this.textSurface)
+            this.textSurface.setContent(text);
     };
 
     BoxView.prototype.pulse = function(){

@@ -34,6 +34,7 @@ define(function(require, exports, module)
         position: [0,0,0],
         size: [100,600],
         minimumContainerSize: [0,0],
+        edgePadding:[0,0],
         memConfig:{
             startAddress: 0,
             addressWidth: 8,

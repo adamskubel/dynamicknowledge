@@ -3,19 +3,19 @@ html {
     color: #000;
 }
 
-.double-sided {
-    -webkit-backface-visibility: visible;
-    backface-visibility: visible;
-}
+/*.double-sided {*/
+    /*-webkit-backface-visibility: visible;*/
+    /*backface-visibility: visible;*/
+/*}*/
 
-div span {
-    display: flex;
-    justify-content:center;
-    align-content:center;
-    align-items:center;
-    flex-direction:column; 
-      justify-content:center;
-}
+/*div span {*/
+    /*display: flex;*/
+    /*justify-content:center;*/
+    /*align-content:center;*/
+    /*align-items:center;*/
+    /*flex-direction:column; */
+      /*justify-content:center;*/
+/*}*/
 
 .double-sided {
     -webkit-backface-visibility: visible;
