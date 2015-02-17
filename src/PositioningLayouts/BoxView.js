@@ -87,7 +87,6 @@ define(function(require, exports, module) {
 
         this.activeStyle = makeStyle(this.options.color,this.options.style,this.options.fontSize);
 
-
         this.textAlignState = new Transitionable(this.options.textAlign);
         var textAlignState = this.textAlignState;
         this.textNode = this.add(new Modifier({
@@ -106,6 +105,8 @@ define(function(require, exports, module) {
         else
         {
             this.textSurface = _makeTextSurface.call(this);
+
+
             this.textNode.add(this.textSurface.renderController);
             this.wrapSurface = this.textSurface;
             this.textSurface.show();
@@ -135,6 +136,10 @@ define(function(require, exports, module) {
             content: this.options.text
         });
 
+
+        if (this.options.renderWhitespace)
+            textSurface.setClasses(['show-whitespace']);
+
         Utils.attachRenderController(textSurface);
 
         if (this.options.size && this.options.size[0] != undefined && this.options.size[0] != true)
@@ -160,6 +165,10 @@ define(function(require, exports, module) {
 
         Utils.attachRenderController(editTextSurface);
 
+        editTextSurface.on('keyup',function(data){
+            this._text = editTextSurface.getValue();
+        }.bind(this));
+
         return editTextSurface;
     }
 
@@ -173,7 +182,9 @@ define(function(require, exports, module) {
         text:"",
         textAlign:[0.5,0.5],
         fontSize:'small',
-        editable:false
+        editable:false,
+        rendercontrol:false,
+        renderWhitespace:false
     };
 
     BoxView.prototype.setPadding = function(padding)
@@ -249,6 +260,11 @@ define(function(require, exports, module) {
 
         this.setText(this._text);
 
+    };
+
+    BoxView.prototype.getText = function()
+    {
+        return this._text;
     };
 
     BoxView.prototype.setText = function(text){

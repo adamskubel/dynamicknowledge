@@ -46,13 +46,6 @@ define(function(require, exports, module) {
         var surfaceSize = this.getSize();
         if (surfaceSize) return surfaceSize;
         return [0,0];
-	};	    
-
-	SurfaceWrappingView.prototype.calculatePosition = function(){
-		if (this.parent)
-			return this.parent.calculateChildPosition(this);
-
-		return this.position;
 	};
 
 	SurfaceWrappingView.prototype.setAnimated = function(isAnimated) {
@@ -78,7 +71,7 @@ define(function(require, exports, module) {
         }
 
         //if (!size)
-        console.debug(this._globalId + " _ surfaceSize = " + surfaceSize);
+        //console.debug(this._globalId + " _ surfaceSize = " + surfaceSize);
 		return size;
 	};
 
@@ -106,7 +99,7 @@ define(function(require, exports, module) {
 	};
 
     SurfaceWrappingView.prototype.layout = function(layoutSize){
-        console.debug(this._globalId + " _ layoutSize = " + layoutSize);
+        //console.debug(this._globalId + " _ layoutSize = " + layoutSize);
         PositionableView.prototype.layout.call(this,layoutSize);
         if (this.wrapSurface._size)
     		this._layoutDirty = false;

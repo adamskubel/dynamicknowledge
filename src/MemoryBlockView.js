@@ -11,11 +11,11 @@ define(function(require, exports, module) {
 	var DynamicDetailView = require('./DynamicDetailView');
 	var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
 	var PositionableView   = require("./PositioningLayouts/PositionableView");
-	var ObjectFactory = require('./ObjectFactory');
+	var ObjectFactory = require('ObjectFactory');
     var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
 
 
-    var objectFactory = new ObjectFactory();
+    //var objectFactory = new ObjectFactory();
 
 	function MemoryBlockView(options) 
 	{

@@ -55,12 +55,12 @@ define(function(require, exports, module) {
             this.update();
         }.bind(this));
 
-    	this.setLinePoints(fromObject.calculatePosition(),toObject.calculatePosition());
+    	this.setLinePoints(fromObject.calculatePosition(this.parent),toObject.calculatePosition(this.parent));
     };
 
     LineCanvas.prototype.setLinePoints = function setPosition(p,p2)
     {
-        console.debug("LineCanvas: " + p + "--> " + p2);
+        //console.debug("LineCanvas: " + p + "--> " + p2);
 
         if (p == undefined || p2 == undefined)
             return;
@@ -89,7 +89,7 @@ define(function(require, exports, module) {
 
     LineCanvas.prototype.update = function(){
 
-    	this.setLinePoints(this.fromObject.calculatePosition(),this.toObject.calculatePosition());
+    	this.setLinePoints(this.fromObject.calculatePosition(this.parent),this.toObject.calculatePosition(this.parent));
     };
 
     LineCanvas.prototype.pulse = function(riseTime,fallTime)

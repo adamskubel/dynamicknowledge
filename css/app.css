@@ -21,3 +21,7 @@ html {
     -webkit-backface-visibility: visible;
     backface-visibility: visible;
 }
+
+.show-whitespace {
+    white-space: pre-wrap;
+}

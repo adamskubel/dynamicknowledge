@@ -10,53 +10,37 @@ define(function (require, exports, module)
 	var RenderController = require("famous/views/RenderController");
     var MouseSync = require('famous/inputs/MouseSync');
 	var LineCanvas = require('./LineCanvas');
-	var BracketView = require('./BracketView');
-
-	var MemoryPagingView = require('./MemoryPagingView');
-	var MemoryBlockView = require('./MemoryBlockView');
-	var PageTableView = require('./old/PageTableView');
-    var MemorySystemView = require('./MemorySystemView');
-	var ObjectFactory = require('./ObjectFactory');
-	var HeaderFooterLayout = require('famous/views/HeaderFooterLayout');
 
     var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
     var PositionableView = require('./PositioningLayouts/PositionableView');
     var DynamicDetailView = require('./DynamicDetailView');
     var DynamicContainer = require('./PositioningLayouts/DynamicContainer');
+    var BoxView = require('./PositioningLayouts/BoxView');
+    var PScrollView = require('./PositioningLayouts/PositioningScrollView');
 
     var MemorySpace = require('./MemObjects/MemorySpace');
+    var PageLookupTable = require('./MemObjects/PageLookupTable');
 	var Timer = require('famous/utilities/Timer');
     var Utils = require('./Utils');
     var Vector = require('./ProperVector');
 
-	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
-    var BoxView = require('./PositioningLayouts/BoxView');
-    var PageLookupTable = require('./MemObjects/PageLookupTable');
+    var Label = require('Model/Label');
 
-    var PScrollView = require('./PositioningLayouts/PositioningScrollView');
+    var AnnotationController = require('./AnnotationController');
 
+    //Globals
 	var currentScene = 0;
-	var objectFactory = new ObjectFactory();
-
-
-
-	var memoryConfig = {
-		pageSize: 16
-	};
-
     var rootNode;
 	var dynamicNodes;
 	var mainLayout;
-    var strings = {};
     var cameraAngles = [0,0];
-
     var objectRegistry = {};
 
 	function init()
     {
 		this.context = Engine.createContext(null);
 
-		this.processes = {};
+        this.annotationButtons = [];
 		this.lines = [];
 		this.lineIndex = 0;
 		this.dynamicNodes = [];
@@ -148,11 +132,6 @@ define(function (require, exports, module)
         //    cameraAngles[1] += data.delta[0]*0.2;
         //});
 
-
-        //Timer.setInterval(function() {nextScene.call(this);},100);
-
-        _initUI.call(this);
-
         jQuery.get('./text.txt', function(data)
         {
             var blocks = parseText.call(this,data);
@@ -168,6 +147,9 @@ define(function (require, exports, module)
 
         }.bind(this));
 
+        gapi.load('auth:client,drive-realtime,drive-share', function() {
+            _initUI.call(this);
+        }.bind(this));
 	}
 
     var textLayout;
@@ -214,16 +196,79 @@ define(function (require, exports, module)
         return textView;
     }
 
-    //function addTextAsync(string,pointAt){
-    //
-    //    var textView = addText("",pointAt);
-    //    loadTextAsync(string,function(data){
-    //        textView.setText(data);
-    //        textLayout.requestLayout();
-    //    });
-    //    return textView;
-    //}
+    function _fetchUserId(callback)
+    {
+        var _this = this;
+        gapi.client.load('oauth2', 'v2', function()
+        {
+            gapi.client.oauth2.userinfo.get().execute(function(resp)
+            {
+                if (resp.id) {
+                    _this.userId = resp.id;
+                }
 
+                if (callback) {
+                    callback();
+                }
+            });
+        });
+    }
+
+
+    function _auth(onAuthComplete) {
+
+        var rtclient = rtclient || {};
+
+        rtclient.INSTALL_SCOPE = 'https://www.googleapis.com/auth/drive.install';
+        rtclient.FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+        rtclient.OPENID_SCOPE = 'openid';
+        rtclient.REALTIME_MIMETYPE = 'application/vnd.google-apps.drive-sdk';
+
+
+        this.fileId = '0B6eNzoTXZGgIWG5HbXo4RXFlN1k';
+        var clientId = '645480454740-n8ui9o5v4tieo3s0utqvhta6k8gakcrt.apps.googleusercontent.com';
+
+        var userId = null;
+        var _this = this;
+
+        var handleAuthResult = function(authResult) {
+            if (authResult && !authResult.error) {
+
+                _this.authButton.setClickable(false);
+
+                _fetchUserId(onAuthComplete);
+                console.log('yay!');
+            } else {
+                authorizeWithPopup();
+            }
+        };
+
+        var authorizeWithPopup = function() {
+            gapi.auth.authorize({
+                client_id: clientId,
+                scope: [
+                    rtclient.INSTALL_SCOPE,
+                    rtclient.FILE_SCOPE,
+                    rtclient.OPENID_SCOPE
+                ],
+                user_id: userId,
+                immediate: false
+            }, handleAuthResult);
+            console.log(clientId);
+        };
+
+        // Try with no popups first.
+        gapi.auth.authorize({
+            client_id: clientId,
+            scope: [
+                rtclient.INSTALL_SCOPE,
+                rtclient.FILE_SCOPE,
+                rtclient.OPENID_SCOPE
+            ],
+            user_id: userId,
+            immediate: true
+        }, handleAuthResult);
+    }
 
     function _initUI()
     {
@@ -234,185 +279,135 @@ define(function (require, exports, module)
             nextScene.call(this);
         }.bind(this));
 
-        var editButton = new BoxView({text: "Edit", size:[100,80], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
-        rootNode.add(editButton.getModifier()).add(editButton);
+        this.editButton = new BoxView({text: "Edit", size:[100,80], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        rootNode.add(this.editButton.getModifier()).add(this.editButton);
 
-        editButton.on('click',function(){
+        this.editButton.on('click',function(){
             _setEditMode.call(this,true);
         }.bind(this));
+
+        this.authButton = new BoxView({text: "Auth", size:[100,80], position:[100,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        rootNode.add(this.authButton.getModifier()).add(this.authButton);
+        this.authButton.on('click',function(){
+            _auth.call(this,_authComplete.bind(this));
+        }.bind(this));
+
+        var undoButton =  new BoxView({text: "Undo", size:[100,80], position:[300,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        var redoButton =  new BoxView({text: "Redo", size:[100,80], position:[400,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+
+        undoButton.on('click',function(){
+            this.gapiModel.undo();
+        }.bind(this));
+
+        redoButton.on('click',function(){
+            this.gapiModel.redo();
+        }.bind(this));
+
+        rootNode.add(undoButton.getModifier()).add(undoButton);
+        rootNode.add(redoButton.getModifier()).add(redoButton);
     }
+
+
+    function _onFileLoaded(document){
+        console.log("Document '"+document+"' loaded, model = " + document.getModel().toString());
+        this.gapiModel = document.getModel();
+    }
+
+    function _initializeModel(model){
+        console.log ("intialized model: " + model);
+        model.getRoot().set('annotationMap',model.createMap());
+    }
+
+    function _handleErrors(err){
+        console.error(err);
+    }
+
+    function _authComplete(){
+
+        Label.registerGAPIModel();
+
+        function callback(file){
+
+            console.log('Loading file with id ' + file.id);
+            gapi.drive.realtime.load(file.id, _onFileLoaded.bind(this), _initializeModel.bind(this), _handleErrors.bind(this));
+        };
+
+        if (this.fileId)
+        {
+            gapi.drive.realtime.load(this.fileId, _onFileLoaded.bind(this), _initializeModel.bind(this), _handleErrors.bind(this));
+        }
+        else
+        {
+            gapi.client.load('drive', 'v2', function ()
+            {
+                gapi.client.drive.files.insert({
+                    'resource': {
+                        mimeType: '',
+                        title: "Meow"
+                    }
+                }).execute(callback);
+            });
+        }
+
+        //gapi.drive.realtime.load('cat_file', _onFileLoaded.bind(this), _initializeModel.bind(this), _handleErrors.bind(this));
+    }
+
+
 
     function _addAnnotationButton(object)
     {
-        var annotateObjectButton = new BoxView({text: "An", size:[50,50], clickable:true, color:annoColor, position:[0,0,5]});
+        var annotateObjectButton = new BoxView({
+            text: "An",
+            size: [50, 50],
+            clickable: true,
+            color: annoColor,
+            position: [0, 0, 5]
+        });
 
-        annotateObjectButton.renderController = new RenderController();
+
+        Utils.attachRenderController(annotateObjectButton);
+        annotateObjectButton.show();
         object.add(annotateObjectButton.getModifier()).add(annotateObjectButton.renderController);
-
-        annotateObjectButton.renderController.show(annotateObjectButton);
 
         object._annotateObjectButton = annotateObjectButton;
 
-        annotateObjectButton.on('click',function(){
-
-            _makeObjectAnnotated.call(this,object);
-            annotateObjectButton.renderController.hide();
-        });
-    }
-
-    function _makeObjectAnnotated(object)
-    {
-        var dc = new DynamicContainer({
-            edgePadding:[10,10],
-            isAnimated: false
-        });
-
-        var containerBackground = new BoxView({
-            color:annoColor,
-            style: 'borderOnly'
-        });
-
-        dc.setAnimated(false);
-        dc.add(containerBackground.getModifier()).add(containerBackground);
-
-        //object.add(dc.getModifier()).add(dc);
-
-        object.setPosition([0,object.position[1],0]);
-
-        //object.setOrigin([0,0]);
-        dc.addChild(object);
-
-        dynamicNodes.push(dc);
-        dc.requestLayout();
-
-        var addLabelButton = new BoxView({text: "+", size:[40,40], clickable:true, color:annoColor,
-            position:[0,0,5], viewAlign:[0,0], viewOrigin:[0,1], fontSize:'large'});
-
-        dc.add(addLabelButton.getModifier()).add(addLabelButton);
-
-        addLabelButton.on('click',function(){
-            _addLabelBox.call(this,dc,object);
-        });
-
-        var index = mainLayout.children.indexOf(object);
-
-        mainLayout.removeChild(object);
-        mainLayout.addChild(dc,{weight:2, index:index});
-
-        var saveButton = new BoxView({text: "[]", size:[40,40], clickable:true, color:annoColor,
-            position:[40,0,5], viewAlign:[0,0], viewOrigin:[0,1], fontSize:'large'});
-
-        dc.add(saveButton.getModifier()).add(saveButton);
-
-        saveButton.on('click',function(){
-            _saveAnnotations.call(this,dc);
-        });
-
-        var lineButton = new BoxView({text: "|", size:[40,40], clickable:true, color:annoColor,
-            position:[80,0,5], viewAlign:[0,0], viewOrigin:[0,1], fontSize:'large'});
-
-        dc.add(lineButton.getModifier()).add(lineButton);
-
-        lineButton.on('click',function(){
-            _startLineDraw.call(this,dc);
-        });
-    }
-
-    function _saveAnnotations(dc)
-    {
-        for (var i=0;i<dc._children.length;i++)
+        annotateObjectButton.on('click', function ()
         {
-            if ( dc._children[i] instanceof BoxView)
-                dc._children[i].setEditable(false);
-        }
-    }
+            this.activeController = new AnnotationController(object,mainLayout,this.gapiModel);
+            this.activeController.annotationButton = annotateObjectButton;
+            annotateObjectButton.hide();
+        }.bind(this));
 
-    function _addLabelBox(dc, object)
-    {
-        var newLabel = new BoxView({
-            text: "_label_",
-            position: [0,-10,0],
-            viewOrigin: [0,0],
-            size: [200,100],
-            color:annoColor,
-            editable: true
-        });
-
-        newLabel.setAnimated(false);
-
-        _makeBoxMovable(dc, newLabel);
-        _makeBoxResizable(newLabel);
-        dc.addChild(newLabel);
-    }
-
-    function _startLineDraw(dc)
-    {
-        for (var i=0;i<dc._children.length;i++)
-        {
-            if ( dc._children[i] instanceof BoxView)
-                _makeLineAnchors.call(this,dc._children[i]);
-        }
-    }
-
-    function _makeLineAnchors(box)
-    {
-
-    }
-
-    function _makeBoxMovable(dc, box){
-
-        var moveButton = new BoxView({text: "", size:[30,30], clickable:true, color:annoColor,
-            position:[0,0,5], viewAlign:[0,0], viewOrigin:[0.8,0.8], fontSize:'large'});
-
-        box.add(moveButton.getModifier()).add(moveButton);
-
-        var dragController = new MouseSync();
-        dragController.on('update',function(data)
-        {
-            var offset = Vector.fromArray(data.delta);
-            var newPos = Vector.fromArray(box.position).add(offset);
-
-            box.setPosition(newPos.toArray());
-            box.requestLayout();
-        });
-        moveButton.backSurface.pipe(dragController);
-    }
-
-    function _makeBoxResizable(box){
-
-        var resizeButton = new BoxView({text: "", size:[30,30], clickable:true, color:annoColor,
-            position:[0,0,5], viewAlign:[1,1], viewOrigin:[0.2,0.2], fontSize:'large'});
-
-        box.add(resizeButton.getModifier()).add(resizeButton);
-
-        var dragController = new MouseSync();
-
-        dragController.on('update',function(data)
-        {
-            var offset = Vector.fromArray(data.delta);
-            var newSize = Vector.fromArray(box.size).add(offset);
-
-            box.setSize(newSize.toArray());
-            box.requestLayout();
-        });
-        resizeButton.backSurface.pipe(dragController);
+        this.annotationButtons.push(annotateObjectButton);
     }
 
     function _setEditMode(editMode)
     {
-
-        for (var key in objectRegistry)
+        this.editButton.setHighlighted(editMode);
+        if (editMode)
         {
-            var object = objectRegistry[key];
-            _addAnnotationButton(object);
+            for (var key in objectRegistry)
+            {
+                var object = objectRegistry[key];
+                _addAnnotationButton(object);
+            }
+        }
+        else
+        {
+            if (this.activeController)
+                this.activeController.close();
+
+            for (var i=0;i<this.annotationButtons.length;i++)
+            {
+                this.annotationButtons[i].hide();
+            }
+            this.annotationButtons.clear();
         }
     }
-
 
     var scenes = [
 		function ()
 		{
-
             setCameraState("2D");
 
 			mainLayout.requestLayout();
@@ -462,7 +457,6 @@ define(function (require, exports, module)
 
             objectRegistry["PageTable"] = mappingBox;
 
-
             mappingBox.makeComplexView = function(detail){
                 if (detail == 1)
                     return pageTable;
@@ -505,7 +499,6 @@ define(function (require, exports, module)
                     dc.addChild(label1);
                     dc.addChild(label2);
 
-
                     return dc;
                 }
             };
@@ -513,8 +506,6 @@ define(function (require, exports, module)
             mappingBox.annoClick = function () {
                 mappingBox.setLevelOfDetail(1);
             };
-
-
 
             physicalMemorySpace = new MemorySpace({
                 memConfig:{
@@ -537,7 +528,6 @@ define(function (require, exports, module)
 
             physicalMemorySpace.addChild(physicalBlock);
 
-
             var dragController = new MouseSync();
             dragController.on('update',function(data){
                 var ypos = virtualBlock.position[1] + data.delta[1];
@@ -554,14 +544,14 @@ define(function (require, exports, module)
 
                 var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
 
-                var ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
+                ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
+
                 physicalBlock.setPosition([0,ypos,0]);
                 physicalBlock.pulse(50,500);
                 physicalBlock.setText(Utils.hexString(address,8));
-
             });
-            virtualBlock.backSurface.pipe(dragController);
 
+            virtualBlock.backSurface.pipe(dragController);
         },
         function ()
         {
@@ -578,13 +568,6 @@ define(function (require, exports, module)
 		scenes[currentScene++].call(this);
 	}
 
-    function loadTextAsync(name, callback)
-    {
-        jQuery.get('./'+name, function(data) {
-            callback(data);
-        });
-    }
-
     function parseText(text){
 
         var textBlocks = [];
@@ -595,7 +578,6 @@ define(function (require, exports, module)
         var i =0;
         while (i < text.length)
         {
-
             var index = text.indexOf(openTag, i);
 
             if (index != i)
@@ -673,87 +655,7 @@ define(function (require, exports, module)
 			this.cameraModifier.state.set(1, transition);
 		}
         this.cameraMode = cameraMode;
-	}
-
-	var labelAngles = [
-		-Math.PI / 4,
-		Math.PI / 4,
-        Math.PI* (3/4),
-        -Math.PI* (3/4)
-	];
-
-	//function label(object, text, labelIndex)
-	//{
-	//	if (labelIndex == undefined)
-	//	{
-	//		labelIndex = 0;
-	//	}
-    //
-	//	var angle = labelAngles[labelIndex];
-    //
-	//	var _labelSurface = objectFactory.makeLabelSurface(text);
-     //   var labelSurface = new SurfaceWrappingView(_labelSurface);
-     //   labelSurface.renderController = new RenderController();
-     //   labelSurface.renderController.show(labelSurface);
-    //
-     //   if (object.labels == undefined || object.labels[labelIndex] == undefined)
-	//	{
-	//		var labelLine = new LineCanvas({opacityRange: [1, 1]});
-    //
-    //
-	//		var updatePosition;
-	//		updatePosition = function ()
-	//		{
-     //           var objectPos = Vector.fromArray(object.calculatePosition());
-     //           var objectSize = Vector.fromArray(object.calculateSize());
-	//			var offset = (Vector.fromAngles(0, angle).multiply(80));
-     //           //objectPos.x += objectSize.x;
-	//			labelSurface.setPosition(objectPos.add(offset).toArray());
-	//		};
-    //
-	//		updatePosition();
-    //
-     //       rootNode.add(labelLine.getModifier()).add(labelLine);
-     //       rootNode.add(labelSurface.getModifier()).add(labelSurface.renderController);
-    //
-	//		labelLine.setLineObjects(object, labelSurface);
-    //
-	//		object.on('positionChange', function ()
-	//		{
-	//			updatePosition();
-	//			labelLine.update();
-	//		});
-    //
-	//		object.labels = [];
-	//		object.labels[labelIndex] = [labelSurface];
-	//	} else
-	//	{
-	//		var labelViews = object.labels[labelIndex];
-	//		var lastView = labelViews[labelViews.length - 1];
-    //
-	//		updatePosition = function ()
-	//		{
-	//			var objectPos = Vector.fromArray(lastView.calculatePosition());
-	//			var objectSize = Vector.fromArray(lastView.calculateSize());
-	//			var labelPos = objectPos.add(new Vector(0, objectSize.y, 0));
-	//			labelSurface.setPosition(labelPos.toArray());
-	//		};
-    //
-	//		updatePosition();
-	//		object.on('positionChange', function ()
-	//		{
-	//			updatePosition();
-	//		});
-    //
-	//		rootNode.add(labelSurface.getModifier()).add(labelSurface);
-	//		labelViews.push(labelSurface);
-	//	}
-     //   labelSurface.wrapSurface.setMaxSize([300, true]);
-	//}
-
-
-
-
+    }
 
 	init();
 });

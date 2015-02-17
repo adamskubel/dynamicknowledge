@@ -104,7 +104,7 @@ define(function (require, exports, module)
 
     PositionableView.prototype.calculateChildSize = function (child)
     {
-        return this.calculateSize();
+        return child.measure().minimumSize;
     };
 
     PositionableView.prototype.constructor = PositionableView;
@@ -145,6 +145,20 @@ define(function (require, exports, module)
         return this.modifier;
     };
 
+    PositionableView.prototype.getRenderController = function(hide){
+
+        if (!this.renderController)
+        {
+            Utils.attachRenderController(this);
+        }
+
+        if (!hide)
+        {
+            this.renderController.show(this);
+        }
+
+        return this.renderController;
+    };
 
     PositionableView.prototype.setAnimated = function (isAnimated)
     {
@@ -153,7 +167,10 @@ define(function (require, exports, module)
 
     PositionableView.prototype.setPosition = function (position)
     {
-        console.debug(this._globalId + "_POS: " + this.position + " --> " + position);
+        if (!position)
+            position = [0,0,0];
+
+        //console.debug(this._globalId + "_POS: " + this.position + " --> " + position);
         if (this.positionState)
         {
             if (this.positionState.isActive())
@@ -171,7 +188,7 @@ define(function (require, exports, module)
 
     function _setSize(newSize)
     {
-        console.debug(this._globalId + "_SIZE: " + this._size + " --> " + newSize);
+        //console.debug(this._globalId + "_SIZE: " + this._size + " --> " + newSize);
         if (this.sizeState)
         {
             if (this.sizeState.isActive())
