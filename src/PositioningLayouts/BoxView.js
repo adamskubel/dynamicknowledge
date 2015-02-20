@@ -66,7 +66,8 @@ define(function(require, exports, module) {
             "modifier":
             {
                 baseOpacity: 0.4,
-                highlightOpacity: 0.8
+                highlightOpacity: 0.7,
+                pulseOpacity: 0.9
             }
 
         };
@@ -107,7 +108,7 @@ define(function(require, exports, module) {
             this.textSurface = _makeTextSurface.call(this);
 
 
-            this.textNode.add(this.textSurface.renderController);
+            this.textNode.add(new Modifier({transform:Transform.translate(0,0,0)})).add(this.textSurface.renderController);
             this.wrapSurface = this.textSurface;
             this.textSurface.show();
         }
@@ -119,13 +120,17 @@ define(function(require, exports, module) {
         });
 
         this.bgOpacityState = new Transitionable(this.activeStyle.modifier.baseOpacity);
-        var bgMod = new Modifier({opacity:function(){return this.bgOpacityState.get();}.bind(this)});
+        var bgMod = new Modifier({
+            opacity:function(){return this.bgOpacityState.get();}.bind(this),
+            transform: Transform.translate(0,0,0)
+        });
         this.add(bgMod).add(this.backSurface);
 
 
         //Configuration
         this.setClickable(this.options.clickable);
         this.setText(this.options.text);
+        this.setSize(this.options.size);
 	}
 
     function _makeTextSurface()
@@ -142,12 +147,12 @@ define(function(require, exports, module) {
 
         Utils.attachRenderController(textSurface);
 
-        if (this.options.size && this.options.size[0] != undefined && this.options.size[0] != true)
+        if (this.size && this.size[0] != undefined && this.size[0] != true)
         {
             if (this.options.scrollviewSizeHack)
-                textSurface.setSize([this.options.size[0],true]);
+                textSurface.setSize([this.size[0],true]);
 
-            textSurface.setProperties({maxWidth: this.options.size[0] + 'px'});
+            textSurface.setProperties({maxWidth: this.size[0] + 'px'});
         }
 
         return textSurface;
@@ -194,8 +199,23 @@ define(function(require, exports, module) {
         });
     };
 
-    BoxView.prototype.setcolor = function(color){
+    BoxView.prototype.setColor = function(color){
 
+    };
+
+    BoxView.prototype.setSize = function(size){
+        SurfaceWrappingView.prototype.setSize.call(this,size);
+
+        if (this.textSurface)
+        {
+            if (size && size[0] != undefined && size[0] != true)
+            {
+                if (this.options.scrollviewSizeHack)
+                    this.textSurface.setSize([size[0], true]);
+
+                this.textSurface.setProperties({maxWidth: size[0] + 'px'});
+            }
+        }
     };
 
     BoxView.prototype.setClickable = function(clickable){
@@ -212,20 +232,31 @@ define(function(require, exports, module) {
                 this.textSurface.on('click',this._onClick );
                 this.backSurface.on('click',this._onClick );
 
+                var mouseHighlight = function(mouseover){
+
+                    if (this.bgOpacityState.isActive())
+                        this.bgOpacityState.halt();
+
+                    var baseOpacity = (this._highlighted) ? this.activeStyle.modifier.highlightOpacity : this.activeStyle.modifier.baseOpacity;
+                    var onOpacity = (mouseover) ? this.activeStyle.modifier.pulseOpacity : baseOpacity;
+
+                    this.bgOpacityState.set(onOpacity,(mouseover) ? opacityTransition.pulseRise : opacityTransition.pulseFall);
+                }.bind(this);
+
                 this.textSurface.on('mouseenter',function(){
-                    this.setHighlighted(true);
+                    mouseHighlight(true);
                 }.bind(this));
 
                 this.textSurface.on('mouseleave',function(){
-                    this.setHighlighted(false);
+                    mouseHighlight(false);
                 }.bind(this));
 
                 this.backSurface.on('mouseenter',function(){
-                    this.setHighlighted(true);
+                    mouseHighlight(true);
                 }.bind(this));
 
                 this.backSurface.on('mouseleave',function(){
-                    this.setHighlighted(false);
+                    mouseHighlight(false);
                 }.bind(this));
             }
         }
@@ -293,6 +324,8 @@ define(function(require, exports, module) {
     };
 
     BoxView.prototype.setHighlighted = function(highlighted){
+
+        this._highlighted = highlighted;
 
         if (this.bgOpacityState.isActive())
             this.bgOpacityState.halt();

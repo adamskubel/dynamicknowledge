@@ -43,12 +43,23 @@ define(function(require, exports, module) {
         {
             child.parent = this;
             this._children.push(child);
-            this.offsetNode.add(child.getModifier()).add(child);
+            this.offsetNode.add(child.getModifier()).add(child.getRenderController());
             this._layoutDirty = true;
         }
         else
             console.error("Child must be PositionableView");
 	};
+
+    DynamicContainer.prototype.removeChild = function(view)
+    {
+        var r = this._children.indexOf(view);
+        if (r >= 0)
+        {
+            console.log("Removing object at index " + r);
+            this._children.splice(r, 1);
+            view.hide();
+        }
+    };
 
     function _measureChildExtents(child)
     {

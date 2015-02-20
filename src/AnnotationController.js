@@ -9,6 +9,9 @@ define(function (require, exports, module)
     var LineCanvas = require('./LineCanvas');
 
     var Label = require('Model/Label');
+    var LabelState = require('Model/LabelState');
+
+    var EventEmitter = require("famous/core/EventEmitter");
 
 
     var annoColor = 6000;
@@ -17,7 +20,9 @@ define(function (require, exports, module)
     function AnnotationController(annotateObject,mainLayout,gapiModel){
 
         this.gapiModel = gapiModel;
+        this.state = 'Off';
 
+        this._eventOutput = new EventEmitter();
 
         var rootMap = gapiModel.getRoot().get("annotationMap");
 
@@ -32,24 +37,33 @@ define(function (require, exports, module)
             rootMap.set(annotateObject._globalId,labelList);
             console.log("Creating list for key " + annotateObject._globalId);
         }
+        this.labelList = labelList;
 
         labelList.addEventListener(gapi.drive.realtime.EventType.VALUES_ADDED, function(event){
             _loadModel.call(this,event.values);
         }.bind(this));
 
         labelList.addEventListener(gapi.drive.realtime.EventType.VALUES_REMOVED, function(event){
-            console.log("Removed values: " + event.values);
-        });
+            console.log("Removing: ");
+
+            for (var i=0;i<event.values.length;i++)
+            {
+                console.log(event.values[i]);
+                this.annotationContainer.removeChild(this.annotationMap[event.values[i].id].labelView);
+            }
+        }.bind(this));
 
         labelList.addEventListener(gapi.drive.realtime.EventType.VALUES_SET, function(event){
             console.log("Set values: " + event.values);
         });
 
-        this.labelList = labelList;
-        this.annotationControls = [];
+        this.annotationMap = {};
 
         _makeObjectAnnotated.call(this,annotateObject,mainLayout);
+        _initEditUI.call(this,this.annotationContainer);
         _loadModel.call(this,labelList.asArray());
+
+        this.setEditMode("Off");
     }
 
     function _loadModel(labels)
@@ -61,65 +75,136 @@ define(function (require, exports, module)
         }
     }
 
+    AnnotationController.prototype.setEditMode = function(mode)
+    {
+        if (this._editMode != mode)
+        {
+            this._editMode = mode;
+
+            if (mode == "CanEdit")
+            {
+                _saveAnnotations.call(this);
+                //this._editAnnotationButton.show();
+                this.saveButton.hide();
+                this.addLabelButton.hide();
+                this.lineButton.hide();
+            }
+            else if (mode == "IsEditing")
+            {
+                this._editAnnotationButton.show();
+                this.saveButton.show();
+                this.addLabelButton.show();
+                this.lineButton.show();
+            }
+            else
+            {
+                _saveAnnotations.call(this);
+                this._editAnnotationButton.show();
+                this.saveButton.hide();
+                this.addLabelButton.hide();
+                this.lineButton.hide();
+            }
+        }
+
+        this._eventOutput.emit('editmode');
+    };
+
+    AnnotationController.prototype.setState = function(state){
+        if (this.state != state)
+        {
+            this._editAnnotationButton.setText(state);
+            this.state = state;
+
+            var labels = this.labelList.asArray();
+            for (var i=0;i<labels.length;i++)
+            {
+                var lbl = labels[i];
+                if (!lbl)
+                {
+                    console.error("Null value in array at i=" +i);
+                    continue;
+                }
+
+                if (lbl.stateMap.has(state))
+                    this.annotationMap[lbl.id].labelView.setPosition(lbl.stateMap.get(state).position);
+            }
+        }
+    };
+
     AnnotationController.prototype.close = function()
     {
         _saveAnnotations.call(this);
-
-        this.saveButton.hide();
-        this.addLabelButton.hide();
-        this.lineButton.hide();
-
-        this.annotationButton.show();
+        this.setEditMode("CanEdit");
     };
 
     function _initEditUI(dc)
     {
-        var addLabelButton = new BoxView({
-            text: "+", size: [40, 40], clickable: true, color: annoColor,
-            position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-        });
-
-        dc.add(addLabelButton.getModifier()).add(addLabelButton.getRenderController());
-
-        addLabelButton.on('click', function ()
+        if (!this.addLabelButton)
         {
-            var model = Label.create(this.gapiModel);
+            var addLabelButton = new BoxView({
+                text: "+", size: [40, 40], clickable: true, color: annoColor,
+                position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+            });
 
-            model.position = [0,-10,0];
-            model.size = [100,200];
-            model.text = "Label!";
+            dc.add(addLabelButton.getModifier()).add(addLabelButton.getRenderController());
 
-            this.labelList.push(model);
-        }.bind(this));
+            addLabelButton.on('click', function ()
+            {
+                var model = Label.create(this.gapiModel,this.labelList.length);
 
-        var saveButton = new BoxView({
-            text: "[]", size: [40, 40], clickable: true, color: annoColor,
-            position: [40, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-        });
+                model.size = [160, 80];
+                model.text = "Label!";
+                var newState = LabelState.create(this.gapiModel,this.state);
+                model.addState(this.state,newState);
+                newState.position = [0,-10,0];
 
-        dc.add(saveButton.getModifier()).add(saveButton.getRenderController());
+                this.labelList.push(model);
+            }.bind(this));
 
-        saveButton.on('click', function ()
-        {
-            this.close();
-        }.bind(this));
+            var saveButton = new BoxView({
+                text: "[]", size: [40, 40], clickable: true, color: annoColor,
+                position: [40, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+            });
 
-        var lineButton = new BoxView({
-            text: "|", size: [40, 40], clickable: true, color: annoColor,
-            position: [80, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-        });
+            dc.add(saveButton.getModifier()).add(saveButton.getRenderController());
+
+            saveButton.on('click', function ()
+            {
+                this.close();
+            }.bind(this));
+
+            var lineButton = new BoxView({
+                text: "|", size: [40, 40], clickable: true, color: annoColor,
+                position: [80, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+            });
 
 
-        dc.add(lineButton.getModifier()).add(lineButton.getRenderController());
+            dc.add(lineButton.getModifier()).add(lineButton.getRenderController());
 
-        lineButton.on('click', function ()
-        {
-            _startLineDraw.call(this, dc);
-        });
+            lineButton.on('click', function ()
+            {
+                _startLineDraw.call(this, dc);
+            });
 
-        this.saveButton = saveButton;
-        this.addLabelButton = addLabelButton;
-        this.lineButton = lineButton;
+            var annotateObjectButton = new BoxView({
+                text: "...",
+                size: [100, 30],
+                //clickable: true,
+                color: annoColor,
+                position: [0, 0, 15]
+            });
+
+            dc.add(annotateObjectButton.getModifier()).add(annotateObjectButton.getRenderController());
+
+            //annotateObjectButton.on('click',function(){
+            //    this.setEditMode("IsEditing");
+            //}.bind(this));
+
+            this._editAnnotationButton = annotateObjectButton;
+            this.saveButton = saveButton;
+            this.addLabelButton = addLabelButton;
+            this.lineButton = lineButton;
+        }
     }
 
 
@@ -146,35 +231,66 @@ define(function (require, exports, module)
         var index = mainLayout.children.indexOf(object);
 
         mainLayout.removeChild(object);
-        mainLayout.addChild(dc, {weight: 2, index: index});
-
-        _initEditUI.call(this,dc);
+        mainLayout.addChild(dc, {
+            weight: 2,
+            index: index,
+            align:'center'
+        });
 
         this.annotationContainer = dc;
     }
 
     function _saveAnnotations()
     {
-        for (var i = 0; i < this.annotationControls.length; i++)
+        for (var key in this.annotationMap)
         {
-            var ac = this.annotationControls[i];
+
+            var ac = this.annotationMap[key];
+            console.log("Saving labels for state '" + this.state + "'. Text = " + ac.labelView.getText());
+            
             ac.labelView.setEditable(false);
             ac.moveButton.hide();
             ac.sizeButton.hide();
 
             ac.model.text = ac.labelView.getText();
-            ac.model.position = ac.labelView.position;
             ac.model.size = ac.labelView.size;
 
-            console.log("Saving label. Text = " + ac.labelView.getText());
+            if (!ac.model.stateMap.has(this.state))
+                ac.model.addState(this.state,LabelState.create(this.gapiModel));
+
+            ac.model.getState(this.state).position = ac.labelView.position;
+
         }
+    }
+
+    function _makeDeleteButton(ac)
+    {
+        var deleteButton = new BoxView({
+            text: "X", size: [30, 30], clickable: true, color: 900,
+            position: [0, 0, 5], viewAlign: [0, 1], viewOrigin: [0.8, 0.2], fontSize: 'large'
+        });
+        ac.labelView.add(deleteButton.getModifier()).add(deleteButton.getRenderController());
+
+        deleteButton.on('click',function(){
+            this.labelList.removeValue(ac.model);
+        }.bind(this));
+
+        return deleteButton;
     }
 
     function _addLabelBox(dc, model)
     {
+        var labelState = model.getState(this.state);
+        if (!labelState)
+        {
+            console.warn("Active state '" + this.state + "' not found in label");
+            labelState = LabelState.create(this.gapiModel);
+            labelState.position = [0,0,0];
+        }
+
         var newLabel = new BoxView({
             text: model.text,
-            position: model.position,
+            position: labelState.position,
             viewOrigin: [0, 0],
             size: model.size,
             color: annoColor,
@@ -186,17 +302,31 @@ define(function (require, exports, module)
 
         var annotationControl = function(){};
 
-        //newLabel.setText(model.text);
-        //newLabel.setPosition(model.position);
-        //newLabel.setSize(model.size);
-
-
         annotationControl.model = model;
         annotationControl.moveButton = _makeBoxMovable(dc, newLabel);
         annotationControl.sizeButton = _makeBoxResizable(newLabel);
         annotationControl.labelView = newLabel;
+        annotationControl.deleteButton = _makeDeleteButton.call(this,annotationControl);
 
-        this.annotationControls.push(annotationControl);
+        this.annotationMap[model.id] = annotationControl;
+
+        var updateButtons = function()
+        {
+            if (this._editMode == "IsEditing")
+            {
+                annotationControl.deleteButton.show();
+                annotationControl.moveButton.show();
+                annotationControl.sizeButton.show();
+            }
+            else
+            {
+                annotationControl.deleteButton.hide();
+                annotationControl.moveButton.hide();
+                annotationControl.sizeButton.hide();
+            }
+        };
+
+        this._eventOutput.on('editmode',updateButtons.bind(this));
 
         dc.addChild(newLabel);
     }
