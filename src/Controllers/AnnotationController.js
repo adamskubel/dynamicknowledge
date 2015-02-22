@@ -352,7 +352,7 @@ define(function (require, exports, module)
         Utils.attachRenderController(lineAnchor);
 
         receiver.add(lineAnchor.getModifier()).add(lineAnchor.renderController);
-        lineAnchor.show();
+        lineAnchor.show(); 
 
 
         lineAnchor.parent = receiver;

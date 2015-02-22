@@ -131,6 +131,8 @@ define(function(require,exports,module){
             }.bind(this));
         }
 
+        textView.textSurface.setContent(markdown.toHTML(string));
+
         this.textLayout.addChild(textView);
         return textView;
     };
