@@ -23,6 +23,9 @@ define(function (require, exports, module)
         255, 250, 244
     }
 
+    Colors.Annotation = 6000;
+    Colors.EditColor = 12000;
+
 
     Colors.fromTemperature = function(temp,alpha){
 
@@ -103,12 +106,14 @@ define(function (require, exports, module)
             'Tungsten':[255,197,143],
             'HoloBlue':[0,221,255],
             'Black':[0,0,0],
-            'CarbonArc':[255,250,244]
+            'CarbonArc':[255,250,244],
+            //'AnnotationColor' : 6000,
+            'EditColor' : 12000
         };
 
         if (colorMap[name] != undefined)
         {
-            return Colors.makeColor(colorMap[name],alpha);
+            return Colors.get(colorMap[name],alpha);
         }
         else
         {

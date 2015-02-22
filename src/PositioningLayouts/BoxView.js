@@ -133,6 +133,23 @@ define(function(require, exports, module) {
         this.setSize(this.options.size);
 	}
 
+    BoxView.prototype = Object.create(SurfaceWrappingView.prototype);
+    BoxView.prototype.constructor = BoxView;
+
+    BoxView.DEFAULT_OPTIONS = {
+        clickable: false,
+        scrollviewSizeHack: false,
+        color:3500,
+        text:"",
+        textAlign:[0.5,0.5],
+        fontSize:'small',
+        editable:false,
+        rendercontrol:false,
+        renderWhitespace:false,
+        size:[20,20]
+    };
+
+
     function _makeTextSurface()
     {
         var textSurface = new Surface({
@@ -176,22 +193,6 @@ define(function(require, exports, module) {
 
         return editTextSurface;
     }
-
-	BoxView.prototype = Object.create(SurfaceWrappingView.prototype);
-	BoxView.prototype.constructor = BoxView;
-
-    BoxView.DEFAULT_OPTIONS = {
-        clickable: false,
-        scrollviewSizeHack: false,
-        color:3500,
-        text:"",
-        textAlign:[0.5,0.5],
-        fontSize:'small',
-        editable:false,
-        rendercontrol:false,
-        renderWhitespace:false
-    };
-
     BoxView.prototype.setPadding = function(padding)
     {
         this.textSurface.setProperties({

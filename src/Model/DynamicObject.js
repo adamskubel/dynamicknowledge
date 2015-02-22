@@ -11,6 +11,7 @@ define(function(require,exports,module){
 
     function _initialize(id,type)
     {
+        console.log("Initializing dynamic model, id = " + id);
         if (id == undefined || type == undefined)
         {
             console.error("id and type required!");
@@ -21,14 +22,17 @@ define(function(require,exports,module){
         this.id = id;
         this.type = type;
         this.stateMap = model.createMap();
+        this.properties = model.createMap();
+        this.relationships = model.createList();
     }
 
     function _initializeState()
     {
         var model = gapi.drive.realtime.custom.getModel(this);
+        this.properties = model.createMap();
     }
 
-    DynamicObject.registerGAPIModel = function()
+    DynamicObject.registerGAPI = function()
     {
         //Register DynamicObject
         gapi.drive.realtime.custom.registerType(DynamicObject,'DynamicObject');
@@ -37,11 +41,13 @@ define(function(require,exports,module){
         DynamicObject.prototype.id = gapi.drive.realtime.custom.collaborativeField('id');
         DynamicObject.prototype.type = gapi.drive.realtime.custom.collaborativeField('type');
         DynamicObject.prototype.stateMap = gapi.drive.realtime.custom.collaborativeField('stateMap');
+        DynamicObject.prototype.properties = gapi.drive.realtime.custom.collaborativeField('properties');
+        DynamicObject.prototype.relationships = gapi.drive.realtime.custom.collaborativeField('relationships');
 
         //Register DynamicObject.State
         gapi.drive.realtime.custom.registerType(DynamicObject.State,'DynamicObject.State');
-        gapi.drive.realtime.custom.setInitializer(DynamicObject, _initializeState);
-        DynamicObject.State.prototype.visible = gapi.drive.realtime.custom.collaborativeField('visible');
+        gapi.drive.realtime.custom.setInitializer(DynamicObject.State, _initializeState);
+        DynamicObject.State.prototype.properties = gapi.drive.realtime.custom.collaborativeField('properties');
     };
 
     DynamicObject.create = function(model, id, type){

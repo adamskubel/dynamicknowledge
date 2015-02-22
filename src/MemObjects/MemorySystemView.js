@@ -8,11 +8,11 @@ define(function(require, exports, module)
     var View = require('famous/core/View');
     var Transitionable = require('famous/transitions/Transitionable');
     var Easing = require('famous/transitions/Easing');
-    var PositionableView = require('./PositioningLayouts/PositionableView');
+    var PositionableView = require('./../PositioningLayouts/PositionableView');
 
-    var MemorySpace = require('./MemObjects/MemorySpace');
+    var MemorySpace = require('./MemorySpace');
 
-    var RectangularPrism = require('./RectangularPrism');
+    var RectangularPrism = require('./../RectangularPrism');
 
 	function MemorySystemView(options)
 	{

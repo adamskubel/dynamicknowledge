@@ -15,7 +15,7 @@ define(function(require, exports, module) {
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
 
-	var Vector = require('./ProperVector');
+	var Vector = require('./../ProperVector');
 
 	function BracketView(options) 
 	{

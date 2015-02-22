@@ -15,7 +15,7 @@ But it's not that the RAM cells for address '0' are unpopulated. Something else 
 Linux actually doesn't let processes access memory directly. Instead, it gives them <b>virtual memory</b>.
 <br/><br/>
 
-{LINK=PageTable}VirtualSpaceLink{/LINK}
+{LINK=PageTableObject}VirtualSpaceLink{/LINK}
 
 The size of the virtual memory space is dependent on the system architecture; x86 would have a 2^32 possible virtual addresses,
 and a 64-bit system would have 2^64 virtual addresses. However, only a subset of this space is available for use by the application.
@@ -27,7 +27,7 @@ Virtual memory is mapped to physical memory by the operating system. This mappin
 A page of virtual memory maps to a page of physical memory.
 
 This virtual -> physical mapping is defined in the <b>page table</b>.
-{LINK=PageTable}PageTableLink{/LINK}
+{LINK=PageTableObject}PageTableLink4{/LINK}
 
 <br/>
 <br/>

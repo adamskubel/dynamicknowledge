@@ -8,11 +8,11 @@ define(function(require, exports, module) {
 	var Easing = require('famous/transitions/Easing');
     var RenderController = require("famous/views/RenderController");
 
-	var DynamicDetailView = require('./DynamicDetailView');
-	var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
-	var PositionableView   = require("./PositioningLayouts/PositionableView");
+	var DynamicDetailView = require('./../DynamicDetailView');
+	var StretchyLayout = require('./../PositioningLayouts/StretchyLayout');
+	var PositionableView   = require("./../PositioningLayouts/PositionableView");
 	var ObjectFactory = require('ObjectFactory');
-    var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
+    var SurfaceWrappingView = require('./../PositioningLayouts/SurfaceWrappingView');
 
 
     //var objectFactory = new ObjectFactory();

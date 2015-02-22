@@ -177,7 +177,7 @@ define(function (require, exports, module)
                 this.positionState.halt();
 
             this._eventOutput.emit('positionChange', {newPosition: position});
-            this.positionState.set(Transform.translate(position[0], position[1], position[2]), (this.isAnimated && false) ? this.positionTransition : null);
+            this.positionState.set(Transform.translate(position[0], position[1], position[2]), (this.isAnimated) ? this.positionTransition : null);
         }
         else
         {
@@ -193,7 +193,7 @@ define(function (require, exports, module)
         {
             if (this.sizeState.isActive())
                 this.sizeState.halt();
-            this.sizeState.set(newSize, (this.isAnimated && this._size && false) ? this.sizeTransition : null);
+            this.sizeState.set(newSize, (this.isAnimated && this._size) ? this.sizeTransition : null);
         }
         else
         {

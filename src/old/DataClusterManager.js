@@ -10,7 +10,7 @@ define(function(require, exports, module) {
 	var View = require('famous/core/View');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-	var ObjectFactory = require('./ObjectFactory');
+	var ObjectFactory = require('./../ObjectFactory');
 	
     function DataClusterManager(options,context) {
 

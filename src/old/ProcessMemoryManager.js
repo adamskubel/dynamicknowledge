@@ -5,12 +5,12 @@ define(function(require, exports, module) {
     var Modifier = require("famous/core/Modifier");
     var View = require('famous/core/View');
 
-    var ObjectFactory = require('./ObjectFactory');
+    var ObjectFactory = require('./../ObjectFactory');
 
-    var DynamicDetailView = require('./DynamicDetailView');
-    var PageTableView = require('./old/PageTableView');
-    var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
-	var SurfaceWrappingView = require('./PositioningLayouts/SurfaceWrappingView');
+    var DynamicDetailView = require('./../DynamicDetailView');
+    var PageTableView = require('./PageTableView');
+    var StretchyLayout = require('./../PositioningLayouts/StretchyLayout');
+	var SurfaceWrappingView = require('./../PositioningLayouts/SurfaceWrappingView');
 	var MemoryPagingView = require('./MemoryPagingView');
 
 	var systemDescription = "The basis of Linux memory management is 'virtual memory'." +

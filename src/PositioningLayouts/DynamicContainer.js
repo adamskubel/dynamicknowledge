@@ -15,7 +15,7 @@ define(function(require, exports, module) {
 	{
 		PositionableView.call(this, options);
 
-        this._children = [];
+        this.children = [];
 
         this.minimumContainerSize = this.options.minimumContainerSize;
         this.size = this.minimumSize;
@@ -39,24 +39,31 @@ define(function(require, exports, module) {
 
 	DynamicContainer.prototype.addChild = function(child){
 
+        if (!child)
+        {
+            console.error("Cannot add null child");
+            return;
+        }
+
         if (child instanceof PositionableView)
         {
             child.parent = this;
-            this._children.push(child);
+            this.children.push(child);
             this.offsetNode.add(child.getModifier()).add(child.getRenderController());
             this._layoutDirty = true;
         }
         else
-            console.error("Child must be PositionableView");
+        {
+            console.error("Child must be PositionableView. Child = " + child);
+        }
 	};
 
     DynamicContainer.prototype.removeChild = function(view)
     {
-        var r = this._children.indexOf(view);
+        var r = this.children.indexOf(view);
         if (r >= 0)
         {
-            console.log("Removing object at index " + r);
-            this._children.splice(r, 1);
+            this.children.splice(r, 1);
             view.hide();
         }
     };
@@ -88,7 +95,7 @@ define(function(require, exports, module) {
     DynamicContainer.prototype.measure = function(requestedSize){
 
         var containerSize = Vector.fromArray(this.minimumContainerSize);
-        var children = this._children;
+        var children = this.children;
 
         var bottomRight = new Vector(0,0,0);
         var topLeft = new Vector(0,0,0);
@@ -132,9 +139,9 @@ define(function(require, exports, module) {
 
     DynamicContainer.prototype.layout = function(layoutSize){
 
-        for (var i=0;i<this._children.length;i++)
+        for (var i=0;i<this.children.length;i++)
         {
-            this._children[i].layout(this._children[i]._dynamicSize);
+            this.children[i].layout(this.children[i]._dynamicSize);
         }
 
         PositionableView.prototype.layout.call(this,layoutSize);
@@ -144,9 +151,9 @@ define(function(require, exports, module) {
 
         if (this._layoutDirty) return true;
 
-        for (var i=0;i<this._children.length;i++)
+        for (var i=0;i<this.children.length;i++)
         {
-            if (this._children[i].needsLayout())
+            if (this.children[i].needsLayout())
             {
                 return true;
             }

@@ -16,7 +16,7 @@ define(function (require, exports, module)
     var DynamicDetailView = require('./DynamicDetailView');
     var DynamicContainer = require('./PositioningLayouts/DynamicContainer');
     var BoxView = require('./PositioningLayouts/BoxView');
-    var PScrollView = require('./PositioningLayouts/PositioningScrollView');
+    var MainView = require('MainView');
 
     var MemorySpace = require('./MemObjects/MemorySpace');
     var PageLookupTable = require('./MemObjects/PageLookupTable');
@@ -25,294 +25,78 @@ define(function (require, exports, module)
     var Vector = require('./ProperVector');
 
     var Label = require('Model/Label');
-    var LabelState = require('Model/LabelState');
+    var ModelLoader = require('ModelLoader');
+    var GAPIAuthenticator = require('GAPIAuthenticator');
 
-    var AnnotationController = require('./AnnotationController');
-
-    //Globals
-	var currentScene = 0;
-    var rootNode;
-	var dynamicNodes;
-	var mainLayout;
-    var cameraAngles = [0,0];
-    var objectRegistry = {};
+    var AnnotationContainer = require('Model/AnnotationContainer');
+    var DynamicObject = require('Model/DynamicObject');
+    var DynamicObjectController = require('Controllers/DynamicObjectController');
 
 	function init()
     {
 		this.context = Engine.createContext(null);
 
-        this.annotationButtons = [];
-		this.lines = [];
-		this.lineIndex = 0;
-		this.dynamicNodes = [];
-		dynamicNodes = this.dynamicNodes;
-
-
-		this.cameraModifier = new Modifier({
-				transform: function () {return Transform.rotate(Math.PI * (-1 / 6) * this.state.get(), Math.PI * (1 / 4) * this.state.get(), 0);}
-                //transform: function () {return Transform.rotate(cameraAngles[0]*(Math.PI/180),cameraAngles[1]*(Math.PI/180), 0);}
-        });
-		this.cameraModifier.state = new Transitionable(0);
-
-
-        var mainView = new View();
-
-        rootNode = mainView.add(new Modifier({
-            align: [0.5,0.5]
-        })).add(this.cameraModifier);
-
+        var mainView = new MainView(this.context);
+        mainView.setCameraMode("2D");
         this.context.add(mainView);
 
-		mainLayout = new StretchyLayout({
-			direction:0,
-			viewSpacing:[40,0],
-            viewOrigin:[0.5,0.5],
-            viewAlign:[0.3,0.5],
-            isAnimated:false
-		});
 
-        mainLayout.calculatePosition = function(){
-            var p = Vector.fromArray(mainLayout.position);
-            var s = this.context.getSize();
-            if (s)
-            {
-                p = p.sub(Vector.fromArray(s).multiply(new Vector(0.2, 0, 0)));
-            }
-            return p.toArray();
-        }.bind(this);
+        var objectRegistry = {};
+        this.objectRegistry = objectRegistry;
 
-        var textWidth = this.context.getSize()[0]*0.4;
-        textLayout = new PScrollView({
-            direction: 1,
-            viewOrigin: [0,0.5],
-            viewAlign: [0.6,0.5],
-            size:[textWidth,undefined]
-        });
-        textLayout.textWidth= textWidth;
-
-        textLayout.setPosition([0,0,0]);
-
-        textLayout.calculatePosition = function(){
-            var p = Vector.fromArray(textLayout.position);
-            var s = this.context.getSize();
-            if (s)
-            {
-                p = p.sub(Vector.fromArray(s).multiply(new Vector(-0.1, 0.5, 0)));
-            }
-            return p.toArray();
-        }.bind(this);
-
-        //var mouseCaptureSurface = new Surface();
-        //this.context.add(new Modifier({transform:Transform.translate(0,0,-100)})).add(mouseCaptureSurface);
-
-		rootNode.add(mainLayout.getModifier()).add(mainLayout);
-        rootNode.add(textLayout.getModifier()).add(textLayout);
-        //mainLayout.addChild(textLayout,{weight:2});
-		dynamicNodes.push(mainLayout);
-        dynamicNodes.push(textLayout);
-
-		Engine.on('prerender',function(){
-        //Timer.setInterval(function(){
-			for (var i=0;i<dynamicNodes.length;i++)
-			{
-				var dn = dynamicNodes[i];
-				if (dn.needsLayout())
-				{
-					var sizes = dn.measure();
-					dn.layout(sizes.minimumSize);
-				}
-			}
-		});
-
-        //var cameraSync = new MouseSync();
-        //
-        //mouseCaptureSurface.pipe(cameraSync);
-        //cameraSync.on('update',function(data){
-        //    cameraAngles[0] += data.delta[1]*-0.2;
-        //    cameraAngles[1] += data.delta[0]*0.2;
-        //});
-
-        jQuery.get('./text.txt', function(data)
-        {
-            var blocks = parseText.call(this,data);
-
-            nextScene.call(this);
-
-            for (var i=0;i<blocks.length;i++)
-            {
-                var block = blocks[i];
-                addText.call(this,block.text,block.name);
-            }
-
-        }.bind(this));
+        populateObjects(objectRegistry);
 
         this.annotationEditors = [];
+        this.mainView = mainView;
 
-        gapi.load('auth:client,drive-realtime,drive-share', function() {
-            _initUI.call(this);
-            _auth.call(this,_authComplete.bind(this));
+        this.gapiAuthenticator = new GAPIAuthenticator();
+        this.fileId = '0B6eNzoTXZGgISVA1amJmaEZUZmM';
+
+        gapi.load('auth:client,drive-realtime,drive-share', function()
+        {
+            _initUI.call(this,mainView);
+            this.gapiAuthenticator.connect(_authComplete.bind(this));
+
         }.bind(this));
+    }
 
-	}
-
-    var textLayout;
-    var virtualMemorySpace;
-    var virtualBlock;
-    var mappingBox;
     var annoColor = 6000;
     var editColor = 12000;
-    var pageTable;
-    var physicalMemorySpace;
-
-    function addText(string, name){
 
 
-        var pointAt = objectRegistry[name];
 
-        var linkValid = (pointAt != undefined && pointAt.annoClick != undefined);
-
-        var textView = new BoxView({
-            size:[textLayout.textWidth,true],
-            color:annoColor,
-            text:string,
-            textAlign:[0,0],
-            style:(linkValid) ? 'borderOnly' : 'noBorder',
-            fontSize:'normal',
-            scrollviewSizeHack: true,
-            clickable:linkValid
-        });
-
-        if (linkValid)
-        {
-            //var pointLine = new LineCanvas();
-            //pointLine.setLineObjects(textView, pointAt);
-            //rootNode.add(pointLine.getModifier()).add(pointLine);
-            //textLayout.on('positionUpdate',function(){
-            //    pointLine.update();
-            //});
-
-            textView.on('click', function ()
-            {
-                if (!this._editMode)
-                {
-                    pointAt.annoClick();
-                }
-                else
-                {
-                    pointAt._annotationController.setState(string);
-                    pointAt._annotationController.setEditMode("IsEditing");
-                }
-
-            }.bind(this));
-        }
-
-        textLayout.addChild(textView);
-        return textView;
-    }
-
-    function _fetchUserId(callback)
+    function _initUI(mainView)
     {
-        var _this = this;
-        gapi.client.load('oauth2', 'v2', function()
-        {
-            gapi.client.oauth2.userinfo.get().execute(function(resp)
-            {
-                if (resp.id) {
-                    _this.userId = resp.id;
-                }
+        var rootNode = mainView.rootNode;
 
-                if (callback) {
-                    callback();
-                }
-            });
-        });
-    }
-
-
-    function _auth(onAuthComplete) {
-
-        var rtclient = rtclient || {};
-
-        rtclient.INSTALL_SCOPE = 'https://www.googleapis.com/auth/drive.install';
-        rtclient.FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-        rtclient.OPENID_SCOPE = 'openid';
-        rtclient.REALTIME_MIMETYPE = 'application/vnd.google-apps.drive-sdk';
-
-
-        this.fileId = '0B6eNzoTXZGgIQ0ZuX0E4NXJ2VnM';
-        var clientId = '645480454740-n8ui9o5v4tieo3s0utqvhta6k8gakcrt.apps.googleusercontent.com';
-
-        var userId = null;
-        var _this = this;
-
-        var handleAuthResult = function(authResult) {
-            if (authResult && !authResult.error) {
-
-                _this.authButton.setClickable(false);
-
-                _fetchUserId(onAuthComplete);
-                console.log('yay!');
-            } else {
-                authorizeWithPopup();
-            }
-        };
-
-        var authorizeWithPopup = function() {
-            gapi.auth.authorize({
-                client_id: clientId,
-                scope: [
-                    rtclient.INSTALL_SCOPE,
-                    rtclient.FILE_SCOPE,
-                    rtclient.OPENID_SCOPE
-                ],
-                user_id: userId,
-                immediate: false
-            }, handleAuthResult);
-            console.log(clientId);
-        };
-
-        // Try with no popups first.
-        gapi.auth.authorize({
-            client_id: clientId,
-            scope: [
-                rtclient.INSTALL_SCOPE,
-                rtclient.FILE_SCOPE,
-                rtclient.OPENID_SCOPE
-            ],
-            user_id: userId,
-            immediate: true
-        }, handleAuthResult);
-    }
-
-    function _initUI()
-    {
-        var nextButton = new BoxView({text: "Next", size:[200,80], clickable:true, color:6000,viewAlign:[1,1],viewOrigin:[1,1],fontSize:'large'});
-        textLayout.add(nextButton.getModifier()).add(nextButton);
-
-        nextButton.on('click', function (){
-            nextScene.call(this);
+        var authButton = new BoxView({text: "Auth", size:[100,80], position:[100,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        authButton.on('click',function(){
+            this.gapiAuthenticator.call(this,_authComplete.bind(this));
         }.bind(this));
 
-        this.editButton = new BoxView({text: "Edit", size:[100,80], clickable:false, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
-        rootNode.add(this.editButton.getModifier()).add(this.editButton);
-
-        this.editButton.on('click',function(){
+        var editButton = new BoxView({text: "Edit", size:[100,80], clickable:false, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        editButton.on('click',function(){
             _setEditMode.call(this,!this._editMode);
         }.bind(this));
 
-        this.authButton = new BoxView({text: "Auth", size:[100,80], position:[100,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
-        //rootNode.add(this.authButton.getModifier()).add(this.authButton);
-        this.authButton.on('click',function(){
-            _auth.call(this,_authComplete.bind(this));
-        }.bind(this));
+        var cameraButton = new BoxView({text: "Camera [2D]", size:[100,80], position:[100,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
+        cameraButton.on('click',function(){
+            if (mainView.cameraMode == "2D")
+            {
+                mainView.setCameraMode("3D");
+                cameraButton.setText("Camera [3D]");
+            }
+            else if (mainView.cameraMode == "3D")
+            {
+                mainView.setCameraMode("Free");
+                cameraButton.setText("Camera [Free]");
+            }
+            else if (mainView.cameraMode == "Free")
+            {
+                mainView.setCameraMode("2D");
+                cameraButton.setText("Camera [2D]");
+            }
 
-        this.cameraButton = new BoxView({text: "Camera", size:[100,80], position:[100,0,0], clickable:true, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
-        rootNode.add(this.cameraButton.getModifier()).add(this.cameraButton);
-        this.cameraButton.on('click',function(){
-            if (this.cameraMode == "2D")
-                setCameraState("3D");
-            else
-                setCameraState("2D");
         }.bind(this));
 
         var undoButton =  new BoxView({text: "Undo", size:[100,80], position:[300,0,0], clickable:false, color:editColor,viewAlign:[0,1],viewOrigin:[0,1],fontSize:'large'});
@@ -326,11 +110,17 @@ define(function (require, exports, module)
             this.gapiModel.redo();
         }.bind(this));
 
+
+        rootNode.add(authButton.getModifier()).add(authButton.getRenderController());
+        rootNode.add(cameraButton.getModifier()).add(cameraButton);
+        rootNode.add(editButton.getModifier()).add(editButton);
         rootNode.add(undoButton.getModifier()).add(undoButton);
         rootNode.add(redoButton.getModifier()).add(redoButton);
 
+        this.editButton = editButton;
         this.undoButton = undoButton;
         this.redoButton = redoButton;
+        this.authButton = authButton;
     }
 
 
@@ -338,19 +128,65 @@ define(function (require, exports, module)
         console.log("Document '"+document+"' loaded, model = " + document.getModel().toString());
         this.gapiModel = document.getModel();
 
-        for (var key in objectRegistry)
+        this.modelLoader = new ModelLoader(document.getModel(),this.objectRegistry);
+        this.modelLoader.loadModel(this.mainView);
+
+        //this.modelLoader.getObject("PageTableObject");
+
+
+
+        jQuery.get('./text.txt', function(data)
         {
-            var obj = objectRegistry[key];
-            obj._globalId = key;
-            var ac = new AnnotationController(obj, mainLayout, this.gapiModel);
-            obj._annotationController = ac;
-            this.annotationEditors.push(ac);
-        }
+            var blocks = parseText.call(this,data);
+            for (var i=0;i<blocks.length;i++)
+            {
+                var block = blocks[i];
+                this.mainView.addText(block.text,block.name);
+            }
+
+        }.bind(this));
     }
 
     function _initializeModel(model){
         console.log ("intialized model: " + model);
-        model.getRoot().set('annotationMap',model.createMap());
+
+        var objects = model.createMap();
+        model.getRoot().set('objects',objects);
+
+        model.getRoot().set("lastId",100);
+
+        var topObject = DynamicObject.create(model,'top','top');
+        var baseState = topObject.createState('base');
+
+        baseState.properties.set("FocusObject","MemorySystemController");
+        model.getRoot().set('top',topObject);
+
+
+        var pageTable = DynamicObject.create(model,'PageTableObject','predef');
+        pageTable.createState('base');
+        pageTable.properties.set("predefinedName","PageTable");
+
+        var annotationRelationship = AnnotationContainer.create(model,'ac1');
+        annotationRelationship.createState('base').children.push("L1");
+        pageTable.relationships.push(annotationRelationship);
+
+        var label1 = Label.create(model,"L1");
+        label1.text = "HI AM LABELS";
+        label1.createState('base').position = [10,10,0];
+
+        var memControllerDef = DynamicObject.create(model,'MemorySystemController','predef');
+        memControllerDef.createState('base');
+        memControllerDef.properties.set('predefinedName',"MemorySystemView");
+
+        var memControllerChildren = model.createList();
+
+        memControllerDef.relationships.push(memControllerChildren);
+
+        memControllerChildren.push("PageTableObject");
+
+        objects.set(label1.id,label1);
+        objects.set(pageTable.id,pageTable);
+        objects.set(memControllerDef.id,memControllerDef);
     }
 
     function _handleErrors(err){
@@ -359,8 +195,7 @@ define(function (require, exports, module)
 
     function _authComplete(){
 
-        Label.registerGAPIModel();
-        LabelState.registerGAPIModel();
+        ModelLoader.registerModels();
 
         var callback = function(file){
 
@@ -386,7 +221,8 @@ define(function (require, exports, module)
         }
 
 
-        this.authButton.setClickable(false);
+        this.authButton.hide();
+
         this.editButton.setClickable(true);
         this.redoButton.setClickable(true);
         this.undoButton.setClickable(true);
@@ -397,180 +233,187 @@ define(function (require, exports, module)
         this._editMode = editMode;
         this.editButton.setHighlighted(editMode);
 
-        //for (var i=0;i<this.annotationEditors.length;i++)
-        //{
-            //this.annotationEditors[i].setEditMode((editMode) ? "CanEdit" : "Off");
-        //}
+        if (editMode)
+            this.mainView.setEditMode("IsEditing");
+        else
+            this.mainView.setEditMode("ReadOnly");
     }
 
-    var scenes = [
-		function ()
-		{
 
-            setCameraState("2D");
+	function populateObjects(objectRegistry)
+    {
+        var memorySystemView = new StretchyLayout({
+            direction:0,
+            viewSpacing:[40,0],
+            viewOrigin:[0.5,0.5],
+            viewAlign:[0.3,0.5],
+            isAnimated:false
+        });
 
-			mainLayout.requestLayout();
 
-            virtualMemorySpace = new MemorySpace({
-                size:[100,700]
-            });
+        var virtualMemorySpace = new MemorySpace({
+            size:[100,700]
+        });
 
-            objectRegistry["VirtualSpace"] = virtualMemorySpace;
-            virtualMemorySpace.gapiName = "VirtualSpace";
+        objectRegistry["VirtualSpace"] = virtualMemorySpace;
+        virtualMemorySpace.gapiName = "VirtualSpace";
 
-            mainLayout.addChild(virtualMemorySpace,{weight:1, index:0});
+        memorySystemView.addChild(virtualMemorySpace,{weight:1, index:0});
 
-            var pv1 = new BoxView({
-                text:'Reserved by kernel',
-                size:[100,100],
-                position:[0,30,0],
-                textAlign:[0,0]
-            });
-            virtualMemorySpace.addChild(pv1);
+        var pv1 = new BoxView({
+            text:'Reserved by kernel',
+            size:[100,100],
+            position:[0,30,0],
+            textAlign:[0,0]
+        });
+        virtualMemorySpace.addChild(pv1);
 
-            virtualBlock = new BoxView({
-                text:"0xA0000000",
-                size:[undefined,true],
-                clickable:true,
-                position: [0,220,5],
-                textAlign: [0,0.5]
-            });
-            virtualBlock._memAddress = 0xA0000000;
-            virtualMemorySpace.addChild(virtualBlock);
+        var virtualBlock = new BoxView({
+            text:"0xA0000000",
+            size:[undefined,true],
+            clickable:true,
+            position: [0,220,5],
+            textAlign: [0,0.5]
+        });
+        virtualBlock._memAddress = 0xA0000000;
+        virtualMemorySpace.addChild(virtualBlock);
 
-            mappingBox = new DynamicDetailView({
-                boxLabel:"Memory mapping subsystem",
-                boxSize: [120,120],
-                maxDetail: 1
-            });
-            mappingBox.setOrigin([0,0.5]);
-            mainLayout.addChild(mappingBox,{align: 'center',index:1});
+        var mappingBox = new DynamicDetailView({
+            boxLabel:"Memory mapping subsystem",
+            boxSize: [120,120],
+            maxDetail: 1,
+            position: [0,0,0]
+        });
+        mappingBox.setOrigin([0,0.5]);
+        memorySystemView.addChild(mappingBox,{align: 'center',index:1});
 
-            pageTable = new PageLookupTable({
-                startPage: 0xA0000,
-                pageMappings: [
-                    0x10520,
-                    0x21234,
-                    0x0F2D4
-                ]
-            });
+        var pageTable = new PageLookupTable({
+            startPage: 0xA0000,
+            pageMappings: [
+                0x10520,
+                0x21234,
+                0x0F2D4
+            ]
+        });
 
-            objectRegistry["PageTable"] = mappingBox;
-            mappingBox.gapiName = "PageTable";
+        objectRegistry["PageTable"] = mappingBox;
 
-            mappingBox.makeComplexView = function(detail){
-                if (detail == 1)
-                    return pageTable;
-                else if (detail == 2)
+        mappingBox.makeComplexView = function(detail){
+            if (detail == 1)
+                return pageTable;
+            else if (detail == 2)
+            {
+                var dc = new DynamicContainer({
+                    edgePadding:[10,10]
+                });
+
+                var containerBackground = new BoxView({
+                    color:annoColor,
+                    style: 'borderOnly'
+                });
+
+                dc.add(containerBackground.getModifier()).add(containerBackground);
+
+                var pageTable2 = new PageLookupTable({
+                    startPage: 0xA0000,
+                    pageMappings: [
+                        0x10520,
+                        0x21234,
+                        0x0F2D4
+                    ]
+                });
+
+                var label1 = new BoxView({
+                    text: "Label #1!",
+                    position: [-110,-10,0],
+                    viewOrigin: [0,0],
+                    size: [100,30]
+                });
+
+                var label2 = new BoxView({
+                    text: "Hi am label 2",
+                    position: [140,50,0],
+                    size: [100,40]
+                });
+
+                dc.addChild(pageTable2);
+                dc.addChild(label1);
+                dc.addChild(label2);
+
+                return dc;
+            }
+        };
+
+        var physicalMemorySpace = new MemorySpace({
+            memConfig:{
+                startAddress:0,
+                addressWidth:8,
+                memSize:0x40000000
+            },
+            size:[100,500]
+        });
+
+        objectRegistry["PhysicalMemory"] = physicalMemorySpace;
+        physicalMemorySpace.gapiName = "PhysicalMemory";
+
+        memorySystemView.addChild(physicalMemorySpace,{align:'center',index:2});
+
+        var physicalBlock = new BoxView({
+            text:"0x10520000",
+            size:[undefined,true],
+            textAlign: [0,0.5]
+        });
+
+        physicalMemorySpace.addChild(physicalBlock);
+
+        var dragController = new MouseSync();
+        dragController.on('update',function(data){
+            var ypos = virtualBlock.position[1] + data.delta[1];
+            ypos = Math.max(220,ypos);
+            ypos = Math.min(420,ypos);
+
+            virtualBlock.setAnimated(false);
+            virtualBlock.setPosition([virtualBlock.position[0],ypos,virtualBlock.position[2]]);
+
+            var newAddr = Math.round(0xA0000000+(0x2FFF*((ypos-220)/200)));
+            virtualBlock._memAddress = newAddr;
+            virtualBlock.setText(Utils.hexString(newAddr,8));
+            var pageNum = pageTable.access(virtualBlock._memAddress >>> 12);
+
+            var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
+
+            ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
+
+            physicalBlock.setPosition([0,ypos,0]);
+            physicalBlock.pulse(50,500);
+            physicalBlock.setText(Utils.hexString(address,8));
+        });
+
+        virtualBlock.backSurface.pipe(dragController);
+
+        memorySystemView.setEditMode = function(editMode){
+
+            for (var i=0;i<this.children.length;i++)
+            {
+                if (this.children[i].setEditMode)
                 {
-                    var dc = new DynamicContainer({
-                        edgePadding:[10,10]
-                    });
-
-                    var containerBackground = new BoxView({
-                        color:annoColor,
-                        style: 'borderOnly'
-                    });
-
-                    dc.add(containerBackground.getModifier()).add(containerBackground);
-
-                    var pageTable2 = new PageLookupTable({
-                        startPage: 0xA0000,
-                        pageMappings: [
-                            0x10520,
-                            0x21234,
-                            0x0F2D4
-                        ]
-                    });
-
-                    var label1 = new BoxView({
-                        text: "Label #1!",
-                        position: [-110,-10,0],
-                        viewOrigin: [0,0],
-                        size: [100,30]
-                    });
-
-                    var label2 = new BoxView({
-                        text: "Hi am label 2",
-                        position: [140,50,0],
-                        size: [100,40]
-                    });
-
-                    dc.addChild(pageTable2);
-                    dc.addChild(label1);
-                    dc.addChild(label2);
-
-                    return dc;
+                    this.children[i].setEditMode(editMode);
                 }
-            };
+            }
+        };
 
-            mappingBox.annoClick = function () {
-                mappingBox.setLevelOfDetail(1);
-            };
+        //var memController = new DynamicObjectController(null,memorySystemView);
 
-            physicalMemorySpace = new MemorySpace({
-                memConfig:{
-                    startAddress:0,
-                    addressWidth:8,
-                    memSize:0x40000000
-                },
-                size:[100,500]
-            });
 
-            objectRegistry["PhysicalMemory"] = physicalMemorySpace;
-            physicalMemorySpace.gapiName = "PhysicalMemory";
+        //objectRegistry["MemorySystemController"] = memController;
 
-            mainLayout.addChild(physicalMemorySpace,{align:'center',index:2});
 
-            var physicalBlock = new BoxView({
-                text:"0x10520000",
-                size:[undefined,true],
-                textAlign: [0,0.5]
-            });
+        objectRegistry["MemorySystemView"] = memorySystemView;
+    }
 
-            physicalMemorySpace.addChild(physicalBlock);
 
-            var dragController = new MouseSync();
-            dragController.on('update',function(data){
-                var ypos = virtualBlock.position[1] + data.delta[1];
-                ypos = Math.max(220,ypos);
-                ypos = Math.min(420,ypos);
-
-                virtualBlock.setAnimated(false);
-                virtualBlock.setPosition([virtualBlock.position[0],ypos,virtualBlock.position[2]]);
-
-                var newAddr = Math.round(0xA0000000+(0x2FFF*((ypos-220)/200)));
-                virtualBlock._memAddress = newAddr;
-                virtualBlock.setText(Utils.hexString(newAddr,8));
-                var pageNum = pageTable.access(virtualBlock._memAddress >>> 12);
-
-                var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
-
-                ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
-
-                physicalBlock.setPosition([0,ypos,0]);
-                physicalBlock.pulse(50,500);
-                physicalBlock.setText(Utils.hexString(address,8));
-            });
-
-            virtualBlock.backSurface.pipe(dragController);
-        },
-        function ()
-        {
-            mappingBox.setLevelOfDetail(1);
-        },
-        function(){
-            mainLayout.requestLayout();
-            currentScene--;
-        }
-	];
-
-	function nextScene()
-	{
-		scenes[currentScene++].call(this);
-	}
-
-    function parseText(text){
+    function parseText(text)
+    {
 
         var textBlocks = [];
 
@@ -610,53 +453,6 @@ define(function (require, exports, module)
         }
 
         return textBlocks;
-    }
-
-	function drawLine(fromPoint, toPoint)
-	{
-		// console.log(lineIndex + '=' + fromPoint + '-->' + toPoint);
-		this.lines[this.lineIndex].setLinePoints(fromPoint, toPoint);
-		this.lineIndex = (this.lineIndex + 1) % this.lines.length;
-	}
-
-	function createCallstack()
-	{
-
-		var callstack = [];
-		callstack.push = function ()
-		{
-			for (var i = 0, l = arguments.length; i < l; i++)
-			{
-				this[this.length] = arguments[i];
-				console.log(this[this.length - 2], this[this.length - 1]);
-				if (this.length >= 2)
-				{
-					drawLine(this[this.length - 2], this[this.length - 1]);
-				}
-			}
-			return this.length;
-		};
-
-		return callstack;
-	}
-
-	function setCameraState(cameraMode)
-	{
-		var transition = {duration: 500, curve: Easing.inOutQuad};
-
-        if (this.cameraModifier.state.isActive())
-            this.cameraModifier.state.halt();
-		if (cameraMode == "2D")
-		{
-			//noinspection JSCheckFunctionSignatures
-			this.cameraModifier.state.set(0, transition);
-		}
-		else if (cameraMode == "3D")
-		{
-			//noinspection JSCheckFunctionSignatures
-			this.cameraModifier.state.set(1, transition);
-		}
-        this.cameraMode = cameraMode;
     }
 
 	init();

@@ -60,7 +60,10 @@ define(function(require, exports, module) {
         if (this.size)
             size = [this.size[0],this.size[1]];
         else
-            size = [undefined,undefined];
+        {
+            size = [undefined, undefined];
+            this.size = [undefined,undefined];
+        }
 
         if (surfaceSize)
         {

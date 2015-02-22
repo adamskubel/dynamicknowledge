@@ -11,6 +11,12 @@ define(function(require,exports,module){
 
     function _initialize(id)
     {
+        if (id == undefined)
+        {
+            console.error("id required!");
+            return null;
+        }
+
         var model = gapi.drive.realtime.custom.getModel(this);
         this.id = id;
         this.stateMap = model.createMap();
@@ -27,7 +33,7 @@ define(function(require,exports,module){
         console.log("Loaded AnnotationContainer with id = " + this.id + " and states: " + this.stateMap.keys());
     }
 
-    AnnotationContainer.registerGAPIModel = function()
+    AnnotationContainer.registerGAPI = function()
     {
         //Register AnnotationContainer
         gapi.drive.realtime.custom.registerType(AnnotationContainer,'AnnotationContainer');
@@ -40,16 +46,11 @@ define(function(require,exports,module){
 
         //Register AnnotationContainer.State
         gapi.drive.realtime.custom.registerType(AnnotationContainer.State,'AnnotationContainer.State');
-        gapi.drive.realtime.custom.setInitializer(AnnotationContainer, _initializeState);
+        gapi.drive.realtime.custom.setInitializer(AnnotationContainer.State, _initializeState);
         AnnotationContainer.State.prototype.children = gapi.drive.realtime.custom.collaborativeField('children');
     };
 
     AnnotationContainer.create = function(model, id){
-        if (id == undefined)
-        {
-            console.error("id required!");
-            return null;
-        }
         return model.create(AnnotationContainer, id);
     };
 
