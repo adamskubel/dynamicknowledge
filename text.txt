@@ -4,13 +4,11 @@ What's a memory address actually mean? As programmers, we usually don't think ab
 Does it represent the actual location in RAM that the program writes to?
 
 Consider the following code:
-```c++
-void main()
-{
-    cout << *(0);
-}
-```
 
+    void main()
+    {
+        cout << *(0);
+    }
 
 This is obviously going to crash. The memory at address '0' should be empty.
 
@@ -31,5 +29,5 @@ Virtual memory is mapped to physical memory by the operating system. This mappin
 A page of virtual memory maps to a page of physical memory.
 
 This virtual -> physical mapping is defined in the *page table*.
-{LINK=PageTableObject}PageTableLink4{/LINK}
+{LINK=PageTableObject}>PageTableLink4{/LINK}
 

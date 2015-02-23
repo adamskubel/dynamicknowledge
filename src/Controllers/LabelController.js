@@ -50,6 +50,7 @@ define(function(require,exports,module){
                 this.moveButton.hide();
                 this.sizeButton.hide();
                 this.deleteButton.hide();
+                this.persist();
             }
         }
     };
@@ -108,7 +109,6 @@ define(function(require,exports,module){
         var labelState = this.model.getState(this.state);
         if (!labelState)
         {
-            console.warn("Active state '" + this.state + "' not found in label");
             return;
         }
 
@@ -125,7 +125,8 @@ define(function(require,exports,module){
             size: this.model.size,
             color: Colors.Annotation,
             editable: true,
-            renderWhitespace:true
+            textAlign: [0,0],
+            useMarkdown:true
         });
 
         newLabel.getRenderController();

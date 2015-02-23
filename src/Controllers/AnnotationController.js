@@ -56,7 +56,6 @@ define(function (require, exports, module)
             }
             else
             {
-                _saveAnnotations.call(this);
                 this._activeStateLabel.show();
                 this.saveButton.hide();
                 this.addLabelButton.hide();
@@ -122,7 +121,12 @@ define(function (require, exports, module)
 
             if (!found)
             {
-                this.annotationContainer.removeChild(this.annotationMap[labelKey].labelView);
+                if (this._editMode== "IsEditing")
+                {
+                    this.annotationMap[labelKey].persist();
+                }
+
+                this.annotationContainer.removeChild(this.annotationMap[labelKey].getView());
                 delete this.annotationMap[labelKey];
             }
         }
@@ -175,7 +179,7 @@ define(function (require, exports, module)
     function _listOnRemoved(event){
         for (var i=0;i<event.values.length;i++)
         {
-            this.annotationContainer.removeChild(this.annotationMap[event.values[i]].labelView);
+            this.annotationContainer.removeChild(this.annotationMap[event.values[i]].getView());
             delete this.annotationMap[event.values[i]];
         }
     }
@@ -215,6 +219,29 @@ define(function (require, exports, module)
         this.setEditMode("CanEdit");
     };
 
+    function _createLabel()
+    {
+        var model = Label.create(this.gapiModel,this.modelLoader.nextObjectId());
+
+        if (!this._model.stateMap.has(this.state))
+        {
+            console.log("Creating new state '" + this.state + "'");
+            var stateDef = this._model.createState(this.state);
+            var labelList = stateDef.children;
+            attachList.call(this, labelList);
+            loadLabelList.call(this,labelList);
+        }
+
+        model.size = [160, 80];
+        model.text = "Label!";
+        var newState = model.createState(this.state);
+        newState.position = [0,-10,0];
+
+        this.modelLoader.addObject(model.id,model);
+
+        this.labelList.push(model.id);
+    }
+
     function _initEditUI(dc)
     {
         if (!this.addLabelButton)
@@ -226,19 +253,7 @@ define(function (require, exports, module)
 
             dc.add(addLabelButton.getModifier()).add(addLabelButton.getRenderController());
 
-            addLabelButton.on('click', function ()
-            {
-                var model = Label.create(this.gapiModel,this.modelLoader.nextObjectId());
-
-                model.size = [160, 80];
-                model.text = "Label!";
-                var newState = model.createState(this.state);
-                newState.position = [0,-10,0];
-
-                this.modelLoader.addObject(model.id,model);
-
-                this.labelList.push(model.id);
-            }.bind(this));
+            addLabelButton.on('click', _createLabel.bind(this));
 
             var saveButton = new BoxView({
                 text: "[]", size: [40, 40], clickable: true, color: annoColor,

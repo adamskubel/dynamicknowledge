@@ -106,8 +106,6 @@ define(function(require, exports, module) {
         else
         {
             this.textSurface = _makeTextSurface.call(this);
-
-
             this.textNode.add(new Modifier({transform:Transform.translate(0,0,0)})).add(this.textSurface.renderController);
             this.wrapSurface = this.textSurface;
             this.textSurface.show();
@@ -125,7 +123,6 @@ define(function(require, exports, module) {
             transform: Transform.translate(0,0,0)
         });
         this.add(bgMod).add(this.backSurface);
-
 
         //Configuration
         this.setClickable(this.options.clickable);
@@ -146,7 +143,8 @@ define(function(require, exports, module) {
         editable:false,
         rendercontrol:false,
         renderWhitespace:false,
-        size:[20,20]
+        size:[20,20],
+        useMarkdown:false
     };
 
 
@@ -154,8 +152,7 @@ define(function(require, exports, module) {
     {
         var textSurface = new Surface({
             size: [true, true],
-            properties: this.activeStyle.text,
-            content: this.options.text
+            properties: this.activeStyle.text
         });
 
 
@@ -179,8 +176,7 @@ define(function(require, exports, module) {
 
         var editTextSurface = new TextareaSurface({
             size:[undefined,undefined],
-            properties:this.activeStyle.text,
-            value: this.options.text
+            properties:this.activeStyle.text
         });
 
         editTextSurface.setProperties({resize: "none"});
@@ -306,7 +302,12 @@ define(function(require, exports, module) {
             this.editTextSurface.setValue(text);
 
         if (this.textSurface)
-            this.textSurface.setContent(text);
+        {
+            if (this.options.useMarkdown)
+                this.textSurface.setContent(markdown.toHTML(text));
+            else
+                this.textSurface.setContent(text);
+        }
     };
 
     BoxView.prototype.pulse = function(){

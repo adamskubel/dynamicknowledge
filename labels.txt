@@ -1,0 +1,18 @@
+###Address mapping
+
+The upper portion of the virtual address is used as an offset into the page table (which is implemented as an array or list). 
+
+The value at the offset is a *page table entry* that contains information about how that particular virtual page is mapped. 
+
+
+
+###Page Table Entry
+
+The structure of the page table entry (PTE) is architecture specific, but generally it contains the following information:
+
+* The status of the mapping, which could be:
+ * Valid (currently in phsyical memory)
+ * Invalid (on disk somewhere)
+* Where to find the physical page
+* Read, write, and execute permissions for the process
+* If the page has been modified

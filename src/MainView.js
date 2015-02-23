@@ -112,7 +112,8 @@ define(function(require,exports,module){
             style:(linkValid) ? 'borderOnly' : 'noBorder',
             fontSize:'normal',
             scrollviewSizeHack: true,
-            clickable:linkValid
+            clickable:linkValid,
+            useMarkdown:true
         });
 
         if (linkValid)
@@ -131,7 +132,7 @@ define(function(require,exports,module){
             }.bind(this));
         }
 
-        textView.textSurface.setContent(markdown.toHTML(string));
+        //textView.//textSurface.setContent(markdown.toHTML(string));
 
         this.textLayout.addChild(textView);
         return textView;
