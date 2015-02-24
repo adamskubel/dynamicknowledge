@@ -62,6 +62,12 @@ define(function(require,exports,module){
             DynamicGroupController.prototype.addController.call(this,controller);
     };
 
+    //DynamicObjectController.setEditMode = function(editMode)
+    //{
+    //    DynamicObjectController.prototype.setEditMode.call(this,editMode);
+    //    this.objectView.setEditMode(editMode);
+    //};
+
     function injectView(container,objectView)
     {
         objectView.setPosition([0, objectView.position[1], 0]);

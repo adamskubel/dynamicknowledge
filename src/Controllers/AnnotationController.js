@@ -44,6 +44,7 @@ define(function (require, exports, module)
         }
         else if (this.annotationContainer != container)
         {
+            console.error("Unsupported container swapping");
             //Need to replace this container with the parent's container
         }
 
@@ -52,6 +53,7 @@ define(function (require, exports, module)
 
     AnnotationController.prototype.setEditMode = function(mode)
     {
+        console.debug("AnnotationController_setEditMode: " + mode);
         this._editMode = mode;
 
         for (var labelKey in this.annotationMap)
@@ -295,11 +297,11 @@ define(function (require, exports, module)
 
 
             dc.add(lineButton.getModifier()).add(lineButton.getRenderController());
-
-            lineButton.on('click', function ()
-            {
-                _startLineDraw.call(this, dc);
-            });
+            //
+            //lineButton.on('click', function ()
+            //{
+            //    _startLineDraw.call(this, dc);
+            //});
 
             var activeStateLabel = new BoxView({
                 text: this.state,
@@ -333,14 +335,8 @@ define(function (require, exports, module)
 
             this._containerBackground = containerBackground;
             this._initialized = true;
+            console.log("Annotation controller init");
         }
-    }
-
-
-    function _makeContainer()
-    {
-        var dc = new DynamicContainer();
-        this.annotationContainer = dc;
     }
 
     function _saveAnnotations()
@@ -354,145 +350,145 @@ define(function (require, exports, module)
 
 
 
-    function _startLineDraw(dc)
-    {
-        for (var i = 0; i < dc._children.length; i++)
-        {
-            if (dc._children[i] instanceof BoxView)
-                _makeLineAnchors.call(this, dc._children[i], dc);
-        }
-    }
-
-    function _addReceivingAnchors(anchor, receiver, dc)
-    {
-
-        var alignList = [
-            [0.5, 0],
-            [1, 0.5],
-            [0.5, 1],
-            [0, 0.5]
-        ];
-
-        //for (var i=0;i<alignList.length;i++){
-
-        var lineAnchor = new BoxView({
-            size: [20, 20],
-            clickable: true,
-            color: 1700,
-            viewAlign: alignList[0],
-            viewOrigin: [0.5, 0.5],
-            position: [0, 0, 5]
-        });
-
-        Utils.attachRenderController(lineAnchor);
-
-        receiver.add(lineAnchor.getModifier()).add(lineAnchor.renderController);
-        lineAnchor.show(); 
-
-
-        lineAnchor.parent = receiver;
-
-        lineAnchor.textSurface.on('mousemove', function ()
-        {
-            //console.log('hi!');
-            anchor.activeReceiver = lineAnchor;
-        });
-
-        lineAnchor.backSurface.on('mouseleave', function ()
-        {
-            anchor.activeReceiver = undefined;
-        });
-
-        anchor.on('draw_end', function (activeReceiver)
-        {
-
-            if (lineAnchor != activeReceiver)
-                lineAnchor.hide();
-        });
-
-    }
-
-    function _addReceivingAnchorsAll(anchor, dc)
-    {
-
-        for (var i = 0; i < dc._children.length; i++)
-        {
-            var child = dc._children[i];
-            if (child != anchor.parent)
-                _addReceivingAnchors.call(this, anchor, child, dc);
-        }
-    }
-
-    function _addLineDrawingToAnchor(anchor, dc)
-    {
-
-        var lineSync = new MouseSync({
-            propogate: true
-        });
-
-        anchor.activeLine = new LineCanvas();
-        anchor.activeLine.parent = dc;
-
-        lineSync.on('start', function (data)
-        {
-            _addReceivingAnchorsAll.call(this, anchor, dc);
-            anchor.activeLineEnd = Vector.fromArray(anchor.calculatePosition(dc));
-        }.bind(this));
-
-        lineSync.on('update', function (data)
-        {
-            anchor.activeLineEnd = Vector.fromArray(data.delta).add(anchor.activeLineEnd);
-            anchor.activeLine.setLinePoints(anchor.calculatePosition(dc), anchor.activeLineEnd.toArray());
-        });
-
-        lineSync.on('end', function (data)
-        {
-            if (anchor.activeReceiver)
-            {
-                console.log("Binding to " + anchor.activeReceiver._globalId);
-                anchor.parent.on('positionChange', function ()
-                {
-                    anchor._eventOutput.emit('positionChange');
-                });
-                anchor.activeLine.setLineObjects(anchor, anchor.activeReceiver);
-            }
-            anchor._eventOutput.emit('draw_end', anchor.activeReceiver);
-        });
-
-        dc.add(anchor.activeLine.getModifier()).add(anchor.activeLine);
-
-        anchor.backSurface.pipe(lineSync);
-        anchor.textSurface.pipe(lineSync);
-        anchor._drawMouseSync = lineSync;
-    }
-
-    function _makeLineAnchors(box, dc)
-    {
-        var alignList = [
-            [0.5, 0],
-            [1, 0.5],
-            [0.5, 1],
-            [0, 0.5]
-        ];
-
-        for (var i = 0; i < alignList.length; i++)
-        {
-
-            var lineAnchor = new BoxView({
-                size: [20, 20],
-                clickable: true,
-                color: 18000,
-                viewAlign: alignList[i],
-                viewOrigin: [0.5, 0.5],
-                position: [0, 0, 5]
-            });
-
-            box.add(lineAnchor.getModifier()).add(lineAnchor);
-            _addLineDrawingToAnchor.call(this, lineAnchor, dc);
-
-            lineAnchor.parent = box;
-        }
-    }
+    //function _startLineDraw(dc)
+    //{
+    //    for (var i = 0; i < dc._children.length; i++)
+    //    {
+    //        if (dc._children[i] instanceof BoxView)
+    //            _makeLineAnchors.call(this, dc._children[i], dc);
+    //    }
+    //}
+    //
+    //function _addReceivingAnchors(anchor, receiver, dc)
+    //{
+    //
+    //    var alignList = [
+    //        [0.5, 0],
+    //        [1, 0.5],
+    //        [0.5, 1],
+    //        [0, 0.5]
+    //    ];
+    //
+    //    //for (var i=0;i<alignList.length;i++){
+    //
+    //    var lineAnchor = new BoxView({
+    //        size: [20, 20],
+    //        clickable: true,
+    //        color: 1700,
+    //        viewAlign: alignList[0],
+    //        viewOrigin: [0.5, 0.5],
+    //        position: [0, 0, 5]
+    //    });
+    //
+    //    Utils.attachRenderController(lineAnchor);
+    //
+    //    receiver.add(lineAnchor.getModifier()).add(lineAnchor.renderController);
+    //    lineAnchor.show();
+    //
+    //
+    //    lineAnchor.parent = receiver;
+    //
+    //    lineAnchor.textSurface.on('mousemove', function ()
+    //    {
+    //        //console.log('hi!');
+    //        anchor.activeReceiver = lineAnchor;
+    //    });
+    //
+    //    lineAnchor.backSurface.on('mouseleave', function ()
+    //    {
+    //        anchor.activeReceiver = undefined;
+    //    });
+    //
+    //    anchor.on('draw_end', function (activeReceiver)
+    //    {
+    //
+    //        if (lineAnchor != activeReceiver)
+    //            lineAnchor.hide();
+    //    });
+    //
+    //}
+    //
+    //function _addReceivingAnchorsAll(anchor, dc)
+    //{
+    //
+    //    for (var i = 0; i < dc._children.length; i++)
+    //    {
+    //        var child = dc._children[i];
+    //        if (child != anchor.parent)
+    //            _addReceivingAnchors.call(this, anchor, child, dc);
+    //    }
+    //}
+    //
+    //function _addLineDrawingToAnchor(anchor, dc)
+    //{
+    //
+    //    var lineSync = new MouseSync({
+    //        propogate: true
+    //    });
+    //
+    //    anchor.activeLine = new LineCanvas();
+    //    anchor.activeLine.parent = dc;
+    //
+    //    lineSync.on('start', function (data)
+    //    {
+    //        _addReceivingAnchorsAll.call(this, anchor, dc);
+    //        anchor.activeLineEnd = Vector.fromArray(anchor.calculatePosition(dc));
+    //    }.bind(this));
+    //
+    //    lineSync.on('update', function (data)
+    //    {
+    //        anchor.activeLineEnd = Vector.fromArray(data.delta).add(anchor.activeLineEnd);
+    //        anchor.activeLine.setLinePoints(anchor.calculatePosition(dc), anchor.activeLineEnd.toArray());
+    //    });
+    //
+    //    lineSync.on('end', function (data)
+    //    {
+    //        if (anchor.activeReceiver)
+    //        {
+    //            console.log("Binding to " + anchor.activeReceiver._globalId);
+    //            anchor.parent.on('positionChange', function ()
+    //            {
+    //                anchor._eventOutput.emit('positionChange');
+    //            });
+    //            anchor.activeLine.setLineObjects(anchor, anchor.activeReceiver);
+    //        }
+    //        anchor._eventOutput.emit('draw_end', anchor.activeReceiver);
+    //    });
+    //
+    //    dc.add(anchor.activeLine.getModifier()).add(anchor.activeLine);
+    //
+    //    anchor.backSurface.pipe(lineSync);
+    //    anchor.textSurface.pipe(lineSync);
+    //    anchor._drawMouseSync = lineSync;
+    //}
+    //
+    //function _makeLineAnchors(box, dc)
+    //{
+    //    var alignList = [
+    //        [0.5, 0],
+    //        [1, 0.5],
+    //        [0.5, 1],
+    //        [0, 0.5]
+    //    ];
+    //
+    //    for (var i = 0; i < alignList.length; i++)
+    //    {
+    //
+    //        var lineAnchor = new BoxView({
+    //            size: [20, 20],
+    //            clickable: true,
+    //            color: 18000,
+    //            viewAlign: alignList[i],
+    //            viewOrigin: [0.5, 0.5],
+    //            position: [0, 0, 5]
+    //        });
+    //
+    //        box.add(lineAnchor.getModifier()).add(lineAnchor);
+    //        _addLineDrawingToAnchor.call(this, lineAnchor, dc);
+    //
+    //        lineAnchor.parent = box;
+    //    }
+    //}
 
 
     module.exports = AnnotationController;

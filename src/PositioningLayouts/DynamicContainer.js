@@ -78,7 +78,7 @@ define(function(require, exports, module) {
 
         var bottomRight = size.add(topLeft);
 
-        child._dynamicSize = size.toArray(2);
+        child._dynamicSize = size;
 
         return {
             bottomRight:bottomRight,
@@ -124,11 +124,11 @@ define(function(require, exports, module) {
         for (var i=0;i<children.length;i++)
         {
             var child = children[i];
-            if (!child._dynamicSize[0])
-                child._dynamicSize[0] = containerSize.x;
+            if (child._dynamicSize.x == 0)
+                child._dynamicSize.x = containerSize.x;
 
-            if (!child._dynamicSize[1])
-                child._dynamicSize[1] = containerSize.y;
+            if (child._dynamicSize.y == 0)
+                child._dynamicSize.y = containerSize.y;
         }
 
 		return {
@@ -141,7 +141,7 @@ define(function(require, exports, module) {
 
         for (var i=0;i<this.children.length;i++)
         {
-            this.children[i].layout(this.children[i]._dynamicSize);
+            this.children[i].layout(this.children[i]._dynamicSize.toArray(2));
         }
 
         PositionableView.prototype.layout.call(this,layoutSize);

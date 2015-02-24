@@ -192,7 +192,16 @@ define(function(require, exports, module) {
         {
             var view = this.children[i];
 
-			var viewPosition = currentPosition.clone();
+            if (!view._dynamicSize)
+            {
+                console.error("Views must be measured first!");
+                continue;
+            }
+            if (!view._dynamicSize.dot){
+                console.log("WTF IS " + view._dynamicSize);
+            }
+
+            var viewPosition = currentPosition.clone();
 
 
 			if (view._stretchConfig.align == 'center')

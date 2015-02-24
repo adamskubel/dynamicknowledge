@@ -2,14 +2,14 @@ define(function(require,exports,module){
 
     var DynamicContainer = require('PositioningLayouts/DynamicContainer');
     var BoxView = require('PositioningLayouts/BoxView');
-    var Utils = require('Utils');
 
-    var MouseSync = require('famous/inputs/MouseSync');
-    var Vector = require('ProperVector');
     var LineCanvas = require('./../LineCanvas');
 
     var Label = require('Model/Label');
     var Colors = require('Colors');
+    var ObjectEditModule = require('Modules/ObjectEditModule');
+
+
 
     function LabelController(model)
     {
@@ -40,16 +40,12 @@ define(function(require,exports,module){
             if (editMode == 'IsEditing')
             {
                 this.view.setEditable(true);
-                this.moveButton.show();
-                this.sizeButton.show();
-                this.deleteButton.show();
+                this.objectEditor.show();
             }
             else
             {
                 this.view.setEditable(false);
-                this.moveButton.hide();
-                this.sizeButton.hide();
-                this.deleteButton.hide();
+                this.objectEditor.hide();
                 this.persist();
             }
         }
@@ -131,110 +127,15 @@ define(function(require,exports,module){
 
         newLabel.getRenderController();
 
-        this.moveButton = _makeBoxMovable.call(this,newLabel);
-        this.sizeButton = _makeBoxResizable.call(this,newLabel);
         this.labelView = newLabel;
-        this.deleteButton = _makeDeleteButton.call(this,newLabel);
+
+        this.objectEditor = new ObjectEditModule(newLabel);
 
         return newLabel;
     }
 
 
-    function _makeBoxMovable(box)
-    {
 
-        var moveButton = new BoxView({
-            text: "", size: [30, 30], clickable: true, color: Colors.EditColor,
-            position: [0, 0, 10], viewAlign: [0, 0], viewOrigin: [0.8, 0.8], fontSize: 'large'
-        });
-
-        Utils.attachRenderController(moveButton);
-        box.add(moveButton.getModifier()).add(moveButton.renderController);
-        moveButton.show();
-
-        var dragController = new MouseSync();
-
-        dragController.on('start',function(data){
-            box.setAnimated(false);
-            box.parent.setAnimated(false);
-        });
-
-        dragController.on('update', function (data)
-        {
-            var offset = Vector.fromArray(data.delta);
-            var newPos = Vector.fromArray(box.position).add(offset);
-
-            box.setPosition(newPos.toArray());
-            box.requestLayout();
-        });
-
-        dragController.on('end',function(data){
-            box.setAnimated(true);
-            box.parent.setAnimated(true);
-            this.model.getState(this.state).position = box.position;
-            console.log("Saving position");
-        }.bind(this));
-
-        moveButton.backSurface.pipe(dragController);
-
-
-        return moveButton;
-    }
-
-    function _makeBoxResizable(box)
-    {
-
-        var resizeButton = new BoxView({
-            text: "", size: [30, 30], clickable: true, color: Colors.EditColor,
-            position: [0, 0, 5], viewAlign: [1, 1], viewOrigin: [0.2, 0.2], fontSize: 'large'
-        });
-        Utils.attachRenderController(resizeButton);
-
-        box.add(resizeButton.getModifier()).add(resizeButton.renderController);
-        resizeButton.show();
-
-        var dragController = new MouseSync();
-
-        dragController.on('start',function(data){
-            box.setAnimated(false);
-            box.parent.setAnimated(false);
-        });
-
-        dragController.on('update', function (data)
-        {
-            var offset = Vector.fromArray(data.delta);
-            var newSize = Vector.fromArray(box.size).add(offset);
-
-            box.setSize(newSize.toArray());
-            box.requestLayout();
-        });
-
-        dragController.on('end',function(data){
-            box.setAnimated(true);
-            box.parent.setAnimated(true);
-            this.model.size = box.size;
-            console.log("Saving size");
-        }.bind(this));
-
-        resizeButton.backSurface.pipe(dragController);
-        return resizeButton;
-    }
-
-
-    function _makeDeleteButton(box)
-    {
-        var deleteButton = new BoxView({
-            text: "X", size: [30, 30], clickable: true, color: 900,
-            position: [0, 0, 5], viewAlign: [0, 1], viewOrigin: [0.8, 0.2], fontSize: 'large'
-        });
-        box.add(deleteButton.getModifier()).add(deleteButton.getRenderController());
-
-        deleteButton.on('click',function(){
-            this.deleteCallback();
-        }.bind(this));
-
-        return deleteButton;
-    }
 
 
     module.exports = LabelController;

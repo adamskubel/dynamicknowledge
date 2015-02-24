@@ -18,8 +18,8 @@ define(function (require, exports, module)
     var BoxView = require('./PositioningLayouts/BoxView');
     var MainView = require('MainView');
 
-    var MemorySpace = require('./MemObjects/MemorySpace');
-    var PageLookupTable = require('./MemObjects/PageLookupTable');
+    var MemorySpace = require('./intrinsics/MemObjects/MemorySpace');
+    var PageLookupTable = require('./intrinsics/MemObjects/PageLookupTable');
 	var Timer = require('famous/utilities/Timer');
     var Utils = require('./Utils');
     var Vector = require('./ProperVector');

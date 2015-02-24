@@ -6,6 +6,9 @@ define(function(require,exports,module){
     var MouseSync = require('famous/inputs/MouseSync');
     var Vector = require('ProperVector');
     var LineCanvas = require('./../LineCanvas');
+    var Colors = require('Colors');
+
+    var AccessInspector = require('intrinsics/AccessInspector');
 
     function DynamicGroupController(groupDef)
     {
@@ -14,10 +17,15 @@ define(function(require,exports,module){
         this.state = 'base';
     }
 
-    DynamicGroupController.prototype.addController = function(controller){
+    DynamicGroupController.prototype.addController = function(controller)
+    {
+        if (this.containerView)
+            _addController.call(this,this.containerView,controller);
+
         this.controllers.push(controller);
         controller.setState(this.state);
         controller.setEditMode(this.editMode);
+
     };
 
     DynamicGroupController.prototype.setEditMode = function(editMode)
@@ -126,6 +134,50 @@ define(function(require,exports,module){
             dc.addChild(controllerView);
     }
 
+    function _hideEditUI()
+    {
+        if (this.addConnectionButton)
+            this.addConnectionButton.hide();
+        if (this.addObjectButton)
+            this.addObjectButton.hide();
+    }
+
+    function _showEditUI(dc)
+    {
+        if (!this.addConnectionButton)
+        {
+            var addObjectButton = new BoxView({
+                text: "+", size: [40, 40], clickable: true, color: Colors.EditColor,
+                position: [80, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+            });
+
+            var addConnectionButton = new BoxView({
+                text: ">>", size: [40, 40], clickable: true, color: Colors.EditColor,
+                position: [40, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+            });
+
+            addConnectionButton.on('click', _showConnections.bind(this));
+            addObjectButton.on('click',_addObject.bind(this));
+
+            this.addConnectionButton = addConnectionButton;
+            dc.add(addConnectionButton.getModifier()).add(addConnectionButton.getRenderController());
+
+            this.addObjectButton = addObjectButton;
+            dc.add(addObjectButton.getModifier()).add(addObjectButton.getRenderController());
+        }
+
+        this.addObjectButton.show();
+        this.addConnectionButton.show();
+    }
+
+    function _addObject()
+    {
+        var newObj = new AccessInspector();
+
+
+    }
+
+    //Connection stuff
     function _showConnections()
     {
         var inputs = this.getInputs();
@@ -151,35 +203,6 @@ define(function(require,exports,module){
                 _addLineDrawingToAnchor.call(this, out[name],getInputs(name));
             }
         }
-    }
-
-    function _showEditUI(dc)
-    {
-        if (!this.addConnectionButton)
-        {
-            var addObjectButton = new BoxView({
-                text: "+", size: [40, 40], clickable: true, color: 6000,
-                position: [45, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-            });
-
-            var addConnectionButton = new BoxView({
-                text: ">>", size: [40, 40], clickable: true, color: 6000,
-                position: [85, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-            });
-
-            addConnectionButton.on('click', _showConnections.bind(this));
-
-            this.addConnectionButton = addConnectionButton;
-            dc.add(addConnectionButton.getModifier()).add(addConnectionButton.getRenderController());
-        }
-
-        this.addConnectionButton.show();
-    }
-
-    function _hideEditUI()
-    {
-        if (this.addConnectionButton)
-            this.addConnectionButton.hide();
     }
 
     function _configureDestinationAnchors(originAnchor, destinations)
