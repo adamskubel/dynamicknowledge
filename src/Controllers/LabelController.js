@@ -18,8 +18,8 @@ define(function(require,exports,module){
         this.state = "base";
     }
 
-
-    LabelController.prototype.getView = function(){
+    LabelController.prototype.getView = function()
+    {
         if (!this.view)
         {
             this.view = _addLabelBox.call(this);

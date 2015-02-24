@@ -1,44 +1,64 @@
 define(function(require,exports,module){
 
+    var DynamicGroupController = require('Controllers/DynamicGroupController');
+
     function DynamicObjectController(objectDef, objectView)
     {
-        this.objectDef = objectDef;
+        DynamicGroupController.call(this,objectDef);
+
         this.objectView = objectView;
-        this.controllers = [];
-        this.state = 'base';
     }
 
-    DynamicObjectController.prototype.addController = function(controller){
-        this.controllers.push(controller);
-        controller.setState(this.state);
-        controller.setEditMode(this.editMode);
-    };
+    DynamicObjectController.prototype = Object.create(DynamicGroupController.prototype);
+    DynamicObjectController.prototype.constructor = DynamicObjectController;
 
-    DynamicObjectController.prototype.setEditMode = function(editMode){
-
-        this.editMode = editMode;
-        for (var i=0;i<this.controllers.length;i++)
+    DynamicObjectController.prototype.getView = function()
+    {
+        if (this.controllers.length > 0)
         {
-            this.controllers[i].setEditMode(editMode);
+            if (!this.containerView)
+            {
+                this.containerView = DynamicGroupController.prototype.getView.call(this);
+                injectView(this.containerView,this.objectView);
+            }
+
+            return this.containerView;
+        }
+        else
+        {
+            return this.objectView;
         }
     };
 
-    DynamicObjectController.prototype.setState = function(state){
-        this.state = state;
-
-        for (var i=0;i<this.controllers.length;i++)
+    DynamicObjectController.prototype.addController = function(controller)
+    {
+        if (this.controllers.length == 0)
         {
-            this.controllers[i].setState(state);
+            DynamicGroupController.prototype.addController.call(this,controller);
+            this.getView();
         }
+        else
+            DynamicGroupController.prototype.addController.call(this,controller);
     };
 
-    DynamicObjectController.prototype.getView = function(){
-        return this.objectView;
-    };
+    function injectView(container,objectView)
+    {
+        objectView.setPosition([0, objectView.position[1], 0]);
+        objectView.setAlign([0,0]);
+        objectView.setOrigin([0,0]);
+        if (objectView.parent)
+        {
+            var index = objectView.parent.children.indexOf(objectView);
 
-    DynamicObjectController.prototype.getObjectDef = function(){
-        return this.objectDef;
-    };
+            objectView.parent.removeChild(objectView);
+            objectView.parent.addChild(container, {
+                weight: 2,
+                index: index,
+                align: 'center'
+            });
+        }
+        container.addChild(objectView);
+    }
 
     module.exports = DynamicObjectController;
 });

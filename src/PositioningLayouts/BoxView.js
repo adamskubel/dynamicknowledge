@@ -271,6 +271,7 @@ define(function(require, exports, module) {
                 this.editTextSurface = _makeEditTextSurface.call(this);
                 this.textNode.add(this.editTextSurface.renderController);
             }
+            this.wrapSurface = this.editTextSurface;
             this.editTextSurface.show();
         }
         else
@@ -282,6 +283,7 @@ define(function(require, exports, module) {
             }
             this.textSurface.show();
 
+            this.wrapSurface = this.textSurface;
             if (this.editTextSurface)
                 this.editTextSurface.hide();
         }

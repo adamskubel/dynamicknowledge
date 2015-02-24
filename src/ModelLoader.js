@@ -126,25 +126,7 @@ define(function(require,exports,module){
 
             if (relationship instanceof AnnotationContainer)
             {
-                var objectView = objectController.getView();
                 var ac = new AnnotationController(relationship,this);
-
-                objectView.setPosition([0, objectView.position[1], 0]);
-                objectView.setAlign([0,0]);
-                objectView.setOrigin([0,0]);
-                if (objectView.parent)
-                {
-                    var index = objectView.parent.children.indexOf(objectView);
-
-                    objectView.parent.removeChild(objectView);
-                    objectView.parent.addChild(ac.annotationContainer, {
-                        weight: 2,
-                        index: index,
-                        align: 'center'
-                    });
-                }
-                objectView.wrapper = ac.annotationContainer;
-                ac.annotationContainer.addChild(objectView);
 
                 objectController.addController(ac);
             }

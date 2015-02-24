@@ -18,6 +18,8 @@ define(function (require, exports, module)
 
     function AnnotationController(annotationsDef,modelLoader){
 
+        this._initialized = false;
+
         this._model = annotationsDef;
 
         this._eventOutput = new EventEmitter();
@@ -27,86 +29,105 @@ define(function (require, exports, module)
 
         this.annotationMap = {};
 
-        _makeContainer.call(this);
-        _initEditUI.call(this,this.annotationContainer);
-
         this.setState('base');
         this.setEditMode("Off");
     }
 
+    AnnotationController.prototype.getView = function(container)
+    {
+        if (!this.annotationContainer)
+        {
+            this.annotationContainer = container;
+            _initEditUI.call(this, this.annotationContainer);
+            this.setState(this.state);
+            this.setEditMode(this._editMode);
+        }
+        else if (this.annotationContainer != container)
+        {
+            //Need to replace this container with the parent's container
+        }
+
+        return this.annotationContainer;
+    };
 
     AnnotationController.prototype.setEditMode = function(mode)
     {
-        if (this._editMode != mode)
+        this._editMode = mode;
+
+        for (var labelKey in this.annotationMap)
         {
-            this._editMode = mode;
+            var labelController = this.annotationMap[labelKey];
+            labelController.setEditMode(this._editMode);
+        }
 
-            for (var labelKey in this.annotationMap)
-            {
-                var labelController = this.annotationMap[labelKey];
-                labelController.setEditMode(this._editMode);
-            }
+        if (!this._initialized)
+            return;
 
-            if (mode == "IsEditing")
-            {
-                this._activeStateLabel.show();
-                this.saveButton.hide();
-                this.lineButton.hide();
-                this.addLabelButton.show();
-            }
-            else
-            {
-                this._activeStateLabel.show();
-                this.saveButton.hide();
-                this.addLabelButton.hide();
-                this.lineButton.hide();
-            }
+        if (mode == "IsEditing")
+        {
+            this._activeStateLabel.show();
+            this.saveButton.hide();
+            this.lineButton.hide();
+            this.addLabelButton.show();
+            this._containerBackground.show();
+        }
+        else
+        {
+            this._activeStateLabel.show();
+            this.saveButton.hide();
+            this.addLabelButton.hide();
+            this.lineButton.hide();
+            this._containerBackground.hide();
         }
     };
 
     AnnotationController.prototype.setState = function(state){
-        if (this.state != state)
+
+        this.state = state;
+
+        if (!this._initialized)
+            return;
+
+        this._activeStateLabel.setText(state);
+
+        var stateDef = this._model.stateMap.get(state);
+
+        if (stateDef)
         {
-            this._activeStateLabel.setText(state);
-            this.state = state;
+            var labelList = stateDef.children;
 
-            var stateDef = this._model.stateMap.get(state);
-
-            if (stateDef)
+            attachList.call(this, labelList);
+            loadLabelList.call(this,labelList);
+        }
+        else
+        {
+            if (this._editMode == "IsEditing")
             {
-                var labelList = stateDef.children;
+                console.log("Creating new state '" + state + "'");
+                stateDef = this._model.createState(state);
 
+                for (var labelKey in this.annotationMap)
+                {
+                    stateDef.children.push(labelKey);
+                    this.annotationMap[labelKey].createState(state);
+                }
+
+                var labelList = stateDef.children;
                 attachList.call(this, labelList);
                 loadLabelList.call(this,labelList);
             }
             else
             {
-                if (this._editMode == "IsEditing")
+                console.log("State is not defined, removing all labels");
+                for (var labelKey in this.annotationMap)
                 {
-                    console.log("Creating new state '" + state + "'");
-                    stateDef = this._model.createState(state);
-
-                    for (var labelKey in this.annotationMap)
-                    {
-                        stateDef.children.push(labelKey);
-                        this.annotationMap[labelKey].createState(state);
-                    }
-
-                    var labelList = stateDef.children;
-                    attachList.call(this, labelList);
-                    loadLabelList.call(this,labelList);
-                }
-                else
-                {
-                    console.log("State is not defined, removing all labels");
-                    for (var labelKey in this.annotationMap)
-                    {
-                        this.annotationContainer.removeChild(this.annotationMap[labelKey].labelView);
-                        delete this.annotationMap[labelKey];
-                    }
+                    this.annotationContainer.removeChild(this.annotationMap[labelKey].labelView);
+                    delete this.annotationMap[labelKey];
                 }
             }
         }
+        this.annotationContainer.requestLayout();
+
     };
 
 
@@ -244,7 +265,7 @@ define(function (require, exports, module)
 
     function _initEditUI(dc)
     {
-        if (!this.addLabelButton)
+        if (!this._initialized)
         {
             var addLabelButton = new BoxView({
                 text: "+", size: [40, 40], clickable: true, color: annoColor,
@@ -261,7 +282,6 @@ define(function (require, exports, module)
             });
 
             saveButton.getRenderController();
-            //dc.add(saveButton.getModifier()).add(saveButton.getRenderController());
 
             saveButton.on('click', function ()
             {
@@ -282,7 +302,7 @@ define(function (require, exports, module)
             });
 
             var activeStateLabel = new BoxView({
-                text: "...",
+                text: this.state,
                 size: [100, 30],
                 color: annoColor,
                 position: [0, 0, 15],
@@ -301,25 +321,25 @@ define(function (require, exports, module)
             this.saveButton = saveButton;
             this.addLabelButton = addLabelButton;
             this.lineButton = lineButton;
+
+
+            var containerBackground = new BoxView({
+                color: annoColor,
+                style: 'borderOnly',
+                size: [undefined,undefined]
+            });
+
+            dc.add(containerBackground.getModifier()).add(containerBackground.getRenderController());
+
+            this._containerBackground = containerBackground;
+            this._initialized = true;
         }
     }
 
 
     function _makeContainer()
     {
-        var dc = new DynamicContainer({
-            edgePadding: [10, 10]
-        });
-
-        var containerBackground = new BoxView({
-            color: annoColor,
-            style: 'borderOnly',
-            size: [undefined,undefined]
-        });
-
-        dc.add(containerBackground.getModifier()).add(containerBackground);
-        dc.background = containerBackground;
-
+        var dc = new DynamicContainer();
         this.annotationContainer = dc;
     }
 

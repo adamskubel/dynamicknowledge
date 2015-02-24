@@ -131,10 +131,6 @@ define(function (require, exports, module)
         this.modelLoader = new ModelLoader(document.getModel(),this.objectRegistry);
         this.modelLoader.loadModel(this.mainView);
 
-        //this.modelLoader.getObject("PageTableObject");
-
-
-
         jQuery.get('./text.txt', function(data)
         {
             var blocks = parseText.call(this,data);
