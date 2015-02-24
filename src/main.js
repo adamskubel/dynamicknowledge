@@ -50,7 +50,7 @@ define(function (require, exports, module)
         this.mainView = mainView;
 
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgISVA1amJmaEZUZmM';
+        this.fileId = '0B6eNzoTXZGgIemtGYUlCS3VzblE';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {
@@ -143,46 +143,39 @@ define(function (require, exports, module)
         }.bind(this));
     }
 
-    function _initializeModel(model){
-        console.log ("intialized model: " + model);
+    function _initializeModel(model)
+    {
+        console.log ("Initializing new model");
 
         var objects = model.createMap();
         model.getRoot().set('objects',objects);
-
         model.getRoot().set("lastId",100);
 
         var topObject = DynamicObject.create(model,'top','top');
-        var baseState = topObject.createState('base');
-
-        baseState.properties.set("FocusObject","MemorySystemController");
+        topObject.createState('base').properties.set("FocusObject","MemorySystemController");
         model.getRoot().set('top',topObject);
 
+        var virtualSpace = DynamicObject.create(model,"VirtualSpaceObject","predef");
+        virtualSpace.createState("base");
+        virtualSpace.properties.set("predefinedName","VirtualSpace");
 
         var pageTable = DynamicObject.create(model,'PageTableObject','predef');
         pageTable.createState('base');
         pageTable.properties.set("predefinedName","PageTable");
 
-        var annotationRelationship = AnnotationContainer.create(model,'ac1');
-        annotationRelationship.createState('base').children.push("L1");
-        pageTable.relationships.push(annotationRelationship);
+        var pageTableAnnotations = AnnotationContainer.create(model,'ac1');
+        pageTableAnnotations.createState('base');
+        pageTable.relationships.push(pageTableAnnotations);
 
-        var label1 = Label.create(model,"L1");
-        label1.text = "HI AM LABELS";
-        label1.createState('base').position = [10,10,0];
+        var memorySystem = DynamicObject.create(model,'MemorySystemController','predef');
+        memorySystem.createState('base');
+        memorySystem.properties.set('predefinedName',"MemorySystemView");
+        memorySystem.relationships.push(model.createList(["PageTableObject","VirtualSpaceObject"]));
 
-        var memControllerDef = DynamicObject.create(model,'MemorySystemController','predef');
-        memControllerDef.createState('base');
-        memControllerDef.properties.set('predefinedName',"MemorySystemView");
 
-        var memControllerChildren = model.createList();
-
-        memControllerDef.relationships.push(memControllerChildren);
-
-        memControllerChildren.push("PageTableObject");
-
-        objects.set(label1.id,label1);
         objects.set(pageTable.id,pageTable);
-        objects.set(memControllerDef.id,memControllerDef);
+        objects.set(memorySystem.id,memorySystem);
+        objects.set(virtualSpace.id,virtualSpace);
     }
 
     function _handleErrors(err){
@@ -240,7 +233,7 @@ define(function (require, exports, module)
     {
         var memorySystemView = new StretchyLayout({
             direction:0,
-            viewSpacing:[40,0],
+            viewSpacing:[100,0],
             viewOrigin:[0.5,0.5],
             viewAlign:[0.3,0.5],
             isAnimated:false
@@ -250,6 +243,8 @@ define(function (require, exports, module)
         var virtualMemorySpace = new MemorySpace({
             size:[100,700]
         });
+
+
 
         objectRegistry["VirtualSpace"] = virtualMemorySpace;
         virtualMemorySpace.gapiName = "VirtualSpace";
@@ -274,16 +269,8 @@ define(function (require, exports, module)
         virtualBlock._memAddress = 0xA0000000;
         virtualMemorySpace.addChild(virtualBlock);
 
-        var mappingBox = new DynamicDetailView({
-            boxLabel:"Memory mapping subsystem",
-            boxSize: [120,120],
-            maxDetail: 1,
-            position: [0,0,0]
-        });
-        mappingBox.setOrigin([0,0.5]);
-        memorySystemView.addChild(mappingBox,{align: 'center',index:1});
-
         var pageTable = new PageLookupTable({
+            position: [0,0,0],
             startPage: 0xA0000,
             pageMappings: [
                 0x10520,
@@ -291,54 +278,11 @@ define(function (require, exports, module)
                 0x0F2D4
             ]
         });
+        pageTable.setOrigin([0,0.5]);
+        memorySystemView.addChild(pageTable,{align: 'center',index:1});
 
-        objectRegistry["PageTable"] = mappingBox;
+        objectRegistry["PageTable"] = pageTable;
 
-        mappingBox.makeComplexView = function(detail){
-            if (detail == 1)
-                return pageTable;
-            else if (detail == 2)
-            {
-                var dc = new DynamicContainer({
-                    edgePadding:[10,10]
-                });
-
-                var containerBackground = new BoxView({
-                    color:annoColor,
-                    style: 'borderOnly'
-                });
-
-                dc.add(containerBackground.getModifier()).add(containerBackground);
-
-                var pageTable2 = new PageLookupTable({
-                    startPage: 0xA0000,
-                    pageMappings: [
-                        0x10520,
-                        0x21234,
-                        0x0F2D4
-                    ]
-                });
-
-                var label1 = new BoxView({
-                    text: "Label #1!",
-                    position: [-110,-10,0],
-                    viewOrigin: [0,0],
-                    size: [100,30]
-                });
-
-                var label2 = new BoxView({
-                    text: "Hi am label 2",
-                    position: [140,50,0],
-                    size: [100,40]
-                });
-
-                dc.addChild(pageTable2);
-                dc.addChild(label1);
-                dc.addChild(label2);
-
-                return dc;
-            }
-        };
 
         var physicalMemorySpace = new MemorySpace({
             memConfig:{
@@ -365,7 +309,9 @@ define(function (require, exports, module)
         var dragController = new MouseSync();
         dragController.on('update',function(data){
             var ypos = virtualBlock.position[1] + data.delta[1];
-            ypos = Math.max(220,ypos);
+            ypos = Math.max(220,ypos)
+
+            ;
             ypos = Math.min(420,ypos);
 
             virtualBlock.setAnimated(false);
@@ -373,16 +319,17 @@ define(function (require, exports, module)
 
             var newAddr = Math.round(0xA0000000+(0x2FFF*((ypos-220)/200)));
             virtualBlock._memAddress = newAddr;
-            virtualBlock.setText(Utils.hexString(newAddr,8));
-            var pageNum = pageTable.access(virtualBlock._memAddress >>> 12);
-
-            var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
-
-            ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
-
-            physicalBlock.setPosition([0,ypos,0]);
-            physicalBlock.pulse(50,500);
-            physicalBlock.setText(Utils.hexString(address,8));
+            virtualMemorySpace._eventOutput.emit('Access',{address:newAddr});
+            //virtualBlock.setText(Utils.hexString(newAddr,8));
+            //var pageNum = pageTable.access(virtualBlock._memAddress >>> 12);
+            //
+            //var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
+            //
+            //ypos = (address/physicalMemorySpace.memConfig.memSize)*physicalMemorySpace._size[1];
+            //
+            //physicalBlock.setPosition([0,ypos,0]);
+            //physicalBlock.pulse(50,500);
+            //physicalBlock.setText(Utils.hexString(address,8));
         });
 
         virtualBlock.backSurface.pipe(dragController);
@@ -398,13 +345,9 @@ define(function (require, exports, module)
             }
         };
 
-        //var memController = new DynamicObjectController(null,memorySystemView);
-
-
-        //objectRegistry["MemorySystemController"] = memController;
-
-
         objectRegistry["MemorySystemView"] = memorySystemView;
+
+
     }
 
 

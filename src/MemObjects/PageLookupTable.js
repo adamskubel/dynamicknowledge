@@ -29,6 +29,9 @@ define(function(require, exports, module)
         this.memConfig = this.options.memConfig;
         this.setSize(this.options.size);
         _init.call(this);
+        _addEventBoxes.call(this);
+
+        this.on('Access',_onAccessEvent.bind(this));
     }
 
     PageLookupTable.DEFAULT_OPTIONS = {
@@ -79,18 +82,46 @@ define(function(require, exports, module)
         }
     }
 
-    PageLookupTable.prototype.access  = function(index){
-        var cell =this.cells[index];
+    PageLookupTable.prototype.getOutputEvents = function(){
+        return {};
+    };
+
+    PageLookupTable.prototype.getInputEvents = function(){
+        return {
+            "Access":this.inputBox
+        };
+    };
+
+    function _onAccessEvent(data)
+    {
+        var cell =this.cells[data.pageIndex];
         if (cell)
         {
             cell._pageIndex.pulse(50,500);
-            return cell._pfnValue;
+            //return cell._pfnValue;
         }
         else
         {
-            console.error('Cell ' + index + ' not found');
-            return undefined;
+            console.error('Cell ' + data.pageIndex + ' not found');
         }
+    }
+
+    function _addEventBoxes()
+    {
+        var incomingBox = new BoxView({color:1200,size:[30,30],viewAlign:[0,0.5],viewOrigin:[1,0.5],clickable:true});
+        //var outgoingBox = new BoxView({color:8000,size:[30,30],viewAlign:[1,0.5],viewOrigin:[0,0.5]});
+
+        this.add(incomingBox.getModifier()).add(incomingBox.getRenderController(true));
+        //this.add(outgoingBox.getModifier()).add(outgoingBox.getRenderController(true));
+
+        //this.outputBox = outgoingBox;
+        this.inputBox = incomingBox;
+        incomingBox.parent = this;
+    }
+
+
+    PageLookupTable.prototype.access  = function(index){
+        _onAccessEvent.call(this,{"pageIndex":index});
     };
 
     module.exports = PageLookupTable;

@@ -268,7 +268,7 @@ define(function (require, exports, module)
         if (!this._initialized)
         {
             var addLabelButton = new BoxView({
-                text: "+", size: [40, 40], clickable: true, color: annoColor,
+                text: "A+", size: [40, 40], clickable: true, color: annoColor,
                 position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
             });
 

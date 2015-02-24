@@ -28,6 +28,7 @@ define(function(require, exports, module)
         this.memConfig = this.options.memConfig;
         this.setSize(this.options.size);
         _init.call(this);
+        _addEventBoxes.call(this);
     }
 
     MemorySpace.DEFAULT_OPTIONS = {
@@ -73,6 +74,23 @@ define(function(require, exports, module)
         });
         this.addChild(pv1);
     }
+
+    MemorySpace.prototype.getOutputEvents = function(){
+        return {"Access" : this.outputBox};
+    };
+
+    MemorySpace.prototype.getInputEvents = function(){
+        return {};
+    };
+
+    function _addEventBoxes()
+    {
+        var outgoingBox = new BoxView({color:8000,size:[30,30],viewAlign:[1,0.5],viewOrigin:[0,0.5],clickable:true});
+        outgoingBox.parent = this;
+        this.add(outgoingBox.getModifier()).add(outgoingBox.getRenderController(true));
+        this.outputBox = outgoingBox;
+    }
+
 
     module.exports = MemorySpace;
 

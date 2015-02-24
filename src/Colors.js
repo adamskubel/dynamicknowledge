@@ -7,9 +7,9 @@ define(function (require, exports, module)
     }
 
 
-    Colors.Tungsten = function(alpha){
-        return 'rgba(255,197,143,'+ alpha + ')';
-    };
+    //Colors.Tungsten = function(alpha){
+    //    return 'rgba(255,197,143,'+ alpha + ')';
+    //};
 
     Colors.HoloBlue = function(alpha){
         return 'rgba(0,221,255,'+alpha+')';
@@ -25,6 +25,7 @@ define(function (require, exports, module)
 
     Colors.Annotation = 6000;
     Colors.EditColor = 12000;
+    Colors.Tungsten = 3800;
 
 
     Colors.fromTemperature = function(temp,alpha){

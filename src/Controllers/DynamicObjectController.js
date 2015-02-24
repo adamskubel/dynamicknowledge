@@ -7,6 +7,7 @@ define(function(require,exports,module){
         DynamicGroupController.call(this,objectDef);
 
         this.objectView = objectView;
+        this.getView();
     }
 
     DynamicObjectController.prototype = Object.create(DynamicGroupController.prototype);
@@ -14,20 +15,40 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.getView = function()
     {
-        if (this.controllers.length > 0)
+        //if (this.controllers.length > 0)
+        //{
+        if (!this.containerView)
         {
-            if (!this.containerView)
-            {
-                this.containerView = DynamicGroupController.prototype.getView.call(this);
-                injectView(this.containerView,this.objectView);
-            }
+            this.containerView = DynamicGroupController.prototype.getView.call(this);
+            injectView(this.containerView,this.objectView);
+        }
 
-            return this.containerView;
-        }
-        else
+        return this.containerView;
+        //}
+        //else
+        //{
+        //    return this.objectView;
+        //}
+    };
+
+    DynamicObjectController.prototype.getInputs = function()
+    {
+        var groupInputs = DynamicGroupController.prototype.getInputs.call(this);
+        if (this.objectView.getInputEvents)
         {
-            return this.objectView;
+            groupInputs.push(this.objectView.getInputEvents());
         }
+        return groupInputs;
+    };
+
+    DynamicObjectController.prototype.getOutputs = function()
+    {
+        var groupOutputs = DynamicGroupController.prototype.getOutputs.call(this);
+        if (this.objectView.getOutputEvents)
+        {
+            groupOutputs.push(this.objectView.getOutputEvents());
+        }
+        return groupOutputs;
     };
 
     DynamicObjectController.prototype.addController = function(controller)
