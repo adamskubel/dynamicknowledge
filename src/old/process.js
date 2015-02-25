@@ -14,7 +14,7 @@ define(function(require, exports, module) {
 	var ObjectFactory = require('./../ObjectFactory');
     var CanvasSurface = require('famous/surfaces/CanvasSurface');
     var StateModifier   = require("famous/modifiers/StateModifier");
-	var PositionableView = require('./../PositioningLayouts/PositionableView');
+	var PositionableView = require('PositioningLayouts/PositionableView');
 
 	var Timer          = require('famous/utilities/Timer');
 

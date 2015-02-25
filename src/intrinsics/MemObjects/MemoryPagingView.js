@@ -5,16 +5,16 @@ define(function(require, exports, module) {
 	var Transform  = require("famous/core/Transform");
 	var Modifier   = require("famous/core/Modifier");
 
-	var PositioningGridLayout = require('./../PositioningLayouts/PositioningGridLayout');
+	var PositioningGridLayout = require('PositioningLayouts/PositioningGridLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-	var MemoryBlockView = require('./MemoryBlockView');
-	var ObjectFactory = require('./../ObjectFactory');
+	var MemoryBlockView = require('MemoryBlockView');
+	var ObjectFactory = require('ObjectFactory');
 
-	var DynamicDetailView = require('./../DynamicDetailView');
-	var StretchyLayout = require('./../PositioningLayouts/StretchyLayout');
-    var SurfaceWrappingView = require('./../PositioningLayouts/SurfaceWrappingView');
-    var Utils = require('./../Utils');
+	var DynamicDetailView = require('DynamicDetailView');
+	var StretchyLayout = require('PositioningLayouts/StretchyLayout');
+    var SurfaceWrappingView = require('PositioningLayouts/SurfaceWrappingView');
+    var Utils = require('Utils');
 
 	function MemoryPagingView(options) 
 	{

@@ -9,8 +9,8 @@ define(function(require, exports, module) {
 
     var DynamicDetailView = require('./../DynamicDetailView');
     var PageTableView = require('./PageTableView');
-    var StretchyLayout = require('./../PositioningLayouts/StretchyLayout');
-	var SurfaceWrappingView = require('./../PositioningLayouts/SurfaceWrappingView');
+    var StretchyLayout = require('PositioningLayouts/StretchyLayout');
+	var SurfaceWrappingView = require('PositioningLayouts/SurfaceWrappingView');
 	var MemoryPagingView = require('./MemoryPagingView');
 
 	var systemDescription = "The basis of Linux memory management is 'virtual memory'." +

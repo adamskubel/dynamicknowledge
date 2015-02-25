@@ -6,15 +6,15 @@ define(function(require, exports, module) {
 	var Modifier   = require("famous/core/Modifier");
 	var View = require('famous/core/View');
 
-	var PositioningGridLayout = require('./../PositioningLayouts/PositioningGridLayout');
+	var PositioningGridLayout = require('PositioningLayouts/PositioningGridLayout');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
 	var MemoryBlockView = require('./../MemoryBlockView');
 	var PageTableEntry = require('./PageTableEntry');
 	var ObjectFactory = require('./../ObjectFactory');
-	var PositioningFlexibleLayout = require('./../PositioningLayouts/PositioningFlexibleLayout');
+	var PositioningFlexibleLayout = require('PositioningLayouts/PositioningFlexibleLayout');
 
-    var PositionableView = require('./../PositioningLayouts/PositionableView');
+    var PositionableView = require('PositioningLayouts/PositionableView');
 
 	function PageTableView(options) 
 	{

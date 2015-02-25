@@ -5,9 +5,10 @@ define(function(require,exports,module){
 
     var MouseSync = require('famous/inputs/MouseSync');
     var Vector = require('ProperVector');
-    var LineCanvas = require('./../LineCanvas');
+    var LineCanvas = require('LineCanvas');
     var Colors = require('Colors');
 
+    var DynamicObjectController = require('Controllers/DynamicObjectController');
     var AccessInspector = require('intrinsics/AccessInspector');
 
     function DynamicGroupController(groupDef)
@@ -174,7 +175,9 @@ define(function(require,exports,module){
     {
         var newObj = new AccessInspector();
 
+        var newController = new DynamicObjectController(null,newObj);
 
+        this.addController(newController);
     }
 
     //Connection stuff

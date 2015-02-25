@@ -9,14 +9,14 @@ define(function(require, exports, module)
     var Easing = require('famous/transitions/Easing');
     var RenderController = require("famous/views/RenderController");
 
-    var DynamicDetailView = require('../DynamicDetailView');
-    var StretchyLayout = require('../PositioningLayouts/StretchyLayout');
-    var PositionableView = require("../PositioningLayouts/PositionableView");
-    var ObjectFactory = require('../ObjectFactory');
-    var BoxView = require('../PositioningLayouts/BoxView');
-    var PositioningFlex = require('../PositioningLayouts/PositioningFlexibleLayout');
+    var DynamicDetailView = require('DynamicDetailView');
+    var StretchyLayout = require('PositioningLayouts/StretchyLayout');
+    var PositionableView = require("PositioningLayouts/PositionableView");
+    var ObjectFactory = require('ObjectFactory');
+    var BoxView = require('PositioningLayouts/BoxView');
+    var PositioningFlex = require('PositioningLayouts/PositioningFlexibleLayout');
 
-    var Utils = require('../Utils');
+    var Utils = require('Utils');
 
 
     var labelHeight = 30;
