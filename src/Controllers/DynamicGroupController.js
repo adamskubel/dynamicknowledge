@@ -8,6 +8,7 @@ define(function(require,exports,module){
     var LineCanvas = require('LineCanvas');
     var Colors = require('Colors');
 
+    var PSequenceView = require('PositioningLayouts/PSequenceView');
     var AccessInspector = require('intrinsics/AccessInspector');
 
     function DynamicGroupController(groupDef)
@@ -24,25 +25,39 @@ define(function(require,exports,module){
 
         this.controllers.push(controller);
         controller.setState(this.state);
-        controller.setEditMode(this.editMode);
+        controller.setEditMode(this.editMode,this.editContext);
 
     };
 
-    DynamicGroupController.prototype.setEditMode = function(editMode)
+    DynamicGroupController.prototype.setEditMode = function(editMode, editContext)
     {
         this.editMode = editMode;
-        for (var i=0;i<this.controllers.length;i++)
-        {
-            this.controllers[i].setEditMode(editMode);
-        }
+        this.editContext = editContext;
 
-        if (editMode == "IsEditing")
+        if (editMode == "IsEditing" && this.containerView)
         {
-            _showEditUI.call(this, this.containerView);
+            if (!editContext)
+            {
+                console.log("Initializing menu bar");
+                var menu = _makeMenuBar.call(this);
+
+                editContext = {};
+                editContext.menuBar = menu;
+
+                this.editContext = editContext;
+            }
+            _addMenuButtons.call(this,editContext.menuBar);
+            this.menuBar.show();
         }
         else
         {
-            _hideEditUI.call(this);
+            if (this.menuBar)
+                this.menuBar.hide();
+        }
+
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            this.controllers[i].setEditMode(editMode,editContext);
         }
     };
 
@@ -136,38 +151,54 @@ define(function(require,exports,module){
 
     function _hideEditUI()
     {
-        if (this.addConnectionButton)
-            this.addConnectionButton.hide();
-        if (this.addObjectButton)
-            this.addObjectButton.hide();
+        if (this.menuBar)
+            this.menuBar.hide();
     }
 
-    function _showEditUI(dc)
+    function _makeMenuBar()
     {
-        if (!this.addConnectionButton)
+        if (!this.menuBar)
+        {
+            var menuBar = new PSequenceView({
+                direction: 0,
+                size: [200,40]
+            });
+
+            this.containerView.add(menuBar.getModifier()).add(menuBar.getRenderController());
+
+            this.menuBar = menuBar;
+        }
+
+        return this.menuBar;
+    }
+
+    function _addMenuButtons(menuBar)
+    {
+        if (!this.addObjectButton)
         {
             var addObjectButton = new BoxView({
                 text: "+", size: [40, 40], clickable: true, color: Colors.EditColor,
-                position: [80, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+                position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
             });
 
             var addConnectionButton = new BoxView({
                 text: ">>", size: [40, 40], clickable: true, color: Colors.EditColor,
-                position: [40, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+                position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
             });
 
             addConnectionButton.on('click', _showConnections.bind(this));
-            addObjectButton.on('click',_addObject.bind(this));
-
-            this.addConnectionButton = addConnectionButton;
-            dc.add(addConnectionButton.getModifier()).add(addConnectionButton.getRenderController());
+            addObjectButton.on('click', _addObject.bind(this));
 
             this.addObjectButton = addObjectButton;
-            dc.add(addObjectButton.getModifier()).add(addObjectButton.getRenderController());
+            this.addConnectionButton = addConnectionButton;
         }
 
-        this.addObjectButton.show();
-        this.addConnectionButton.show();
+        if (menuBar.indexOfChild(this.addConnectionButton) < 0)
+            menuBar.addChild(this.addConnectionButton);
+
+        if (menuBar.indexOfChild(this.addObjectButton) < 0)
+            menuBar.addChild(this.addObjectButton);
+
     }
 
     function _addObject()

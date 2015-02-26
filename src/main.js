@@ -52,6 +52,9 @@ define(function (require, exports, module)
         this.gapiAuthenticator = new GAPIAuthenticator();
         this.fileId = '0B6eNzoTXZGgIemtGYUlCS3VzblE';
 
+
+        eval("console.log('CATS')");
+
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {
             _initUI.call(this,mainView);

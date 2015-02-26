@@ -129,7 +129,7 @@ define(function(require,exports,module){
         newLabel.getRenderController();
 
         var objectEditor = new ObjectEditModule(newLabel);
-        objectEditor.onObjectDelete(this.onDelete.bind(this));
+        objectEditor.onObjectDelete(this.deleteCallback);
         objectEditor.onObjectMoved(this.persist.bind(this));
         objectEditor.onObjectResized(this.persist.bind(this));
 

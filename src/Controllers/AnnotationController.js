@@ -51,7 +51,7 @@ define(function (require, exports, module)
         return this.annotationContainer;
     };
 
-    AnnotationController.prototype.setEditMode = function(mode)
+    AnnotationController.prototype.setEditMode = function(mode, editContext)
     {
         this._editMode = mode;
 
@@ -67,17 +67,14 @@ define(function (require, exports, module)
         if (mode == "IsEditing")
         {
             this._activeStateLabel.show();
-            this.saveButton.hide();
-            this.lineButton.hide();
-            this.addLabelButton.show();
             this._containerBackground.show();
+
+            if (editContext.menuBar.indexOfChild(this.addLabelButton) < 0)
+                editContext.menuBar.addChild(this.addLabelButton);
         }
         else
         {
             this._activeStateLabel.show();
-            this.saveButton.hide();
-            this.addLabelButton.hide();
-            this.lineButton.hide();
             this._containerBackground.hide();
         }
     };
@@ -273,29 +270,15 @@ define(function (require, exports, module)
                 position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
             });
 
-            dc.add(addLabelButton.getModifier()).add(addLabelButton.getRenderController());
-
             addLabelButton.on('click', _createLabel.bind(this));
 
-            var saveButton = new BoxView({
-                text: "[]", size: [40, 40], clickable: true, color: annoColor,
-                position: [40, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-            });
-
-            saveButton.getRenderController();
-
-            saveButton.on('click', function ()
-            {
-                this.close();
-            }.bind(this));
-
-            var lineButton = new BoxView({
-                text: "|", size: [40, 40], clickable: true, color: annoColor,
-                position: [80, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
-            });
+            //var lineButton = new BoxView({
+            //    text: "|", size: [40, 40], clickable: true, color: annoColor,
+            //    position: [80, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+            //});
 
 
-            dc.add(lineButton.getModifier()).add(lineButton.getRenderController());
+            //dc.add(lineButton.getModifier()).add(lineButton.getRenderController());
             //
             //lineButton.on('click', function ()
             //{
@@ -319,10 +302,7 @@ define(function (require, exports, module)
             dc.add(activeStateLabel.getModifier()).add(activeStateLabel.getRenderController());
 
             this._activeStateLabel = activeStateLabel;
-            this.saveButton = saveButton;
             this.addLabelButton = addLabelButton;
-            this.lineButton = lineButton;
-
 
             var containerBackground = new BoxView({
                 color: annoColor,

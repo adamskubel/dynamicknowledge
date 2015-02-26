@@ -17,20 +17,19 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.getView = function()
     {
-        //if (this.controllers.length > 0)
-        //{
-        if (!this.containerView)
+        if (this.controllers.length > 0)
         {
-            this.containerView = DynamicGroupController.prototype.getView.call(this);
-            injectView(this.containerView,this.objectView);
+            if (!this.containerView)
+            {
+                this.containerView = DynamicGroupController.prototype.getView.call(this);
+                injectView(this.containerView,this.objectView);
+            }
+            return this.containerView;
         }
-
-        return this.containerView;
-        //}
-        //else
-        //{
-        //    return this.objectView;
-        //}
+        else
+        {
+            return this.objectView;
+        }
     };
 
     DynamicObjectController.prototype.getInputs = function()
