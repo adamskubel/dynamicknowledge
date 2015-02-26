@@ -69,8 +69,15 @@ define(function (require, exports, module)
             this._activeStateLabel.show();
             this._containerBackground.show();
 
-            if (editContext.menuBar.indexOfChild(this.addLabelButton) < 0)
-                editContext.menuBar.addChild(this.addLabelButton);
+            if (editContext.owner == this.parent)
+            {
+                if (editContext.menuBar.indexOfChild(this.addLabelButton) < 0)
+                    editContext.menuBar.addChild(this.addLabelButton);
+            }
+            else
+            {
+                editContext.menuBar.removeChild(this.addLabelButton);
+            }
         }
         else
         {

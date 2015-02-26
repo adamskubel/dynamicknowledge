@@ -120,5 +120,43 @@ define(function(require, exports, module) {
         child.parent = this;
     };
 
+    PSequenceView.prototype.removeChild = function(view)
+    {
+        var r = this.indexOfChild(view);
+        if (r >= 0)
+        {
+            this.children.splice(r, 1);
+        }
+    };
+
     module.exports = PSequenceView;
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

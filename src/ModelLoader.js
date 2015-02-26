@@ -6,6 +6,7 @@ define(function(require,exports,module){
     var Label = require('Model/Label');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
     var LabelController = require('Controllers/LabelController');
+    var Vector = require('ProperVector');
 
     function ModelLoader(_gapiModel, _objectRegistry){
         this.objectRegistry = _objectRegistry;
@@ -91,7 +92,12 @@ define(function(require,exports,module){
                     return;
                 }
                 var pname = objectDef.properties.get("predefinedName");
+                var pos = objectDef.properties.get("position") || [0,0,0];
+
                 var objectView = this.objectRegistry[pname];
+                console.log("Setting object position to " + pos);
+
+                objectView.setPosition(Vector.fromArray(objectView.position).add(Vector.fromArray(pos)).toArray());
 
                 if (!objectView)
                 {

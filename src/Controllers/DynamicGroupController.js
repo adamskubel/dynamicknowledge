@@ -26,33 +26,34 @@ define(function(require,exports,module){
         this.controllers.push(controller);
         controller.setState(this.state);
         controller.setEditMode(this.editMode,this.editContext);
+        controller.parent = this;
 
     };
 
     DynamicGroupController.prototype.setEditMode = function(editMode, editContext)
     {
         this.editMode = editMode;
-        this.editContext = editContext;
-
         if (editMode == "IsEditing" && this.containerView)
         {
-            if (!editContext)
+            if (!(editContext && editContext.menuBar))
             {
-                console.log("Initializing menu bar");
-                var menu = _makeMenuBar.call(this);
-
+                //Create a new edit context because we are root
                 editContext = {};
-                editContext.menuBar = menu;
+                editContext.menuBar =  _getMenuBar.call(this);
+                editContext.owner = this;
 
                 this.editContext = editContext;
             }
-            _addMenuButtons.call(this,editContext.menuBar);
-            this.menuBar.show();
+
+            _addMenuButtons.call(this,editContext);
         }
         else
         {
-            if (this.menuBar)
-                this.menuBar.hide();
+            if (this.editContext)
+            {
+                this.editContext.menuBar.hide();
+                this.editContext = undefined;
+            }
         }
 
         for (var i=0;i<this.controllers.length;i++)
@@ -121,6 +122,22 @@ define(function(require,exports,module){
         return inputs;
     };
 
+
+    DynamicGroupController.prototype.canEditProperty = function(propertyName)
+    {
+        switch (propertyName)
+        {
+            case "size":
+            case "position":
+                if (this.parent && this.getView().parent instanceof DynamicContainer)
+                {
+                    return true;
+                }
+            break;
+        }
+        return false;
+    };
+
     function _makeContainerView()
     {
         var dc = new DynamicContainer();
@@ -155,7 +172,7 @@ define(function(require,exports,module){
             this.menuBar.hide();
     }
 
-    function _makeMenuBar()
+    function _getMenuBar()
     {
         if (!this.menuBar)
         {
@@ -165,14 +182,17 @@ define(function(require,exports,module){
             });
 
             this.containerView.add(menuBar.getModifier()).add(menuBar.getRenderController());
-
             this.menuBar = menuBar;
+        }
+        else
+        {
+            this.menuBar.show();
         }
 
         return this.menuBar;
     }
 
-    function _addMenuButtons(menuBar)
+    function _addMenuButtons(editContext)
     {
         if (!this.addObjectButton)
         {
@@ -193,11 +213,21 @@ define(function(require,exports,module){
             this.addConnectionButton = addConnectionButton;
         }
 
-        if (menuBar.indexOfChild(this.addConnectionButton) < 0)
-            menuBar.addChild(this.addConnectionButton);
+        var menuBar = editContext.menuBar;
 
-        if (menuBar.indexOfChild(this.addObjectButton) < 0)
-            menuBar.addChild(this.addObjectButton);
+        if (editContext.owner == this)
+        {
+            if (menuBar.indexOfChild(this.addConnectionButton) < 0)
+                menuBar.addChild(this.addConnectionButton);
+
+            if (menuBar.indexOfChild(this.addObjectButton) < 0)
+                menuBar.addChild(this.addObjectButton);
+        }
+        else
+        {
+            menuBar.removeChild(this.addObjectButton);
+            menuBar.removeChild(this.addConnectionButton);
+        }
 
     }
 

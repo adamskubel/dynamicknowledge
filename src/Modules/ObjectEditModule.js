@@ -12,47 +12,54 @@ define(function(require,exports,module){
     var EventEmitter = require('famous/core/EventEmitter');
 
 
-    function ObjectEditModule(object)
+    function ObjectEditModule(object, config)
     {
         this.eventEmitter = new EventEmitter();
-
-        this.buttons =[
-            _makeBoxMovable(this.eventEmitter,object),
-            _makeBoxResizable(this.eventEmitter,object),
-            _makeDeleteButton(this.eventEmitter,object)
-        ];
+        this.object = object;
+        this.buttons = {};
     }
 
 
     ObjectEditModule.prototype.show = function()
     {
-        for (var i=0;i<this.buttons.length;i++)
+        for (var key in this.buttons)
         {
-            this.buttons[i].show();
+            if (this.buttons.hasOwnProperty(key))
+                this.buttons[key].show();
         }
     };
 
     ObjectEditModule.prototype.hide = function()
     {
-        for (var i=0;i<this.buttons.length;i++)
+        for (var key in this.buttons)
         {
-            this.buttons[i].hide();
+            if (this.buttons.hasOwnProperty(key))
+                this.buttons[key].hide();
         }
     };
 
     ObjectEditModule.prototype.onObjectDelete = function(deleteCallback)
     {
         this.eventEmitter.on('objectDeleted',deleteCallback);
+        if (!this.buttons.delete)
+            this.buttons.delete = _makeDeleteButton(this.eventEmitter, this.object);
+
     };
 
     ObjectEditModule.prototype.onObjectMoved = function(onMovedCallback)
     {
         this.eventEmitter.on('objectMoved',onMovedCallback);
+
+        if (!this.buttons.move)
+            this.buttons.move = _makeBoxMovable(this.eventEmitter, this.object);
     };
 
     ObjectEditModule.prototype.onObjectResized = function(onResizedCallback)
     {
         this.eventEmitter.on('objectResized',onResizedCallback);
+
+        if (!this.buttons.resize)
+            this.buttons.resize = _makeBoxResizable(this.eventEmitter, this.object);
     };
 
     function _makeBoxMovable(emitter,box)

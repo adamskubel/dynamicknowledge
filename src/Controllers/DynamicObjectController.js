@@ -63,22 +63,37 @@ define(function(require,exports,module){
             DynamicGroupController.prototype.addController.call(this,controller);
     };
 
-    DynamicObjectController.prototype.setEditMode = function(editMode)
+    DynamicObjectController.prototype.setEditMode = function(editMode, editContext)
     {
-        DynamicGroupController.prototype.setEditMode.call(this,editMode);
+        DynamicGroupController.prototype.setEditMode.call(this,editMode, editContext);
 
-        if (!this.objectEditor)
-            this.objectEditor = new ObjectEditModule(this.objectView);
 
         if (editMode == "IsEditing")
         {
-            console.debug("DOC_IsEditing");
+            if (!this.objectEditor)
+            {
+                var objectEditor = new ObjectEditModule(this.objectView);
+
+                if (this.canEditProperty("position"))
+                {
+                    objectEditor.onObjectMoved(function ()
+                    {
+                        this.objectDef.properties.set("position", this.objectView.position);
+                        console.log("Set object position to " + this.objectView.position);
+                    }.bind(this));
+                }
+
+                this.objectEditor = objectEditor;
+            }
+
             this.objectEditor.show();
         }
         else
         {
-            this.objectEditor.hide();
+            if (this.objectEditor)
+                this.objectEditor.hide();
         }
+
     };
 
     function injectView(container,objectView)
