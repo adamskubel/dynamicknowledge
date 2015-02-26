@@ -90,6 +90,7 @@ define(function(require,exports,module){
 
         if (this.view)
         {
+            console.log("Persisting label");
             this.model.text = this.view.getText();
             this.model.size = this.view.size;
 
@@ -127,10 +128,12 @@ define(function(require,exports,module){
 
         newLabel.getRenderController();
 
-        this.labelView = newLabel;
+        var objectEditor = new ObjectEditModule(newLabel);
+        objectEditor.onObjectDelete(this.onDelete.bind(this));
+        objectEditor.onObjectMoved(this.persist.bind(this));
+        objectEditor.onObjectResized(this.persist.bind(this));
 
-        this.objectEditor = new ObjectEditModule(newLabel);
-
+        this.objectEditor = objectEditor;
         return newLabel;
     }
 

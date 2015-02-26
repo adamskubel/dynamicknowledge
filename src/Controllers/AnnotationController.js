@@ -53,7 +53,6 @@ define(function (require, exports, module)
 
     AnnotationController.prototype.setEditMode = function(mode)
     {
-        console.debug("AnnotationController_setEditMode: " + mode);
         this._editMode = mode;
 
         for (var labelKey in this.annotationMap)

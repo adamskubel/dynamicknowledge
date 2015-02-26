@@ -1,6 +1,8 @@
 define(function(require,exports,module){
 
     var DynamicGroupController = require('Controllers/DynamicGroupController');
+    var ObjectEditModule = require('Modules/ObjectEditModule');
+
 
     function DynamicObjectController(objectDef, objectView)
     {
@@ -62,11 +64,23 @@ define(function(require,exports,module){
             DynamicGroupController.prototype.addController.call(this,controller);
     };
 
-    //DynamicObjectController.setEditMode = function(editMode)
-    //{
-    //    DynamicObjectController.prototype.setEditMode.call(this,editMode);
-    //    this.objectView.setEditMode(editMode);
-    //};
+    DynamicObjectController.prototype.setEditMode = function(editMode)
+    {
+        DynamicGroupController.prototype.setEditMode.call(this,editMode);
+
+        if (!this.objectEditor)
+            this.objectEditor = new ObjectEditModule(this.objectView);
+
+        if (editMode == "IsEditing")
+        {
+            console.debug("DOC_IsEditing");
+            this.objectEditor.show();
+        }
+        else
+        {
+            this.objectEditor.hide();
+        }
+    };
 
     function injectView(container,objectView)
     {

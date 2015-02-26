@@ -8,7 +8,6 @@ define(function(require,exports,module){
     var LineCanvas = require('LineCanvas');
     var Colors = require('Colors');
 
-    var DynamicObjectController = require('Controllers/DynamicObjectController');
     var AccessInspector = require('intrinsics/AccessInspector');
 
     function DynamicGroupController(groupDef)
@@ -174,9 +173,8 @@ define(function(require,exports,module){
     function _addObject()
     {
         var newObj = new AccessInspector();
-
+        var DynamicObjectController = require('Controllers/DynamicObjectController');
         var newController = new DynamicObjectController(null,newObj);
-
         this.addController(newController);
     }
 

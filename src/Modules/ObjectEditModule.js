@@ -88,6 +88,7 @@ define(function(require,exports,module){
             emitter.emit('objectMoved');
         }.bind(this));
 
+        moveButton.textSurface.hide();
         moveButton.backSurface.pipe(dragController);
 
 
@@ -127,6 +128,7 @@ define(function(require,exports,module){
             emitter.emit('objectResized');
         }.bind(this));
 
+        resizeButton.textSurface.hide();
         resizeButton.backSurface.pipe(dragController);
         return resizeButton;
     }
