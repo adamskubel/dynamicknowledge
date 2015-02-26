@@ -37,6 +37,9 @@ define(function (require, exports, module)
     {
         if (!this.annotationContainer)
         {
+            if (!container)
+                return;
+
             this.annotationContainer = container;
             _initEditUI.call(this, this.annotationContainer);
             this.setState(this.state);

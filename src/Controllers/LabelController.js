@@ -59,7 +59,6 @@ define(function(require,exports,module){
             if (this.view)
             {
                 var newPos = this.model.getState(state).position;
-                console.log("Setting label position: " + newPos);
                 this.view.setPosition(newPos);
                 this.view.show();
             }
@@ -75,7 +74,6 @@ define(function(require,exports,module){
     LabelController.prototype.createState = function(state){
         if (!this.model.hasState(state))
         {
-            console.log("Creating new label state '" + state + "'");
             var currentState = this.model.getState(this.state);
             var newState = this.model.createState(state);
             newState.position = currentState.position;
@@ -90,7 +88,6 @@ define(function(require,exports,module){
 
         if (this.view)
         {
-            console.log("Persisting label");
             this.model.text = this.view.getText();
             this.model.size = this.view.size;
 

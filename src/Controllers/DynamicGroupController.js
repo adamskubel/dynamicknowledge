@@ -38,10 +38,7 @@ define(function(require,exports,module){
             if (!(editContext && editContext.menuBar))
             {
                 //Create a new edit context because we are root
-                editContext = {};
-                editContext.menuBar =  _getMenuBar.call(this);
-                editContext.owner = this;
-
+                editContext = this.makeEditContext();
                 this.editContext = editContext;
             }
 
@@ -60,6 +57,15 @@ define(function(require,exports,module){
         {
             this.controllers[i].setEditMode(editMode,editContext);
         }
+    };
+
+    DynamicGroupController.prototype.makeEditContext = function()
+    {
+        var editContext = {};
+        editContext.menuBar =  _getMenuBar.call(this);
+        editContext.owner = this;
+
+        return editContext;
     };
 
     DynamicGroupController.prototype.setState = function(state){
@@ -162,7 +168,7 @@ define(function(require,exports,module){
     {
         var controllerView = controller.getView(dc);
 
-        if (controllerView != dc)
+        if (controllerView && controllerView != dc && controllerView.parent != dc)
             dc.addChild(controllerView);
     }
 

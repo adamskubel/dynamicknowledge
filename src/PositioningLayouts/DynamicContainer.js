@@ -37,14 +37,8 @@ define(function(require, exports, module) {
         edgePadding: [0,0]
     };
 
-	DynamicContainer.prototype.addChild = function(child){
-
-        if (!child)
-        {
-            console.error("Cannot add null child");
-            return;
-        }
-
+	DynamicContainer.prototype.addChild = function(child)
+    {
         if (child instanceof PositionableView)
         {
             child.parent = this;
@@ -54,7 +48,10 @@ define(function(require, exports, module) {
         }
         else
         {
-            console.error("Child must be PositionableView. Child = " + child);
+            if (!child)
+                console.error("Cannot add null child");
+            else
+                console.error("Child must be PositionableView. Child = " + child);
         }
 	};
 

@@ -2,6 +2,7 @@ define(function(require,exports,module){
 
     var DynamicGroupController = require('Controllers/DynamicGroupController');
     var ObjectEditModule = require('Modules/ObjectEditModule');
+    var DynamicContainer = require('PositioningLayouts/DynamicContainer');
 
 
     function DynamicObjectController(objectDef, objectView)
@@ -21,8 +22,15 @@ define(function(require,exports,module){
         {
             if (!this.containerView)
             {
-                this.containerView = DynamicGroupController.prototype.getView.call(this);
-                injectView(this.containerView,this.objectView);
+                if (_viewCanBeContainer.call(this))
+                {
+                    this.containerView = this.objectView;
+                }
+                else
+                {
+                    this.containerView = DynamicGroupController.prototype.getView.call(this);
+                    injectView(this.containerView, this.objectView);
+                }
             }
             return this.containerView;
         }
@@ -31,6 +39,25 @@ define(function(require,exports,module){
             return this.objectView;
         }
     };
+
+    function _viewCanBeContainer()
+    {
+        var objectView = this.objectView;
+
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            var cv = this.controllers[i].getView();
+            if (!cv)
+            {
+                //Controller is container-dependent
+                return false;
+            }
+
+            if (cv.parent !== objectView)
+                return false;
+        }
+        return true;
+    }
 
     DynamicObjectController.prototype.getInputs = function()
     {
@@ -96,8 +123,25 @@ define(function(require,exports,module){
 
     };
 
+    DynamicGroupController.prototype.canEditProperty = function(propertyName)
+    {
+        switch (propertyName)
+        {
+            case "size":
+            case "position":
+                if (this.parent && this.objectView.parent instanceof DynamicContainer)
+                {
+                    return true;
+                }
+                break;
+        }
+        return false;
+    };
+
+
     function injectView(container,objectView)
     {
+        console.log("Injecting view. Object = " + objectView._globalId + " InjectedContainer = " + container._globalId);
         objectView.setPosition([0, objectView.position[1], 0]);
         objectView.setAlign([0,0]);
         objectView.setOrigin([0,0]);

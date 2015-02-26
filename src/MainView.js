@@ -187,7 +187,8 @@ define(function(require,exports,module){
         var mainLayout = new PositionableView({
             viewOrigin:[0.5,0.5],
             viewAlign:[0.3,0.5],
-            isAnimated:false
+            isAnimated:false,
+            name:"MainView"
         });
 
         mainLayout.calculatePosition = function(){
