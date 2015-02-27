@@ -95,8 +95,6 @@ define(function(require,exports,module){
                 var pos = objectDef.properties.get("position") || [0,0,0];
 
                 var objectView = this.objectRegistry[pname];
-                console.log("Setting object position to " + pos);
-
                 objectView.setPosition(Vector.fromArray(objectView.position).add(Vector.fromArray(pos)).toArray());
 
                 if (!objectView)

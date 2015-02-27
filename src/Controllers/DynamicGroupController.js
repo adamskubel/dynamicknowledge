@@ -40,6 +40,32 @@ define(function(require,exports,module){
                 //Create a new edit context because we are root
                 editContext = this.makeEditContext();
                 this.editContext = editContext;
+
+                if (this.requestEditScopeButton)
+                    this.requestEditScopeButton.hide();
+            }
+            else
+            {
+                if (!this.requestEditScopeButton)
+                {
+                    var scopeButton = new BoxView({
+                        color:Colors.EditColor,
+                        size:[40,30],
+                        position:[0,0,0],
+                        viewAlign:[0,0],
+                        viewOrigin:[0,0],
+                        text:"Edit",
+                        clickable:true
+                    });
+
+                    this.getView().add(scopeButton.getModifier()).add(scopeButton.getRenderController());
+                    this.requestEditScopeButton = scopeButton;
+
+                    this.requestEditScopeButton.on('click',function(){
+
+                    }.bind(this));
+                }
+                this.requestEditScopeButton.show();
             }
 
             _addMenuButtons.call(this,editContext);
