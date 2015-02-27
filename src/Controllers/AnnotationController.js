@@ -30,32 +30,41 @@ define(function (require, exports, module)
         this.annotationMap = {};
 
         this.setState('base');
-        this.setEditMode("Off");
     }
 
-    AnnotationController.prototype.getView = function(container)
-    {
-        if (!this.annotationContainer)
-        {
-            if (!container)
-                return;
 
+    AnnotationController.prototype.getView = function()
+    {
+        return null;
+    };
+
+    AnnotationController.prototype.setContainer = function(container)
+    {
+        if (!container)
+        {
+            console.error("Set container must be defined");
+        }
+        else if (!this.annotationContainer)
+        {
+            console.log("Initializing annotation container");
             this.annotationContainer = container;
             _initEditUI.call(this, this.annotationContainer);
-            this.setState(this.state);
-            this.setEditMode(this._editMode);
         }
         else if (this.annotationContainer != container)
         {
             console.error("Unsupported container swapping");
             //Need to replace this container with the parent's container
         }
-
-        return this.annotationContainer;
     };
 
     AnnotationController.prototype.setEditMode = function(mode, editContext)
     {
+        if (!this._initialized)
+        {
+            console.error("Can't set edit mode until controller is added to parent");
+            return;
+        }
+
         this._editMode = mode;
 
         for (var labelKey in this.annotationMap)
@@ -64,26 +73,21 @@ define(function (require, exports, module)
             labelController.setEditMode(this._editMode);
         }
 
-        if (!this._initialized)
-            return;
-
         if (mode == "IsEditing")
         {
             this._activeStateLabel.show();
             this._containerBackground.show();
 
-            if (editContext.owner == this.parent)
+            if (editContext.menuBar.indexOfChild(this.addLabelButton) < 0)
             {
-                if (editContext.menuBar.indexOfChild(this.addLabelButton) < 0)
-                    editContext.menuBar.addChild(this.addLabelButton);
+                editContext.menuBar.addChild(this.addLabelButton);
             }
-            else
-            {
-                editContext.menuBar.removeChild(this.addLabelButton);
-            }
+            this._lastEditContext = editContext;
         }
         else
         {
+            if (this._lastEditContext)
+                this._lastEditContext.menuBar.removeChild(this.addLabelButton);
             this._activeStateLabel.show();
             this._containerBackground.hide();
         }

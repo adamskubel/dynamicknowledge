@@ -337,20 +337,7 @@ define(function (require, exports, module)
 
         virtualBlock.backSurface.pipe(dragController);
 
-        memorySystemView.setEditMode = function(editMode){
-
-            for (var i=0;i<this.children.length;i++)
-            {
-                if (this.children[i].setEditMode)
-                {
-                    this.children[i].setEditMode(editMode);
-                }
-            }
-        };
-
         objectRegistry["MemorySystemView"] = memorySystemView;
-
-
     }
 
 

@@ -24,8 +24,6 @@ define(function(require,exports,module){
         if (!instance)
             instance = this;
 
-        //this.topView = topView;
-
         var top = this.gapiModel.getRoot().get("top");
 
         topView.setModel(top,this);
@@ -57,11 +55,11 @@ define(function(require,exports,module){
         return this.objectRegistry[name];
     };
 
-    ModelLoader.prototype.nextObjectId = function(){
+    ModelLoader.prototype.nextObjectId = function(prefix){
         var lastId = this.gapiModel.getRoot().get("lastId");
         this.gapiModel.getRoot().set("lastId",lastId+1);
         var id = "" + (lastId + 1);
-        return id;
+        return prefix + "_" + id;
     };
 
     ModelLoader.prototype.addObject = function(name,object){
@@ -102,7 +100,7 @@ define(function(require,exports,module){
                     console.error("Predefined object '" + pname + "' not found");
                     return;
                 }
-                objectController = new DynamicObjectController(objectDef,objectView);
+                objectController = new DynamicObjectController(objectDef,objectView, this);
             }
             else
             {

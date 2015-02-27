@@ -85,7 +85,7 @@ define(function(require, exports, module)
 
     function _addEventBoxes()
     {
-        var outgoingBox = new BoxView({color:8000,size:[30,30],viewAlign:[1,0.5],viewOrigin:[0,0.5],clickable:true});
+        var outgoingBox = new BoxView({color:12000,size:[20,20],viewAlign:[1,0.5],viewOrigin:[0,0.5],clickable:true});
         outgoingBox.parent = this;
         this.add(outgoingBox.getModifier()).add(outgoingBox.getRenderController(true));
         this.outputBox = outgoingBox;
