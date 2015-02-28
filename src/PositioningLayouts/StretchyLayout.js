@@ -242,7 +242,7 @@ define(function(require, exports, module) {
 		var children = this.children;
 
 		var weightClasses = {};
-		var weightSet = [];
+		var weightSet = {};
 
 		var length = viewSpacing.dot(dir);
 		var width = viewSpacing.dot(cross);

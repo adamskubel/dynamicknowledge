@@ -64,8 +64,8 @@ define(function(require,exports,module){
             if (this.menuBar)
                 this.menuBar.hide();
 
-            if (this.objectEditor)
-                this.objectEditor.hide();
+        if (this.objectEditor)
+            this.objectEditor.hide();
         }
 
         for (var i=0;i<this.controllers.length;i++)
@@ -209,6 +209,9 @@ define(function(require,exports,module){
 
     function updateObjectState()
     {
+        if (!this.objectDef)
+            return;
+
         if (this.objectDef.hasState(this.state))
         {
             if (this.objectView && this.objectView.applyProperties)

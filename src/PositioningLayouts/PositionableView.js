@@ -175,12 +175,9 @@ define(function (require, exports, module)
         this.isAnimated = isAnimated;
     };
 
-    PositionableView.prototype.setPosition = function (position)
+    function _setPosition(position)
     {
-        if (!position)
-            position = [0,0,0];
-
-        //console.debug(this._globalId + "_POS: " + this.position + " --> " + position);
+        this.actualPosition = position;
         if (this.positionState)
         {
             if (this.positionState.isActive())
@@ -193,6 +190,14 @@ define(function (require, exports, module)
         {
             this.positionState = new Transitionable(Transform.translate(position[0],position[1], position[2]));
         }
+    }
+
+    PositionableView.prototype.setPosition = function (position)
+    {
+        if (!position)
+            position = [0,0,0];
+
+        _setPosition.call(this,position);
         this.position = position;
     };
 
@@ -260,9 +265,13 @@ define(function (require, exports, module)
         };
     };
 
-    PositionableView.prototype.layout = function (layoutSize)
+    PositionableView.prototype.layout = function (layoutSize, layoutPosition)
     {
         _setSize.call(this,layoutSize);
+
+        if (layoutPosition)
+            _setPosition.call(this,layoutPosition);
+
         this._size = layoutSize;
         this._layoutDirty = false;
     };
