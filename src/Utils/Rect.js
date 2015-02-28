@@ -50,6 +50,12 @@ define(function(require,exports,module){
         return new Vector(this.x + (this.width/2),this.y + (this.height/2),0);
     };
 
+    Rect.prototype.getBottomRight = function()
+    {
+        return new Vector(this.x + this.width, this.y+this.height,0);
+    };
+
+
     Rect.getRectIntersection = function(a,b)
     {
         var x = Math.max(a.x, b.x);

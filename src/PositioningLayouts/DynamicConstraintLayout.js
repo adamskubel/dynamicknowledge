@@ -147,11 +147,21 @@ define(function(require, exports, module) {
 
         if (intersection)
         {
-            var adjustX = (intersection.x)
+            var adjustX;
+
+            if (intersection.x == rectFixed.x)
+            {
+                adjustX = -intersection.x;
+            }
+            else if (intersection.getBottomRight().x == rectFixed.getBottomRight().x)
+            {
+                
+            }
+
 
             var viewError = Vector.fromArray(adjustView.actualPosition).sub(Vector.fromArray(adjustView.position));
 
-            var newErrorX = viewError.x + intersection.x;
+            var newErrorX = viewError.x + adjustX;
         }
     }
 
