@@ -119,6 +119,12 @@ define(function(require, exports, module)
         incomingBox.parent = this;
     }
 
+    PageLookupTable.prototype.applyProperties = function (properties)
+    {
+        //if (properties.)
+
+        StretchyLayout.prototype.applyProperties.call(this,properties);
+    };
 
     PageLookupTable.prototype.access  = function(index){
         _onAccessEvent.call(this,{"pageIndex":index});

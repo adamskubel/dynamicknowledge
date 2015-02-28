@@ -161,6 +161,15 @@ define(function (require, exports, module)
         return this.renderController;
     };
 
+    PositionableView.prototype.applyProperties = function(properties)
+    {
+        if (properties.position)
+            this.setPosition(properties.position);
+
+        if (properties.size)
+            this.setSize(properties.size);
+    };
+
     PositionableView.prototype.setAnimated = function (isAnimated)
     {
         this.isAnimated = isAnimated;

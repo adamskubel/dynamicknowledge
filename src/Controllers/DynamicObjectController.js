@@ -137,6 +137,8 @@ define(function(require,exports,module){
     DynamicObjectController.prototype.setState = function(state){
         this.state = state;
 
+        updateObjectState();
+
         for (var i=0;i<this.controllers.length;i++)
         {
             this.controllers[i].setState(state);
@@ -204,6 +206,19 @@ define(function(require,exports,module){
     {
         return (this.containerView || this.objectView);
     };
+
+    function updateObjectState()
+    {
+        if (this.objectDef.hasState(this.state))
+        {
+            if (this.objectView && this.objectView.applyProperties)
+                this.objectView.applyProperties(this.objectDef.getState(this.state).properties);
+        }
+        else
+        {
+            //Handle no state defined
+        }
+    }
 
     function enableEditor(editorName)
     {
