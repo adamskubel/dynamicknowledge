@@ -29,7 +29,8 @@ define(function (require, exports, module)
         this.viewAlign = (this.options.viewAlign);
         this.viewOrigin = this.options.viewOrigin;
 
-        this.isAnimated = PositionableView.DEFAULT_OPTIONS.isAnimated;
+        this.isAnimated = (this.options.isAnimated != undefined) ? this.options.isAnimated : PositionableView.DEFAULT_OPTIONS.isAnimated;
+
         this.positionTransition = PositionableView.DEFAULT_OPTIONS.positionTransition;
         this.sizeTransition = PositionableView.DEFAULT_OPTIONS.sizeTransition;
         this.opacityTransition = undefined;

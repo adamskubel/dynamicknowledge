@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 	var Surface    = require("famous/core/Surface");
 	var Transform  = require("famous/core/Transform");
 	var Modifier   = require("famous/core/Modifier");
-	var View = require('famous/core/View');
+	var PositionableView = require('PositioningLayouts/PositionableView');
     var CanvasSurface = require('famous/surfaces/CanvasSurface');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
@@ -12,7 +12,7 @@ define(function(require, exports, module) {
 
 	function LineCanvas(options) 
 	{
-	    View.apply(this, arguments);
+	    PositionableView.call(this, options);
 
 	    // Create drawing canvas
 	    this.canvas = new CanvasSurface(this.options.canvasSurface);
@@ -26,14 +26,15 @@ define(function(require, exports, module) {
 	}
 
 
-	LineCanvas.prototype = Object.create(View.prototype);
+	LineCanvas.prototype = Object.create(PositionableView.prototype);
 	LineCanvas.prototype.constructor = LineCanvas;
 
 	LineCanvas.DEFAULT_OPTIONS = 
 	{
-        size: [100, 100],
-        backgroundColor: 'rgba(200, 200, 200, 0.5)',
+        isAnimated: false,
+        backgroundColor: Colors.get(6000,1),
         color:4600,
+        viewAlign: [0.5,0.5],
         canvasSurface: {
             properties: {
                 'pointer-events': 'none'
@@ -60,7 +61,7 @@ define(function(require, exports, module) {
 
     LineCanvas.prototype.setLinePoints = function setPosition(p,p2)
     {
-        //console.debug("LineCanvas: " + p + "--> " + p2);
+        console.debug("LineCanvas: " + p + "--> " + p2);
 
         if (p == undefined || p2 == undefined)
             return;
@@ -79,8 +80,8 @@ define(function(require, exports, module) {
     	var lineStart = [p[0]-topLeft[0],p[1]-topLeft[1]];
     	var lineEnd = [p2[0]-topLeft[0],p2[1]-topLeft[1]];    	
 
-    	this.position = topLeft;
-    	this.size = [bottomRight[0]-topLeft[0],bottomRight[1]-topLeft[1]];
+    	this.setPosition(topLeft);
+    	this.setSize([bottomRight[0]-topLeft[0],bottomRight[1]-topLeft[1]]);
 
     	this.lineStart = lineStart;
     	this.lineEnd = lineEnd;
@@ -101,34 +102,6 @@ define(function(require, exports, module) {
         {
             this.opacityState.set(this.opacityRange[0],{duration: fallTime, curve: Easing.outQuad});
         }.bind(this));
-    };
-
-
-    LineCanvas.prototype.clear = function clear()
-    {
-    	this.lineStart = undefined;
-    	this.lineEnd = undefined;
-    	this.size = [10,10];
-    	this.needsRender = true;
-    };
-
-    LineCanvas.prototype.getModifier = function getModifier()
-    {
-    	var line = this;
-    	return new Modifier({
-    		opacity : function () {
-    			return line.opacityState.get();
-    		},
-    		size : function () {
-    			return line.size;
-    		},
-		    transform : function(){
-		        return Transform.translate(line.position[0], line.position[1], -10);
-		    },
-            origin: function(){
-                return [0,0];
-            }
-		});
     };
 
 	LineCanvas.prototype.render = function render() 
