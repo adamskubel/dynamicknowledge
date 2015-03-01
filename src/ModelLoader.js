@@ -7,6 +7,7 @@ define(function(require,exports,module){
     var DynamicObjectController = require('Controllers/DynamicObjectController');
     var LabelController = require('Controllers/LabelController');
     var Vector = require('ProperVector');
+    var AccessInspector = require('Intrinsics/AccessInspector');
 
     function ModelLoader(_gapiModel, _objectRegistry){
         this.objectRegistry = _objectRegistry;
@@ -37,22 +38,22 @@ define(function(require,exports,module){
         DynamicObject.registerGAPI();
     };
 
-    ModelLoader.prototype.getObject = function(name){
+    ModelLoader.prototype.getObject = function(objectId){
 
         var objects = this.gapiModel.getRoot().get("objects");
 
-        if (!this.objectRegistry[name])
+        if (!this.objectRegistry[objectId])
         {
-            if (objects.has(name))
-                this.objectRegistry[name] = _loadObject.call(this,objects.get(name));
+            if (objects.has(objectId))
+                this.objectRegistry[objectId] = _loadObject.call(this,objects.get(objectId));
             else
             {
-                console.error("Object name '" + name + "' does not exist");
+                console.error("Object name '" + objectId + "' does not exist");
                 return null;
             }
         }
 
-        return this.objectRegistry[name];
+        return this.objectRegistry[objectId];
     };
 
     ModelLoader.prototype.nextObjectId = function(prefix){
@@ -86,29 +87,41 @@ define(function(require,exports,module){
             {
                 if (!objectDef.properties.has("predefinedName"))
                 {
-                    console.error("Predefined name is not defined for predef object '" +objectDef.id + "'");
+                    console.error("Predefined name is not defined for predef object '" + objectDef.id + "'");
                     return;
                 }
                 var pname = objectDef.properties.get("predefinedName");
-                var pos = objectDef.properties.get("position") || [0,0,0];
+                //var pos = objectDef.properties.get("position") || [0, 0, 0];
 
                 var objectView = this.objectRegistry[pname];
-                objectView.setPosition(Vector.fromArray(objectView.position).add(Vector.fromArray(pos)).toArray());
+                //objectView.setPosition(Vector.fromArray(objectView.position).add(Vector.fromArray(pos)).toArray());
 
                 if (!objectView)
                 {
                     console.error("Predefined object '" + pname + "' not found");
                     return;
                 }
-                objectController = new DynamicObjectController(objectDef,objectView, this);
+                objectController = new DynamicObjectController(objectDef, objectView, this);
+            }
+
+            else if (objectDef.type == "constructed")
+            {
+                var name = objectDef.properties.get("constructorName");
+                switch (name)
+                {
+                    case "AccessInspector":
+                        objectView = new AccessInspector();
+                        objectController =  new DynamicObjectController(objectDef, objectView, this);
+                        break;
+                    default:
+                        console.error("Unknown type '" + name + "'");
+                }
             }
             else
             {
-                console.error("Cannot load non-predefined dynamic objects");
+                console.error("Object type '" + objectDef.type + "' not supported");
                 return;
             }
-            _loadRelationships.call(this,objectController,objectDef.relationships);
-
         }
         else if (objectDef instanceof Label)
         {
@@ -116,34 +129,9 @@ define(function(require,exports,module){
             objectController = new LabelController(objectDef);
         }
 
+
         return objectController;
     }
-
-    function _loadRelationships(objectController,relationships)
-    {
-        var r = relationships.asArray();
-        for (var i=0;i < r.length;i++)
-        {
-            var relationship = r[i];
-
-            if (relationship instanceof AnnotationContainer)
-            {
-                var ac = new AnnotationController(relationship,this);
-
-                objectController.addController(ac);
-            }
-            else if (relationship.type == "List")
-            {
-                for (var x=0;x<relationship.length;x++)
-                {
-                    var child = relationship.get(x);
-                    objectController.addController(this.getObject(child));
-                }
-            }
-        }
-    }
-
-
 
     module.exports = ModelLoader;
 

@@ -46,11 +46,10 @@ define(function (require, exports, module)
 
         populateObjects(objectRegistry);
 
-        this.annotationEditors = [];
         this.mainView = mainView;
 
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgISHRVWmlmaHJZd1U';
+        this.fileId = '0B6eNzoTXZGgILUZOWmlGcXZaanM';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {

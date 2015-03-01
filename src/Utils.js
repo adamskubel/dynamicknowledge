@@ -89,7 +89,17 @@ define(function (require, exports, module)
     };
 
 
-
+    Utils.getPropertyMap = function(gapiMap)
+    {
+        var properties = {};
+        var items= gapiMap.items();
+        for (var i=0;i<items.length;i++)
+        {
+            var item = items[i];
+            properties[item[0]] = item[1];
+        }
+        return properties;
+    };
 
     Utils.nameMap = {};
 
