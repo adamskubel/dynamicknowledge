@@ -129,6 +129,11 @@ define(function(require, exports, module) {
         }
     };
 
+    PSequenceView.prototype.childControlsPosition = function()
+    {
+        return false;
+    };
+
     module.exports = PSequenceView;
 });
 

@@ -42,6 +42,11 @@ define(function(require, exports, module) {
         return childPosition;
     };
 
+    PositioningGridLayout.prototype.childControlsPosition = function()
+    {
+        return false;
+    };
+
     PositioningGridLayout.prototype.calculateChildSize = function calculateChildSize(child) {
         var ownerSize = this.calculateSize();
         var cellSize = [ownerSize[0]/this.options.dimensions[0],ownerSize[1]/this.options.dimensions[1]];

@@ -65,6 +65,10 @@ define(function (require, exports, module)
         sizeTransition: {duration: 250, curve: Easing.outQuad}
     };
 
+    PositionableView.prototype.childControlsPosition = function()
+    {
+        return true;
+    };
 
     PositionableView.prototype.calculateSize = function ()
     {

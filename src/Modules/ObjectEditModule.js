@@ -78,6 +78,9 @@ define(function(require,exports,module){
         dragController.on('start',function(data){
             box.setAnimated(false);
             box.parent.setAnimated(false);
+
+            if (box.parent.setFixedChild)
+                box.parent.setFixedChild(box);
         });
 
         dragController.on('update', function (data)
@@ -118,6 +121,9 @@ define(function(require,exports,module){
         dragController.on('start',function(data){
             box.setAnimated(false);
             box.parent.setAnimated(false);
+
+            if (box.parent.setFixedChild)
+                box.parent.setFixedChild(box);
         });
 
         dragController.on('update', function (data)

@@ -37,6 +37,12 @@ define(function(require, exports, module) {
         edgePadding: [0,0]
     };
 
+
+    DynamicContainer.prototype.childControlsPosition = function()
+    {
+        return true;
+    };
+
 	DynamicContainer.prototype.addChild = function(child)
     {
         if (child instanceof PositionableView)

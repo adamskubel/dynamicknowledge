@@ -64,9 +64,10 @@ define(function(require,exports,module){
         var num2 = Math.min(a.y + a.height, b.y + b.height);
 
         if (num1 >= x && num2 >= y)
-            return Utils.getRect(x, y, num1 - x, num2 - y);
+            return Rect.make(x, y, num1 - x, num2 - y);
         else
             return null;
     };
 
+    module.exports = Rect;
 });

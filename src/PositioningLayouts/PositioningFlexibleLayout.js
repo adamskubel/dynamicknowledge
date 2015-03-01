@@ -29,6 +29,12 @@ define(function(require, exports, module) {
     PositioningFlexibleLayout.prototype = Object.create(PositionableView.prototype);
     PositioningFlexibleLayout.prototype.constructor = PositioningFlexibleLayout;
 
+
+    PositioningFlexibleLayout.prototype.childControlsPosition = function()
+    {
+        return false;
+    };
+
     PositioningFlexibleLayout.prototype.calculateChildPosition = function calculateChildPosition(child)
     {
         var parentPosition = this.calculatePosition();

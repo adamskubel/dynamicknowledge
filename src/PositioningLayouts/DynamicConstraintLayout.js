@@ -10,7 +10,7 @@ define(function(require, exports, module) {
 	var Easing = require('famous/transitions/Easing');
 	var PositionableView = require('./PositionableView');
     var Vector = require('ProperVector');
-    var Utils = require('Utils');
+    var Rect = require('Utils/Rect');
 
 	function DynamicConstraintLayout(options)
 	{
@@ -24,7 +24,8 @@ define(function(require, exports, module) {
 
         this.offsetState = new Transitionable(Transform.translate(0,0,0));
         this.offsetNode = this.add(new Modifier({transform: function(){return this.offsetState.get();}.bind(this)}));
-	}
+
+    }
 
 	DynamicConstraintLayout.prototype = Object.create(PositionableView.prototype);
 	DynamicConstraintLayout.prototype.constructor = DynamicConstraintLayout;
@@ -44,8 +45,21 @@ define(function(require, exports, module) {
         {
             child.parent = this;
             this.children.push(child);
-            this.offsetNode.add(child.getModifier()).add(child.getRenderController());
+            var offsetModifier = new Modifier({
+                transform:function(){return Transform.translate(child._dynamicOffset.x,child._dynamicOffset.y,0);}
+            });
+
+            this.offsetNode.add(offsetModifier).add(child.getModifier()).add(child.getRenderController());
             this._layoutDirty = true;
+
+            //if (!constraintConfig)
+            //    constraintConfig = {priority:this.children.length+1};
+            //
+            //child._constraintConfig = constraintConfig;
+
+            //this.children = this.children.sort(function(a,b){
+            //    a._constraintConfig.priority < b._constraintConfig.priority;
+            //});
         }
         else
         {
@@ -66,23 +80,16 @@ define(function(require, exports, module) {
         }
     };
 
-    function _measureChildExtents(child)
+    DynamicConstraintLayout.prototype.setFixedChild = function(view)
     {
-        var size = Vector.fromArray(child.measure().minimumSize);
-        var topLeft = new Vector(0,0,0);
-
-        if (child.position)
-            topLeft = Vector.fromArray(child.position);
-
-        var bottomRight = size.add(topLeft);
-
-        child._dynamicSize = size;
-
-        return {
-            bottomRight:bottomRight,
-            topLeft:topLeft
+        if (this.children.indexOf(view) >= 0)
+        {
+            this._fixedChild = view;
         }
-    }
+        else
+            console.error("This is not my child: '" + view._globalId + "'");
+    };
+
 
     DynamicConstraintLayout.prototype.calculateChildPosition = function(child, relativeTo){
 
@@ -90,8 +97,135 @@ define(function(require, exports, module) {
         return basePosition.add(this.offsetVector).toArray();
     };
 
-    function measureSizes(requestedSize)
+    function adjustToFit(fixedView,adjustView)
     {
+        //Check if colliding
+        //Adjust to resolve collision
+
+        var viewAdjust = new Vector(0,0,0);
+
+        var fpos = fixedView.position;
+        if (fixedView._dynamicPosition)
+            fpos = fixedView._dynamicPosition.toArray();
+
+        var rectFixed = Rect.make(fpos,fixedView._dynamicSize.toArray());
+        var rectAdjust = Rect.make(adjustView.position,adjustView._dynamicSize.toArray());
+
+        var intersection = rectFixed.intersect(rectAdjust);
+
+        if (intersection)
+        {
+            var leftAdjust = -((intersection.x - rectFixed.x) + intersection.width);
+            var rightAdjust = (rectFixed.width + leftAdjust) + intersection.width;
+
+            var topAdjust = -((intersection.y - rectFixed.y) + intersection.height);
+            var bottomAdjust = (rectFixed.height + topAdjust) + intersection.height;
+
+
+            if (adjustView._dynamicOffset && adjustView._dynamicOffset.length() > 0)
+            {
+                var offset = adjustView._dynamicOffset;
+
+                if (offset.x > 0)
+                    viewAdjust.x = rightAdjust;
+                else if (offset.x < 0)
+                    viewAdjust.x = leftAdjust;
+                else if (offset.y < 0)
+                    viewAdjust.y = topAdjust;
+                else
+                    viewAdjust.y = bottomAdjust;
+            }
+            else
+            {
+
+                var viewError = new Vector(0, 0, 0); // Vector.fromArray(adjustView.actualPosition).sub(Vector.fromArray(adjustView.position));
+
+                var adjustX, adjustY;
+                if (Math.abs(viewError.x + leftAdjust) < Math.abs(viewError.x + rightAdjust))
+                    adjustX = leftAdjust;
+                else
+                    adjustX = rightAdjust;
+
+                if (Math.abs(viewError.y + topAdjust) < Math.abs(viewError.y + bottomAdjust))
+                    adjustY = topAdjust;
+                else
+                    adjustY = bottomAdjust;
+
+                if (Math.abs(viewError.x + adjustX) < Math.abs(viewError.y + adjustY))
+                    viewAdjust.x = adjustX;
+                else
+                    viewAdjust.y = adjustY;
+            }
+
+            adjustView._dynamicPosition = Vector.fromArray(adjustView.position).add(viewAdjust);
+            adjustChild.call(this,adjustView);
+        }
+    }
+
+
+    function adjustChild(child)
+    {
+        var children = this.children;
+
+        if (child._dclAdjusted)
+            return;
+
+        child._dclAdjusted = true;
+
+        for (var i=0;i<children.length;i++)
+        {
+            var c = children[i];
+            if (c == child)
+                continue;
+
+            adjustToFit.call(this,child,c);
+        }
+
+    }
+
+    function reflow()
+    {
+        var children = this.children;
+
+        for (var i=0;i<children.length;i++)
+        {
+            children[i]._dclAdjusted = false;
+            children[i]._dynamicPosition = Vector.fromArray(children[i].position);
+        }
+
+        if (this._fixedChild)
+            adjustChild.call(this, this._fixedChild);
+
+        for (i=0;i<children.length;i++)
+        {
+            adjustChild.call(this,children[i]);
+        }
+    }
+
+
+
+
+    function _measureChildExtents(child)
+    {
+        var size = child._dynamicSize;
+        var topLeft = Vector.fromArray(child.position);
+
+        if (child._dynamicPosition)
+            topLeft = child._dynamicPosition;
+
+        var bottomRight = size.add(topLeft);
+
+        return {
+            bottomRight:bottomRight,
+            topLeft:topLeft
+        };
+    }
+
+
+    function measureChildren(requestedSize)
+    {
+
+        var containerSize = Vector.fromArray(this.minimumContainerSize);
         var children = this.children;
 
         var bottomRight = new Vector(0,0,0);
@@ -115,100 +249,50 @@ define(function(require, exports, module) {
         this.offsetVector = topLeft.clone();
         this.offsetState.set(Transform.translate(topLeft.x,topLeft.y,topLeft.z));
 
-        //containerSize.x = Math.max(sizeVector.x,containerSize.x);
-        //containerSize.y = Math.max(sizeVector.y,containerSize.y);
-        //
-        //for (var i=0;i<children.length;i++)
-        //{
-         //   var child = children[i];
-         //   if (child._dynamicSize.x == 0)
-         //       child._dynamicSize.x = containerSize.x;
-        //
-         //   if (child._dynamicSize.y == 0)
-         //       child._dynamicSize.y = containerSize.y;
-        //}
-        //
-		//return {
-		//	minimumSize: containerSize.toArray(2),
-		//	maximumSize: containerSize.toArray(2)
-		//};
-	}
-
-
-    function adjustToFit(fixedView,adjustView)
-    {
-        //Check if colliding
-        //Adjust to resolve collision
-
-        var rectFixed = Utils.getRect(fixedView.position,fixedView._dynamicSize);
-        var rectAdjust = Utils.getRect(adjustView.position,adjustView._dynamicSize);
-
-        var intersection = Utils.getRectIntersection(rectFixed,rectAdjust);
-
-        if (intersection)
-        {
-            var adjustX;
-
-            if (intersection.x == rectFixed.x)
-            {
-                adjustX = -intersection.x;
-            }
-            else if (intersection.getBottomRight().x == rectFixed.getBottomRight().x)
-            {
-                
-            }
-
-
-            var viewError = Vector.fromArray(adjustView.actualPosition).sub(Vector.fromArray(adjustView.position));
-
-            var newErrorX = viewError.x + adjustX;
-        }
-    }
-
-
-    function adjustChild(child)
-    {
-        var children = this.children;
-
-        if (child._dclAdjusted)
-            return;
-
-        child._dclAdjusted = true;
+        containerSize.x = Math.max(sizeVector.x,containerSize.x);
+        containerSize.y = Math.max(sizeVector.y,containerSize.y);
 
         for (var i=0;i<children.length;i++)
         {
-            var c = children[i];
-            if (c == child)
-                continue;
+            var child = children[i];
+            if (child._dynamicSize.x == 0)
+                child._dynamicSize.x = containerSize.x;
 
-            adjustToFit(child,c);
+            if (child._dynamicSize.y == 0)
+                child._dynamicSize.y = containerSize.y;
         }
 
-    }
-
-    function reflow()
-    {
-        var children = this.children;
-        var containerSize = Vector.fromArray(this.minimumContainerSize);
-
-        for (var i=0;i<children.length;i++)
-        {
-            adjustChild.call(this,children[i]);
-        }
+        return {
+            minimumSize: containerSize.toArray(2),
+            maximumSize: containerSize.toArray(2)
+        };
     }
 
 
     DynamicConstraintLayout.prototype.measure = function(requestedSize)
     {
-        measureSizes.call(this,requestedSize);
+        var children = this.children;
 
+        for (var i=0;i<children.length;i++)
+        {
+            var child = children[i];
+            child._dynamicSize = Vector.fromArray(child.measure().minimumSize);
+        }
+
+        reflow.call(this);
+
+        return measureChildren.call(this,requestedSize);
     };
 
     DynamicConstraintLayout.prototype.layout = function(layoutSize){
 
         for (var i=0;i<this.children.length;i++)
         {
-            this.children[i].layout(this.children[i]._dynamicSize.toArray(2));
+            var child = this.children[i];
+            child.layout(child._dynamicSize.toArray(2));
+
+            if (child._dynamicPosition)
+                child._dynamicOffset = child._dynamicPosition.sub(Vector.fromArray(child.position));
         }
 
         PositionableView.prototype.layout.call(this,layoutSize);

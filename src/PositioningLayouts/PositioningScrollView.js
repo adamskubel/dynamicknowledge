@@ -39,6 +39,12 @@ define(function(require, exports, module) {
     PositioningScrollView.prototype = Object.create(PositionableView.prototype);
     PositioningScrollView.prototype.constructor = PositioningScrollView;
 
+
+    PositioningScrollView.prototype.childControlsPosition = function()
+    {
+        return false;
+    };
+
     PositioningScrollView.prototype.calculateChildPosition = function calculateChildPosition(child)
     {
         var parentPosition = Vector.fromArray(this.calculatePosition());

@@ -13,6 +13,7 @@ define(function(require,exports,module){
 
     var ObjectEditModule = require('Modules/ObjectEditModule');
     var DynamicObject = require('Model/DynamicObject');
+    var DynamicConstraintLayout = require('PositioningLayouts/DynamicConstraintLayout');
 
     var AnnotationController = require('Controllers/AnnotationController');
     var AnnotationContainer = require('Model/AnnotationContainer');
@@ -64,9 +65,13 @@ define(function(require,exports,module){
             if (this.menuBar)
                 this.menuBar.hide();
 
-        if (this.objectEditor)
-            this.objectEditor.hide();
+            if (this.objectEditor)
+                this.objectEditor.hide();
+
+            if (this.containerObjectEditor)
+                this.containerObjectEditor.hide();
         }
+
 
         for (var i=0;i<this.controllers.length;i++)
         {
@@ -83,10 +88,8 @@ define(function(require,exports,module){
             editors.push("position");
         }
 
-        if (!parentConfig || parentConfig.depth == 0)
-        {
-            editors.push("add");
-        }
+        editors.push("add");
+
 
         if (!parentConfig)
         {
@@ -228,6 +231,7 @@ define(function(require,exports,module){
         //console.debug("Enabling editor '" + editorName + "' for object " + this.objectDef.id);
         var menuBar = _getObject.call(this,"menuBar");
         var editor =  _getObject.call(this,"objectEditor");
+        var containerEditor =  _getObject.call(this,"objectEditor_container");
 
         switch (editorName)
         {
@@ -236,18 +240,30 @@ define(function(require,exports,module){
                 {
                     this.objectDef.properties.set("position", this.objectView.position);
                 }.bind(this));
+                editor.show();
+
+                if (this.containerView && this.containerView != this.objectView && this.containerView.parent.childControlsPosition())
+                {
+                    containerEditor.onObjectMoved(function ()
+                    {
+                        //this.objectDef.properties.set("position", this.containerView.position);
+                    }.bind(this));
+                    containerEditor.show();
+                }
                 break;
             case "size":
                 editor.onObjectResized(function ()
                 {
                     this.objectDef.properties.set("size", this.objectView.position);
                 }.bind(this));
+                editor.show();
                 break;
             case "delete":
                 editor.onObjectDelete(function ()
                 {
                     ;
                 }.bind(this));
+                editor.show();
                 break;
             case "add":
                 var addButton = _getObject.call(this,"addObjectButton");
@@ -271,8 +287,6 @@ define(function(require,exports,module){
                 console.error("Editor '" + editorName + "' is not allowed");
                 break;
         }
-
-        this.objectEditor.show();
     };
 
     function injectView(container,objectView)
@@ -297,7 +311,7 @@ define(function(require,exports,module){
     
     function _makeContainerView()
     {
-        var dc = new DynamicContainer();
+        var dc = new DynamicConstraintLayout();
 
         var containerBackground = new BoxView({
             color: 2000,
@@ -434,7 +448,13 @@ define(function(require,exports,module){
             case "objectEditor":
                 if (!this.objectEditor)
                     this.objectEditor = new ObjectEditModule(this.objectView);
-                return this.objectEditor;
+                return this.objectEditor
+            case "objectEditor_container":
+                if (!this.containerView)
+                    return null;
+                if (!this.containerObjectEditor)
+                    this.containerObjectEditor = new ObjectEditModule(this.containerView);
+                return this.containerObjectEditor;
             default:
                 console.error("Can't make object '" + name + "'");
                 return undefined;
@@ -446,8 +466,9 @@ define(function(require,exports,module){
         var newObj = new AccessInspector();
         var model = gapi.drive.realtime.custom.getModel(this.objectDef);
         var objDef = DynamicObject.create(model,'AccessInspector','predef');
-        var newController = new DynamicObjectController(objDef,newObj, this._modelLoader);
-        this.addController(newController);
+        
+        //var newController = new DynamicObjectController(objDef,newObj, this._modelLoader);
+        //this.addController(newController);
     }
 
     //Connection stuff

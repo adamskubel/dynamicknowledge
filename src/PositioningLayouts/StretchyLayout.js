@@ -38,6 +38,12 @@ define(function(require, exports, module) {
         positionTransition: {duration:5000, curve: Easing.outQuad}
     };
 
+    StretchyLayout.prototype.childControlsPosition = function()
+    {
+        return false;
+    };
+
+
     StretchyLayout.prototype.removeChild = function(view)
     {
         var r = this.children.indexOf(view);
@@ -289,7 +295,10 @@ define(function(require, exports, module) {
 
         var uniqueSortedWeights = [];
         for (var aw in weightSet)
-            uniqueSortedWeights.push(aw);
+        {
+            if (weightSet.hasOwnProperty(aw))
+                uniqueSortedWeights.push(aw);
+        }
 
 		uniqueSortedWeights = uniqueSortedWeights.sort(function (a, b)
 		{
