@@ -289,7 +289,6 @@ define(function(require, exports, module) {
         }
 
         this.setText(this._text);
-
     };
 
     BoxView.prototype.getText = function()

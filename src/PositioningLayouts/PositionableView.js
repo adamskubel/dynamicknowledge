@@ -48,9 +48,6 @@ define(function (require, exports, module)
             this.alignState = new Transitionable(this.viewAlign);
 
         this.opacityState = new Transitionable(1);
-
-
-        //console.debug("Created " + id);
     }
 
     PositionableView.prototype = Object.create(View.prototype);

@@ -14,10 +14,9 @@ define(function(require, exports, module)
     var PositionableView = require("PositioningLayouts/PositionableView");
     var ObjectFactory = require('ObjectFactory');
     var BoxView = require('PositioningLayouts/BoxView');
-    var PositioningFlex = require('PositioningLayouts/PositioningFlexibleLayout');
 
     var Utils = require('Utils');
-
+    var PageTableEntry = require('intrinsics/PageTableEntry');
 
     var labelHeight = 30;
 
@@ -28,10 +27,10 @@ define(function(require, exports, module)
 
         this.memConfig = this.options.memConfig;
         this.setSize(this.options.size);
-        _init.call(this);
+
         _addEventBoxes.call(this);
 
-        this.on('Access',_onAccessEvent.bind(this));
+        this._eventInput.on('Access',_onAccessEvent.bind(this));
     }
 
     PageLookupTable.DEFAULT_OPTIONS = {
@@ -46,38 +45,29 @@ define(function(require, exports, module)
     PageLookupTable.prototype= Object.create(StretchyLayout.prototype);
     PageLookupTable.prototype.constructor = PageLookupTable;
 
+
+    PageLookupTable.prototype.setController = function(controller){
+        this.controller = controller;
+        _init.call(this);
+    };
+
     function _init(){
 
         this.cells = {};
-
-        function makePageAddress(num1,num2)
-        {
-            var pageAddress = new PositioningFlex({
-                direction: 0,
-                ratios:[0.5,0.6],
-                size: [120,30]
-            });
-
-            var s = new BoxView({text: Utils.hexString(num1,5)});
-            pageAddress.addChild(s);
-
-            var s2 = new BoxView({text: Utils.hexString(num2,5)});
-            pageAddress.addChild(s2);
-
-            pageAddress._pageIndex = s;
-            pageAddress._frameNumber = s2;
-            pageAddress._pfnValue = num2;
-
-            return pageAddress;
-        }
 
         var startPage = this.options.startPage;
         var pageCount = this.options.pageMappings.length;
 
         for (var i = 0; i < pageCount; i++)
         {
-            var pageCell = makePageAddress(startPage + i,this.options.pageMappings[i]);
+            var pfn = this.options.pageMappings[i];
+            var index = startPage + i;
+
+            var pageCell = new PageTableEntry({pfn:pfn});
             this.addChild(pageCell);
+
+            this.controller.addDynamicObject("PTE_" + Utils.hexString(pfn), pageCell);
+
             this.cells[startPage + i] = pageCell;
         }
     }
@@ -97,7 +87,7 @@ define(function(require, exports, module)
         var cell =this.cells[data.pageIndex];
         if (cell)
         {
-            cell._pageIndex.pulse(50,500);
+            cell.access();
             //return cell._pfnValue;
         }
         else

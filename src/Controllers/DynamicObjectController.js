@@ -18,6 +18,7 @@ define(function(require,exports,module){
 	var AnnotationController = require('Controllers/AnnotationController');
 	var AnnotationContainer = require('Model/AnnotationContainer');
 
+    var Connection = require('Model/Connection');
 	var Utils = require('Utils');
 
 	function DynamicObjectController(objectDef, objectView, modelLoader)
@@ -25,14 +26,35 @@ define(function(require,exports,module){
 		this.objectView = objectView;
 		this.objectDef = objectDef;
 		this.controllers = [];
-		this._gapiModel = gapi.drive.realtime.custom.getModel(this.objectDef);
+		this.gapiModel = gapi.drive.realtime.custom.getModel(this.objectDef);
 		this.modelLoader = modelLoader;
 		this.state = 'base';
 
+        this.objectView.modelId = this.objectDef.id;
+
 		var pmap = Utils.getPropertyMap(objectDef.properties);
+
+        if (objectView.setController)
+            objectView.setController(this);
+
 		objectView.applyProperties(pmap);
 		_attachModel.call(this,objectDef);
 	}
+
+
+    DynamicObjectController.prototype.addDynamicObject = function(name, view)
+    {
+        var model = this.modelLoader.getObjectDef(name);
+
+        if (!model)
+        {
+            model = DynamicObject.create(this.gapiModel,name,"generated");
+            this.modelLoader.addObject(name,model);
+        }
+
+        var controller = new DynamicObjectController(model,view,this.modelLoader);
+        this.addController(controller);
+    };
 
 	DynamicObjectController.prototype.addController = function(controller)
 	{
@@ -82,6 +104,22 @@ define(function(require,exports,module){
 			this.controllers[i].setEditMode(editMode,childConfig);
 		}
 	};
+
+    function _viewConnected(data)
+    {
+        var fromView = data.from;
+        var toView = data.to;
+
+        var connection = Connection.create(this.gapiModel,this.modelLoader.nextObjectId("Connection"));
+
+        connection.type = data.type;
+        connection.from = fromView.modelId;
+        connection.to = toView.modelId;
+
+        this.objectDef.relationships.push(connection);
+
+        console.debug("Creating connection relationship: '" + connection.from + "' -> '" + connection.to + "'");
+    }
 
 	function _getEditableProperties(parentConfig)
 	{
@@ -178,14 +216,14 @@ define(function(require,exports,module){
 		return outputs;
 	};
 
-	DynamicObjectController.prototype.getInputs = function()
+	DynamicObjectController.prototype.getInputs = function(name)
 	{
 		var inputs = [];
 		for (var i=0;i<this.controllers.length;i++)
 		{
 			if (this.controllers[i].getInputs)
 			{
-				var c = this.controllers[i].getInputs();
+				var c = this.controllers[i].getInputs(name);
 				if (c instanceof Array)
 				{
 					for (var j=0;j< c.length;j++)
@@ -198,8 +236,12 @@ define(function(require,exports,module){
 
 		if (this.objectView.getInputEvents)
 		{
-			inputs.push(this.objectView.getInputEvents());
+			var objectInputs = this.objectView.getInputEvents();
+
+            if (!name || objectInputs[name])
+                inputs.push(objectInputs);
 		}
+
 
 		return inputs;
 	};
@@ -265,6 +307,40 @@ define(function(require,exports,module){
 
 			this.addController(ac);
 		}
+        else if (relationship instanceof Connection)
+        {
+            console.debug("Adding connection relationship: '" + relationship.from + "' -> '" + relationship.to + "'");
+            var fromView = this.modelLoader.getObject(relationship.from).objectView;
+            var toView = this.modelLoader.getObject(relationship.to).objectView;
+
+            var output = fromView.getOutputEvents()[relationship.type];
+            var input = toView.getInputEvents()[relationship.type];
+
+            if (output && input)
+            {
+                fromView.pipe(toView);
+
+                var connectionLine = new LineCanvas();
+                connectionLine.parent = this.getView();
+                this.getView().add(connectionLine.getModifier()).add(connectionLine.getRenderController());
+
+                console.log("Binding to " + input._globalId);
+                output.parent.on('positionChange', function (){
+                    output._eventOutput.emit('positionChange');
+                });
+
+                input.parent.on('positionChange',function(){
+                    input._eventOutput.emit('positionChange');
+                });
+
+                connectionLine.setLineObjects(output,input);
+            }
+            else
+            {
+                console.error("Can't find event type '" + relationship.type + "' on views");
+            }
+
+        }
 		else if (relationship.type == "List")
 		{
 			for (var x=0;x<relationship.length;x++)
@@ -378,11 +454,11 @@ define(function(require,exports,module){
 	}
 
 	function _addController(controller)
-	{;
+	{
 		//Controller already belongs to this controller's objectview
 		if (controller.getView() && controller.getView().parent == this.objectView)
 		{
-			;
+
 		}
 		//We already added this controller
 		else if (controller.getView() && controller.getView().parent == this.containerView)
@@ -434,7 +510,7 @@ define(function(require,exports,module){
 
 	function _addAnnotationController()
 	{
-		var acDef = AnnotationContainer.create(this._gapiModel,this.modelLoader.nextObjectId("AC"));
+		var acDef = AnnotationContainer.create(this.gapiModel,this.modelLoader.nextObjectId("AC"));
 		this.objectDef.relationships.push(acDef);
 		_getObject.call(this,"menuBar").removeChild(this.annotateButton);
 	}
@@ -499,7 +575,7 @@ define(function(require,exports,module){
 			case "objectEditor":
 				if (!this.objectEditor)
 					this.objectEditor = new ObjectEditModule(this.objectView);
-				return this.objectEditor
+				return this.objectEditor;
 			case "objectEditor_container":
 				if (!this.containerView)
 					return null;
@@ -545,8 +621,8 @@ define(function(require,exports,module){
 			var out = outputs[i];
 			for (var name in out)
 			{
-				console.log("Adding line drawing to anchor with name: " + name);
-				_addLineDrawingToAnchor.call(this, out[name],getInputs(name));
+                if (!out.hasOwnProperty(name)) continue;
+                _addLineDrawingToAnchor.call(this, out[name], getInputs(name), name);
 			}
 		}
 	}
@@ -580,7 +656,7 @@ define(function(require,exports,module){
 		});
 	}
 
-	function _addLineDrawingToAnchor(sourceAnchor, destinations)
+	function _addLineDrawingToAnchor(sourceAnchor, destinations, connectionName)
 	{
 		var parentView = this.getView();
 
@@ -591,10 +667,9 @@ define(function(require,exports,module){
 		});
 
 		var line = new LineCanvas();
-		parentView.add(line.getModifier()).add(line);
+		parentView.add(line.getModifier()).add(line.getRenderController());
 
-		sourceAnchor.activeLine = line;
-		sourceAnchor.activeLine.parent = parentView;
+		line.parent = parentView;
 
 		lineSync.on('start', function (data)
 		{
@@ -605,7 +680,7 @@ define(function(require,exports,module){
 		lineSync.on('update', function (data)
 		{
 			sourceAnchor.activeLineEnd = Vector.fromArray(data.delta).add(sourceAnchor.activeLineEnd);
-			sourceAnchor.activeLine.setLinePoints(sourceAnchor.calculatePosition(parentView), sourceAnchor.activeLineEnd.toArray());
+			line.setLinePoints(sourceAnchor.calculatePosition(parentView), sourceAnchor.activeLineEnd.toArray());
 		});
 
 		lineSync.on('end', function (data)
@@ -613,21 +688,11 @@ define(function(require,exports,module){
             var destAnchor = sourceAnchor.activeReceiver;
 			if (destAnchor)
 			{
-				console.log("Binding to " + destAnchor._globalId);
-				sourceAnchor.parent.on('positionChange', function (){
-					sourceAnchor._eventOutput.emit('positionChange');
-				});
-
-                destAnchor.parent.on('positionChange',function(){
-                    destAnchor._eventOutput.emit('positionChange');
-                });
-
-                sourceAnchor.parent._eventOutput.emit('connected',{ from:sourceAnchor.parent, to:destAnchor.parent});
-
-				sourceAnchor.activeLine.setLineObjects(sourceAnchor, destAnchor);
+                _viewConnected.call(this,{ from:sourceAnchor.parent, to:destAnchor.parent, type: connectionName});
 			}
+            line.hide();
 			sourceAnchor._eventOutput.emit('draw_end', destAnchor);
-		});
+        }.bind(this));
 
 		sourceAnchor.backSurface.pipe(lineSync);
 		sourceAnchor.textSurface.pipe(lineSync);

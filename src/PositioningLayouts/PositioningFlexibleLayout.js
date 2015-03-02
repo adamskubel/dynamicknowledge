@@ -41,7 +41,6 @@ define(function(require, exports, module) {
 
         var index = this._nodes.indexOf(child);
 
-
         var dir = this.options.direction;
         var myOffset = [0,0];
         for (var i=0;i<index;i++)
@@ -50,15 +49,7 @@ define(function(require, exports, module) {
             myOffset[dir] += cellSize[dir];
         }
         
-        var childPosition = [parentPosition[0]+myOffset[0],parentPosition[1]+myOffset[1]];
-        
-      
-        //console.log('Index = ' + index);
-        //console.log('CellSize: ' + cellSize);
-        //console.log('Offset: ' +  myOffset);
-
-
-        return childPosition;
+        return [parentPosition[0]+myOffset[0],parentPosition[1]+myOffset[1]];
     };
 
     PositioningFlexibleLayout.prototype.calculateChildSize = function calculateChildSize(child) {

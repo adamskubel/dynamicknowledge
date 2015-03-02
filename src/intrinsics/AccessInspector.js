@@ -4,6 +4,7 @@ define(function(require,exports,module){
 
     var BoxView = require('PositioningLayouts/BoxView');
     var Colors = require('Colors');
+    var Utils = require('Utils');
 
     AccessInspector.prototype = Object.create(BoxView.prototype);
     AccessInspector.prototype.constructor = AccessInspector;
@@ -19,7 +20,7 @@ define(function(require,exports,module){
 
         BoxView.call(this,config);
 
-        this.on('Access',_onAccessEvent.bind(this));
+        this._eventInput.on('Access',_onAccessEvent.bind(this));
 
         _addEventBoxes.call(this);
     }
@@ -38,7 +39,7 @@ define(function(require,exports,module){
 
     function _onAccessEvent(data)
     {
-        this.setText(data.address);
+        this.setText(Utils.hexString(data.address,8));
         this._eventOutput.emit('Access',{
             address:data.address,
             pageIndex:(data.address >>> 12)

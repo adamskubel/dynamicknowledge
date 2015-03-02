@@ -8,6 +8,7 @@ define(function(require,exports,module){
     var LabelController = require('Controllers/LabelController');
     var Vector = require('ProperVector');
     var AccessInspector = require('Intrinsics/AccessInspector');
+    var Connection = require('Model/Connection');
 
     function ModelLoader(_gapiModel, _objectRegistry){
         this.objectRegistry = _objectRegistry;
@@ -36,6 +37,7 @@ define(function(require,exports,module){
         Label.registerGAPI();
         AnnotationContainer.registerGAPI();
         DynamicObject.registerGAPI();
+        Connection.registerGAPI();
     };
 
     ModelLoader.prototype.getObject = function(objectId){
@@ -116,6 +118,11 @@ define(function(require,exports,module){
                     default:
                         console.error("Unknown type '" + name + "'");
                 }
+            }
+            //Object already exists in model, just make the controller
+            else if (objectDef.type == "generated")
+            {
+                ;
             }
             else
             {

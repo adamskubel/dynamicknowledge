@@ -319,7 +319,8 @@ define(function (require, exports, module)
             var newAddr = Math.round(0xA0000000+(0x2FFF*((ypos-220)/200)));
             virtualBlock._memAddress = newAddr;
             virtualMemorySpace._eventOutput.emit('Access',{address:newAddr});
-            //virtualBlock.setText(Utils.hexString(newAddr,8));
+
+            virtualBlock.setText(Utils.hexString(newAddr,8));
             //var pageNum = pageTable.access(virtualBlock._memAddress >>> 12);
             //
             //var address = (pageNum << 12) + (virtualBlock._memAddress & 0xFFF);
