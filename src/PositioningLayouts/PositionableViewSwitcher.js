@@ -121,6 +121,11 @@ define(function(require,exports,module){
             return false;
     };
 
+    PositionableViewSwitcher.prototype.getEditors = function()
+    {
+
+    };
+
     module.exports = PositionableViewSwitcher;
 
 });

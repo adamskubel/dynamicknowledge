@@ -412,6 +412,9 @@ define(function(require,exports,module){
 				if (menuBar.indexOfChild(annotateButton) < 0)
 					menuBar.addChild(annotateButton);
 				break;
+            case "objectSpecific":
+                
+                break;
 			default:
 				console.error("Editor '" + editorName + "' is not allowed");
 				break;
