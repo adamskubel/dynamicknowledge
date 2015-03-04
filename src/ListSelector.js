@@ -37,7 +37,6 @@ define(function(require,exports,module){
             viewOrigin:[0,1]
         });
 
-
         this.add(listView.getModifier()).add(listView.getRenderController(true));
 
         this.listView = listView;

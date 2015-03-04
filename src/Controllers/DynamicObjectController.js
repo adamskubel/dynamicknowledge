@@ -85,15 +85,22 @@ define(function(require,exports,module){
 
 		if (editMode == "IsEditing")
 		{
-			var myEditors = _getEditableProperties.call(this,editConfig);
+            var showEditors = function()
+            {
+                var myEditors = _getEditableProperties.call(this, editConfig);
 
-			for (var e=0;e<myEditors.length;e++)
-			{
-				_enableEditor.call(this,myEditors[e]);
-			}
+                for (var e = 0; e < myEditors.length; e++)
+                {
+                    _enableEditor.call(this, myEditors[e]);
+                }
 
-			childConfig = this.makeChildEditConfig(editConfig);
-			this._activeChildEditConfig = childConfig;
+                childConfig = this.makeChildEditConfig(editConfig);
+                this._activeChildEditConfig = childConfig;
+            }.bind(this);
+
+            var editButton = _getObject.call(this,"editButton");
+            editButton.on('click',showEditors);
+            editButton.show();
 		}
 		else
 		{
@@ -638,6 +645,17 @@ define(function(require,exports,module){
 				if (!this.containerObjectEditor)
 					this.containerObjectEditor = new ObjectEditModule(this.containerView);
 				return this.containerObjectEditor;
+            case "editButton":
+                if (!this.editButton)
+                {
+                    this.editButton = new BoxView({
+                        size: [undefined, undefined],
+                        clickable: true,
+                        color: Colors.EditColor,
+
+                    });
+                }
+                return this.editButton;
 			default:
 				console.error("Can't make object '" + name + "'");
 				return undefined;
