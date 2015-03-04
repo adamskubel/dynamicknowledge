@@ -32,6 +32,7 @@ define(function(require,exports,module){
     function _buildViews()
     {
         this.addView("AddressOnly",_makeAddressView(this.options.pfn));
+        this.addView("View2",_makeAddressView(this.options.pfn*2));
 
     }
 

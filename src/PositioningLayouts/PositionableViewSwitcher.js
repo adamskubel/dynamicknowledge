@@ -1,6 +1,8 @@
-define(function(require,exports,module){
+define(function(require,exports,module)
+{
 
     var PositionableView = require('./PositionableView');
+    var ListSelector = require('ListSelector');
 
     function PositionableViewSwitcher(options)
     {
@@ -28,7 +30,7 @@ define(function(require,exports,module){
         return this.activeView.calculateChildPosition();
     };
 
-    PositionableViewSwitcher.prototype.addView = function(name,view)
+    PositionableViewSwitcher.prototype.addView = function (name, view)
     {
         if (!this.viewMap[name])
         {
@@ -43,7 +45,7 @@ define(function(require,exports,module){
         }
     };
 
-    PositionableViewSwitcher.prototype.setActiveView = function(name)
+    PositionableViewSwitcher.prototype.setActiveView = function (name)
     {
         if (!name)
         {
@@ -73,7 +75,7 @@ define(function(require,exports,module){
 
     };
 
-    PositionableViewSwitcher.prototype.layout = function(layoutSize)
+    PositionableViewSwitcher.prototype.layout = function (layoutSize)
     {
         if (this.activeView)
         {
@@ -81,10 +83,10 @@ define(function(require,exports,module){
         }
 
         this._layoutDirty = false;
-        PositionableView.prototype.layout.call(this,layoutSize);
+        PositionableView.prototype.layout.call(this, layoutSize);
     };
 
-    PositionableViewSwitcher.prototype.measure = function(requestedSize)
+    PositionableViewSwitcher.prototype.measure = function (requestedSize)
     {
         if (this.activeView)
             return this.activeView.measure(requestedSize);
@@ -94,24 +96,24 @@ define(function(require,exports,module){
         }
     };
 
-    PositionableViewSwitcher.prototype.applyProperties = function(properties)
+    PositionableViewSwitcher.prototype.applyProperties = function (properties)
     {
         if (properties.activeViewName)
             this.setActiveView(properties.activeViewName);
 
-        PositionableView.prototype.applyProperties.call(this,properties);
+        PositionableView.prototype.applyProperties.call(this, properties);
     };
 
 
-    PositionableViewSwitcher.prototype.storeProperties = function(properties)
+    PositionableViewSwitcher.prototype.storeProperties = function (properties)
     {
         properties.activeViewName = this.activeViewName;
 
 
-        PositionableView.prototype.storeProperties.call(this,properties);
+        PositionableView.prototype.storeProperties.call(this, properties);
     };
 
-    PositionableViewSwitcher.prototype.needsLayout = function()
+    PositionableViewSwitcher.prototype.needsLayout = function ()
     {
         if (PositionableView.prototype.needsLayout.call(this))
             return true;
@@ -123,8 +125,69 @@ define(function(require,exports,module){
 
     PositionableViewSwitcher.prototype.getEditors = function()
     {
-
+        var editors = PositionableView.prototype.getEditors.call(this);
+        editors.push(new SwitcherEditor(this));
+        return editors;
     };
+
+
+    function SwitcherEditor(view)
+    {
+        this.view = view;
+    }
+
+    SwitcherEditor.prototype.createUI = function(editContext)
+    {
+        //editContext.globalMenu
+        //editContext.objectMenu
+        //editContext.viewMenu
+
+        editContext.viewMenu.addChild(this.makeSelector());
+        this.activeContext = editContext;
+    };
+
+    SwitcherEditor.prototype.cleanup = function(editContext)
+    {
+        if (this.activeContext && this.selector)
+        {
+            this.activeContext.viewMenu.removeChild(this.selector);
+        }
+    }
+
+    SwitcherEditor.prototype.setModel = function(model,modelState)
+    {
+        this.model = model;
+        this.modelState = modelState;
+    };
+
+    SwitcherEditor.prototype.makeSelector = function()
+    {
+        if (!this.selector)
+        {
+            this.selector = new ListSelector({
+                size:[40,40]
+            });
+
+            var items = [];
+
+            for (var viewName in this.view.viewMap)
+            {
+                items.push(viewName);
+            }
+
+            this.selector.setItems(items);
+            this.selector.setSelectedItem(0);
+            this.selector.on('itemSelected',function(data){
+                this.view.setActiveView(data.item);
+                this.model.getState(this.modelState).properties.set("activeView",data.item);
+            }.bind(this));
+        }
+        return this.selector;
+    };
+
+
+
+
 
     module.exports = PositionableViewSwitcher;
 

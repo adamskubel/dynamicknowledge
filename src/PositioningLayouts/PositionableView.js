@@ -290,7 +290,14 @@ define(function (require, exports, module)
     PositionableView.prototype.setOpacity = function (opacity)
     {
         this.opacityState.set(opacity, this.opacityTransition);
-    }
+    };
+
+    PositionableView.prototype.getEditors = function()
+    {
+        var editors = [];
+
+        return editors;
+    };
 
     module.exports = PositionableView;
 });	

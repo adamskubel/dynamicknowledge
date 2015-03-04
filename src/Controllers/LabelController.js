@@ -33,7 +33,6 @@ define(function(require,exports,module){
     LabelController.prototype.setEditMode = function(editMode)
     {
         this.editMode = editMode;
-        console.log("Label edit mode set to " + editMode);
 
         if (this.view)
         {

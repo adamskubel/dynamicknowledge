@@ -68,6 +68,10 @@ define(function(require,exports,module){
         return newState;
     };
 
+    DynamicObject.prototype.hasState = function(stateId){
+        return this.stateMap.has(stateId);
+    };
+
     DynamicObject.prototype.getState = function(stateId){
         return this.stateMap.get(stateId);
     };

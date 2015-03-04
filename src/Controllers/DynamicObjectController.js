@@ -7,6 +7,8 @@ define(function(require,exports,module){
 	var Vector = require('ProperVector');
 	var LineCanvas = require('LineCanvas');
 	var Colors = require('Colors');
+    var Transform = require('famous/core/Transform');
+    var Modifier = require('famous/core/Modifier');
 
 	var PSequenceView = require('PositioningLayouts/PSequenceView');
 	var AccessInspector = require('intrinsics/AccessInspector');
@@ -17,6 +19,8 @@ define(function(require,exports,module){
 
 	var AnnotationController = require('Controllers/AnnotationController');
 	var AnnotationContainer = require('Model/AnnotationContainer');
+
+    var Surface = require('famous/core/Surface');
 
     var Connection = require('Model/Connection');
 	var Utils = require('Utils');
@@ -50,6 +54,11 @@ define(function(require,exports,module){
         {
             model = DynamicObject.create(this.gapiModel,name,"generated");
             this.modelLoader.addObject(name,model);
+        }
+        if (!model.hasState(this.state))
+        {
+            console.log("Adding current state '" + this.state + "' to generated model");
+            model.createState(this.state);
         }
 
         var controller = new DynamicObjectController(model,view,this.modelLoader);
@@ -96,6 +105,8 @@ define(function(require,exports,module){
 
 			if (this.containerObjectEditor)
 				this.containerObjectEditor.hide();
+
+            _cleanupObjectEditors.call(this);
 		}
 
 
@@ -128,23 +139,25 @@ define(function(require,exports,module){
 		if (this.parent)
 			editors.push("position");
 
-		editors.push("add");
+		//editors.push("add");
+        //
+		//if (!parentConfig)
+		//	editors.push("connect");
+        //
+		//var hasAnnotationController = false;
+		//for (var i=0;i<this.controllers.length;i++)
+		//{
+		//	if (this.controllers[i] instanceof AnnotationController)
+		//	{
+		//		hasAnnotationController = true;
+		//		break;
+		//	}
+		//}
+        //
+		//if (!hasAnnotationController && this.parent)
+		//	editors.push("annotate");
 
-		if (!parentConfig)
-			editors.push("connect");
-
-		var hasAnnotationController = false;
-		for (var i=0;i<this.controllers.length;i++)
-		{
-			if (this.controllers[i] instanceof AnnotationController)
-			{
-				hasAnnotationController = true;
-				break;
-			}
-		}
-
-		if (!hasAnnotationController && this.parent)
-			editors.push("annotate");
+        editors.push("objectSpecific");
 
 		return editors;
 	}
@@ -355,6 +368,36 @@ define(function(require,exports,module){
 		}
 	}
 
+    function _loadObjectEditors(menuBar)
+    {
+        if (this.objectView && this.objectView.getEditors)
+        {
+            console.log("Loading object editors");
+            var editors = this.objectView.getEditors();
+            for (var i=0;i<editors.length;i++)
+            {
+                var editor = editors[i];
+                editor.createUI({
+                    viewMenu:menuBar
+                });
+
+                editor.setModel(this.objectDef,this.state);
+            }
+            this.activeEditors = editors;
+        }
+    }
+
+    function _cleanupObjectEditors()
+    {
+        if (this.activeEditors)
+        {
+            for (var i=0;i<this.activeEditors.length;i++)
+            {
+                this.activeEditors[i].cleanup();
+            }
+        }
+    }
+
 	function _enableEditor(editorName)
 	{
 		//console.debug("Enabling editor '" + editorName + "' for object " + this.objectDef.id);
@@ -413,7 +456,8 @@ define(function(require,exports,module){
 					menuBar.addChild(annotateButton);
 				break;
             case "objectSpecific":
-                
+                _loadObjectEditors.call(this,menuBar);
+                this.menuBar.show();
                 break;
 			default:
 				console.error("Editor '" + editorName + "' is not allowed");
@@ -527,7 +571,7 @@ define(function(require,exports,module){
 				{
 					var addObjectButton = new BoxView({
 						text: "+", size: [40, 40], clickable: true, color: Colors.EditColor,
-						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
 					});
 					addObjectButton.on('click', _addObject.bind(this));
 					this.addObjectButton = addObjectButton;
@@ -538,7 +582,7 @@ define(function(require,exports,module){
 				{
 					var addConnectionButton = new BoxView({
 						text: ">>", size: [40, 40], clickable: true, color: Colors.EditColor,
-						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
 					});
 					addConnectionButton.on('click', _showConnections.bind(this));
 					this.addConnectionButton = addConnectionButton;
@@ -549,7 +593,7 @@ define(function(require,exports,module){
 				{
 					var annotateButton = new BoxView({
 						text: "[A]", size: [40, 40], clickable: true, color: Colors.EditColor,
-						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
 					});
 					annotateButton.on('click', _addAnnotationController.bind(this));
 					this.annotateButton = annotateButton;
@@ -560,8 +604,17 @@ define(function(require,exports,module){
 				{
 					var menuBar = new PSequenceView({
 						direction: 0,
-						size: [200, 40]
+						size: [200, 40],
+                        position:[0,0,5],
+                        viewAlign:[0,0],
+                        viewOrigin:[0,1]
 					});
+
+                    menuBar.add(new Modifier({transform:Transform.translate(0,0,-1)})).add(new Surface({
+                        properties:{
+                            backgroundColor : Colors.get([0,0,0],0.5)
+                        }
+                    }));
 
 					if (this.containerView)
 					{

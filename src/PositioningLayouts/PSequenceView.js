@@ -120,6 +120,14 @@ define(function(require, exports, module) {
         child.parent = this;
     };
 
+    PSequenceView.prototype.clearChildren = function()
+    {
+        for (var i=0;i<this.children.length;i++)
+        {
+            this.removeChild(this.children[i]);
+        }
+    };
+
     PSequenceView.prototype.removeChild = function(view)
     {
         var r = this.indexOfChild(view);
