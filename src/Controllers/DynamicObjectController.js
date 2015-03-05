@@ -85,6 +85,8 @@ define(function(require,exports,module){
 
 		if (editMode == "IsEditing")
 		{
+            var editButton = _getObject.call(this,"editButton");
+
             var showEditors = function()
             {
                 var myEditors = _getEditableProperties.call(this, editConfig);
@@ -96,10 +98,10 @@ define(function(require,exports,module){
 
                 childConfig = this.makeChildEditConfig(editConfig);
                 this._activeChildEditConfig = childConfig;
-            }.bind(this);
+                editButton.hide();
+            };
 
-            var editButton = _getObject.call(this,"editButton");
-            editButton.on('click',showEditors);
+            editButton.on('click',showEditors.bind(this));
             editButton.show();
 		}
 		else
@@ -652,8 +654,10 @@ define(function(require,exports,module){
                         size: [undefined, undefined],
                         clickable: true,
                         color: Colors.EditColor,
-
+                        position:[0,0,10]
                     });
+
+                    this.getView().add(this.editButton.getModifier()).add(this.editButton.getRenderController());
                 }
                 return this.editButton;
 			default:
