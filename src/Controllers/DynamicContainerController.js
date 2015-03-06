@@ -1,56 +1,25 @@
 define(function(require,exports,module){
 
     var AbstractObjectController = require('./AbstractObjectController');
+    var DynamicConstraintLayout = require('PositioningLayouts/DynamicConstraintLayout');
+    var BoxView = require('PositioningLayouts/BoxView');
 
     function DynamicContainerController()
     {
-
+        this.containerView = _makeContainerView();
     }
 
     DynamicContainerController.prototype = Object.create(AbstractObjectController.prototype);
     DynamicContainerController.prototype.constructor = DynamicContainerController;
 
-    DynamicContainerController.prototype.getOutputs = function()
-    {
-        var outputs = [];
-        for (var i=0;i<this.controllers.length;i++)
-        {
-            if (this.controllers[i].getOutputs)
-            {
-                var c = this.controllers[i].getOutputs();
-                if (c instanceof Array)
-                {
-                    for (var j=0;j< c.length;j++)
-                        outputs.push(c[j]);
-                }
-                else if (c)
-                    outputs.push(c);
-            }
-        }
 
-        return outputs;
+
+    DynamicContainerController.prototype.getView = function()
+    {
+        return this.containerView;
     };
 
-    DynamicContainerController.prototype.getInputs = function(name)
-    {
-        var inputs = [];
-        for (var i=0;i<this.controllers.length;i++)
-        {
-            if (this.controllers[i].getInputs)
-            {
-                var c = this.controllers[i].getInputs(name);
-                if (c instanceof Array)
-                {
-                    for (var j=0;j< c.length;j++)
-                        inputs.push(c[j]);
-                }
-                else if (c)
-                    inputs.push(c);
-            }
-        }
 
-        return inputs;
-    };
 
 
     function _makeContainerView()
@@ -66,6 +35,17 @@ define(function(require,exports,module){
         dc.add(containerBackground.getModifier()).add(containerBackground.getRenderController());
 
         return dc;
+    }
+
+    function _makeEditor(name)
+    {
+        switch(name)
+        {
+            case "add":
+                return new ObjectCreationModule(this.objectDef);
+            case "connect":
+                return new LineConnectionModule();
+        }
     }
 
 

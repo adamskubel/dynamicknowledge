@@ -19,6 +19,21 @@ define(function(require,exports,module){
 
     };
 
+    function _viewConnected(data)
+    {
+        var fromView = data.from;
+        var toView = data.to;
+
+        var connection = Connection.create(this.gapiModel,this.modelLoader.nextObjectId("Connection"));
+
+        connection.type = data.type;
+        connection.from = fromView.modelId;
+        connection.to = toView.modelId;
+
+        this.objectDef.relationships.push(connection);
+
+        console.debug("Creating connection relationship: '" + connection.from + "' -> '" + connection.to + "'");
+    }
 
     //Connection stuff
     function _showConnections()

@@ -10,43 +10,30 @@ define(function(require,exports,module){
     var Transform = require('famous/core/Transform');
     var Modifier = require('famous/core/Modifier');
 
-	var PSequenceView = require('PositioningLayouts/PSequenceView');
 	var AccessInspector = require('intrinsics/AccessInspector');
 
 	var ObjectEditModule = require('Modules/ObjectEditModule');
 	var DynamicObject = require('Model/DynamicObject');
-	var DynamicConstraintLayout = require('PositioningLayouts/DynamicConstraintLayout');
-
-	var AnnotationController = require('Controllers/AnnotationController');
-	var AnnotationContainer = require('Model/AnnotationContainer');
-
     var Surface = require('famous/core/Surface');
-
     var Connection = require('Model/Connection');
 	var Utils = require('Utils');
 
     var AbstractObjectController = require('./AbstractObjectController');
+    var DynamicContainerController = require('.DynamicContainerController');
 
-	function DynamicObjectController(objectDef, objectView, modelLoader)
+	function DynamicObjectController(objectDef, modelLoader, objectView)
 	{
-        AbstractObjectController.call(this);
+        AbstractObjectController.call(this,objectDef,modelLoader);
 
-		this.objectView = objectView;
-		this.objectDef = objectDef;
-		this.controllers = [];
-		this.gapiModel = gapi.drive.realtime.custom.getModel(this.objectDef);
-		this.modelLoader = modelLoader;
-		this.state = 'base';
-
+        this.objectView = objectView;
         this.objectView.modelId = this.objectDef.id;
 
-		var pmap = Utils.getPropertyMap(objectDef.properties);
+        var pmap = Utils.getPropertyMap(objectDef.properties);
 
         if (objectView.setController)
             objectView.setController(this);
 
-		objectView.applyProperties(pmap);
-		_attachModel.call(this,objectDef);
+        objectView.applyProperties(pmap);
 	}
 
     DynamicObjectController.prototype = Object.create(AbstractObjectController.prototype);
@@ -85,96 +72,56 @@ define(function(require,exports,module){
 			controller.setEditMode(this.editMode,this._activeChildEditConfig);
 	};
 
-	DynamicObjectController.prototype.setEditMode = function(editMode, editConfig)
+    DynamicObjectController.prototype.createEditTrigger = function()
+    {
+        var trigger = new BoxView({
+            size: [10, undefined],
+            clickable: true,
+            color: Colors.EditColor,
+            position:[0,0,10],
+            viewAlign:[0,0.5],
+            viewOrigin:[0,0.5]
+        });
+
+        this.objectView.add(trigger.getModifier()).add(trigger.getRenderController());
+
+        this._activeEditTrigger = trigger;
+
+        return trigger;
+    };
+
+    DynamicObjectController.prototype.destroyEditTrigger = function()
+    {
+        if (this._activeEditTrigger)
+            this._activeEditTrigger.hide();
+    };
+
+	DynamicObjectController.prototype.createEditors = function(editContext)
 	{
-		this.editMode = editMode;
-		var childConfig;
+        var myEditors = _getEditableProperties.call(this, editContext);
 
+        for (var e = 0; e < myEditors.length; e++)
+        {
+            _enableEditor.call(this, myEditors[e]);
+        }
 
+        _loadObjectEditors.call(this);
+    };
 
-		if (editMode == "IsEditing")
-		{
-            var editButton = _getObject.call(this,"editButton");
-            childConfig = this.makeChildEditConfig(editConfig);
+    DynamicObjectController.prototype.destroyEditors = function()
+    {
+        if (this.menuBar)
+            this.menuBar.hide();
 
-            var myEditors = _getEditableProperties.call(this, editConfig);
+        if (this.objectEditor)
+            this.objectEditor.hide();
 
-            for (var e = 0; e < myEditors.length; e++)
-            {
-                _enableEditor.call(this, myEditors[e]);
-            }
+        if (this.editButton)
+            this.editButton.hide();
 
-            _loadObjectEditors.call(this,childConfig);
-
-            this._activeChildEditConfig = childConfig;
-
-            var showEditors = function()
-            {
-                if (this.menuBar)
-                    this.menuBar.show();
-                if (this.menuBar_container)
-                    this.menuBar_container.show();
-                if (this.objectEditor)
-                    this.objectEditor.show();
-                if (this.containerObjectEditor)
-                    this.containerObjectEditor.show();
-
-                editButton.hide();
-            };
-
-            editButton.on('click',showEditors.bind(this));
-            editButton.show();
-
-            for (var i=0;i<this.controllers.length;i++)
-            {
-                this.controllers[i].setEditMode(editMode,childConfig);
-            }
-		}
-		else
-		{
-
-			if (this.menuBar)
-				this.menuBar.hide();
-
-            if (this.menuBar_container)
-                this.menuBar_container.hide();
-
-			if (this.objectEditor)
-				this.objectEditor.hide();
-
-			if (this.containerObjectEditor)
-				this.containerObjectEditor.hide();
-
-            if (this.editButton)
-                this.editButton.hide();
-
-
-            for (var i=0;i<this.controllers.length;i++)
-            {
-                this.controllers[i].setEditMode(editMode,childConfig);
-            }
-
-            _cleanupObjectEditors.call(this);
-		}
-
-
+        _cleanupObjectEditors.call(this);
 	};
 
-    function _viewConnected(data)
-    {
-        var fromView = data.from;
-        var toView = data.to;
-
-        var connection = Connection.create(this.gapiModel,this.modelLoader.nextObjectId("Connection"));
-
-        connection.type = data.type;
-        connection.from = fromView.modelId;
-        connection.to = toView.modelId;
-
-        this.objectDef.relationships.push(connection);
-
-        console.debug("Creating connection relationship: '" + connection.from + "' -> '" + connection.to + "'");
-    }
 
 	function _getEditableProperties(parentConfig)
 	{
@@ -252,10 +199,6 @@ define(function(require,exports,module){
 	};
 
 
-	DynamicObjectController.prototype.getObjectDef = function(){
-		return this.objectDef;
-	};
-
 	DynamicObjectController.prototype.getOutputs = function()
 	{
 		var outputs = AbstractObjectController.prototype.getOutputs.call(this);
@@ -332,69 +275,22 @@ define(function(require,exports,module){
         }
     }
 
-	function _enableEditor(editorName)
+	function _createEditor(editorName)
 	{
-		//console.debug("Enabling editor '" + editorName + "' for object " + this.objectDef.id);
-		var menuBar = _getObject.call(this,"menuBar");
-		var editor =  _getObject.call(this,"objectEditor");
-		var containerEditor =  _getObject.call(this,"objectEditor_container");
-
 		switch (editorName)
 		{
 			case "position":
-				editor.onObjectMoved(function ()
-				{
-					this.objectDef.properties.set("position", this.objectView.position);
-				}.bind(this));
-				editor.hide();
-
-				if (this.containerView && this.containerView != this.objectView && this.containerView.parent.childControlsPosition())
-				{
-					containerEditor.onObjectMoved(function ()
-					{
-						//this.objectDef.properties.set("position", this.containerView.position);
-					}.bind(this));
-					containerEditor.hide();
-				}
-				break;
+				return new PositionEditor(this.objectView,this.objectDef);
 			case "size":
-				editor.onObjectResized(function ()
-				{
-					this.objectDef.properties.set("size", this.objectView.position);
-				}.bind(this));
-				editor.hide();
-				break;
+                return new SizeEditor(this.objectView,this.objectDef);
 			case "delete":
-				editor.onObjectDelete(function ()
-				{
-					;
-				}.bind(this));
-				editor.hide();
-				break;
-			case "add":
-				var addButton = _getObject.call(this,"addObjectButton");
-				if (menuBar.indexOfChild(addButton) < 0)
-					menuBar.addChild(addButton);
 
-				this.menuBar.hide();
-				break;
-			case "connect":
-				var connectButton = _getObject.call(this,"addConnectionButton");
-				if (menuBar.indexOfChild(connectButton) < 0)
-					menuBar.addChild(connectButton);
-				this.menuBar.hide();
-				break;
-			case "annotate":
-				var annotateButton = _getObject.call(this,"annotateButton");
-				if (menuBar.indexOfChild(annotateButton) < 0)
-					menuBar.addChild(annotateButton);
 				break;
 			default:
 				console.error("Editor '" + editorName + "' is not allowed");
 				break;
 		}
 	};
-
 
 
 	function _addController(controller)
@@ -404,145 +300,39 @@ define(function(require,exports,module){
 		{
 
 		}
-		//We already added this controller
-		else if (controller.getView() && controller.getView().parent == this.containerView)
+		//Container Controller
+		else if (controller instanceof DynamicContainerController)
 		{
-			console.warn("Already added controller");
-		}
-		//Controller needs a container
-		else
-		{
-			if (!this.containerView)
-			{
-				this.containerView = _makeContainerView();
-
-				if (this.objectView)
-				{
-					injectView(this.containerView, this.objectView);
-
-					if (this.menuBar)
-					{
-						this.menuBar.hide();
-						this.menuBar = undefined;
-						_getObject.call(this,"menuBar")
-					}
-				}
-			}
-
-			var dc = this.containerView;
-
-			//Controller parasitizes a parent container
-			if (controller.setContainer)
-			{
-				controller.setContainer(dc);
-			}
-			//Controller lives in a parent container
-			else
-			{
-				var controllerView = controller.getView();
-				if (!controllerView)
-					console.error("Controller has null view");
-				else if (controllerView == dc)
-					console.error("Controller's view is my container...");
-				else if (controllerView.parent == dc)
-					console.error("Controller's view already belongs to DC");
-				else
-					dc.addChild(controllerView);
-			}
+            var container = controller.getView();
+            injectView(container, this.objectView);
 		}
 	}
 
-	function _addAnnotationController()
-	{
-		var acDef = AnnotationContainer.create(this.gapiModel,this.modelLoader.nextObjectId("AC"));
-		this.objectDef.relationships.push(acDef);
-		_getObject.call(this,"menuBar").removeChild(this.annotateButton);
-	}
+    function _addContainer()
+    {
+        this.objectDef.relationships.push();
+    }
+
 
 	function _getObject(name)
 	{
 		switch (name)
 		{
-			case "annotateButton":
-				if (!this.annotateButton)
-				{
-					var annotateButton = new BoxView({
-						text: "[A]", size: [40, 40], clickable: true, color: Colors.EditColor,
-						position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
-					});
-					annotateButton.on('click', _addAnnotationController.bind(this));
-					this.annotateButton = annotateButton;
-				}
-				return this.annotateButton;
+			case "containerizeButton":
+                var containerButton = new BoxView({
+                    text: "[A]", size: [40, 40], clickable: true, color: Colors.EditColor,
+                    position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
+                });
+                containerButton.on('click', _addContainer.bind(this));
+				return containerButton;
 			case "menuBar":
 				if (!this.menuBar)
 				{
-					var menuBar = new PSequenceView({
-						direction: 0,
-						size: [200, 40],
-                        position:[0,0,5],
-                        viewAlign:[0,0],
-                        viewOrigin:[0,1]
-					});
-
-                    menuBar.add(new Modifier({transform:Transform.translate(0,0,-1)})).add(new Surface({
-                        properties:{
-                            backgroundColor : Colors.get([0,0,0],0.5)
-                        }
-                    }));
-
+					var menuBar = new MenuBar();
 					this.objectView.add(menuBar.getModifier()).add(menuBar.getRenderController(true));
-
 					this.menuBar = menuBar;
 				}
 				return this.menuBar;
-            case "menuBar_container":
-                if (!this.menuBar_container)
-                {
-                    var containerBar = new PSequenceView({
-                        direction: 0,
-                        size: [200, 40],
-                        position:[0,0,5],
-                        viewAlign:[0,0],
-                        viewOrigin:[0,1]
-                    });
-
-                    containerBar.add(new Modifier({transform:Transform.translate(0,0,-1)})).add(new Surface({
-                        properties:{
-                            backgroundColor : Colors.get([0,0,0],0.5)
-                        }
-                    }));
-
-                    this.containerView.add(containerBar.getModifier()).add(containerBar.getRenderController(true));
-
-                    this.menuBar_container = containerBar;
-                }
-                return this.menuBar_container;
-			case "objectEditor":
-				if (!this.objectEditor)
-					this.objectEditor = new ObjectEditModule(this.objectView);
-				return this.objectEditor;
-			case "objectEditor_container":
-				if (!this.containerView)
-					return null;
-				if (!this.containerObjectEditor)
-					this.containerObjectEditor = new ObjectEditModule(this.containerView);
-				return this.containerObjectEditor;
-            case "editButton":
-                if (!this.editButton)
-                {
-                    this.editButton = new BoxView({
-                        size: [10, undefined],
-                        clickable: true,
-                        color: Colors.EditColor,
-                        position:[0,0,10],
-                        viewAlign:[0,0.5],
-                        viewOrigin:[0,0.5]
-                    });
-
-                    this.getView().add(this.editButton.getModifier()).add(this.editButton.getRenderController());
-                }
-                return this.editButton;
 			default:
 				console.error("Can't make object '" + name + "'");
 				return undefined;

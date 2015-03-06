@@ -1,5 +1,22 @@
 define(function(require,exports,module){
 
+
+    function AbstractObjectController(objectDef,modelLoader)
+    {
+        this.objectDef = objectDef;
+        this.controllers = [];
+        this.gapiModel = gapi.drive.realtime.custom.getModel(this.objectDef);
+        this.modelLoader = modelLoader;
+        this.state = 'base';
+
+        _attachModel.call(this,objectDef);
+    }
+
+    AbstractObjectController.prototype.getObjectDef = function(){
+        return this.objectDef;
+    };
+
+
     function _loadRelationship(relationship)
     {
         console.log(relationship.type);
@@ -86,5 +103,97 @@ define(function(require,exports,module){
             console.error("SET IS NOT SUPPORTED OK");
         });
     }
+
+    AbstractObjectController.prototype.getOutputs = function()
+    {
+        var outputs = [];
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            if (this.controllers[i].getOutputs)
+            {
+                var c = this.controllers[i].getOutputs();
+                if (c instanceof Array)
+                {
+                    for (var j=0;j< c.length;j++)
+                        outputs.push(c[j]);
+                }
+                else if (c)
+                    outputs.push(c);
+            }
+        }
+
+        return outputs;
+    };
+
+    AbstractObjectController.prototype.getInputs = function(name)
+    {
+        var inputs = [];
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            if (this.controllers[i].getInputs)
+            {
+                var c = this.controllers[i].getInputs(name);
+                if (c instanceof Array)
+                {
+                    for (var j=0;j< c.length;j++)
+                        inputs.push(c[j]);
+                }
+                else if (c)
+                    inputs.push(c);
+            }
+        }
+
+        return inputs;
+    };
+
+    AbstractObjectController.prototype.createEditTrigger = function()
+    {
+          throw "HOLY SHIT";
+    };
+
+    AbstractObjectController.prototype.destroyEditTrigger = function()
+    {
+        throw "HOLY SHIT";
+    };
+
+    AbstractObjectController.prototype.createEditors = function(editContext)
+    {
+
+    };
+
+    AbstractObjectController.prototype.destroyEditors = function()
+    {
+
+    };
+
+    AbstractObjectController.prototype.createGlobalEditors = function()
+    {
+
+    };
+
+    AbstractObjectController.prototype.setEditMode = function(editMode, editContext)
+    {
+        if (!editContext)
+            editContext = {};
+
+        if (editMode == "IsEditing")
+        {
+            var trigger = this.createEditTrigger();
+            trigger.on('click',function(){
+                this.createEditors(editContext);
+            }.bind(this));
+        }
+        else
+        {
+            this.destroyEditors();
+        }
+
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            this.controllers[i].setEditMode(editMode, editContext);
+        }
+    };
+
+    module.exports = AbstractObjectController;
 
 });
