@@ -77,16 +77,16 @@ define(function (require, exports, module)
             this._activeStateLabel.show();
             this._containerBackground.show();
 
-            if (editContext.menuBar.indexOfChild(this.addLabelButton) < 0)
+            if (editContext.containerMenu.indexOfChild(this.addLabelButton) < 0)
             {
-                editContext.menuBar.addChild(this.addLabelButton);
+                editContext.containerMenu.addChild(this.addLabelButton);
             }
             this._lastEditContext = editContext;
         }
         else
         {
             if (this._lastEditContext)
-                this._lastEditContext.menuBar.removeChild(this.addLabelButton);
+                this._lastEditContext.containerMenu.removeChild(this.addLabelButton);
             this._activeStateLabel.show();
             this._containerBackground.hide();
         }
@@ -279,7 +279,7 @@ define(function (require, exports, module)
         {
             var addLabelButton = new BoxView({
                 text: "A+", size: [40, 40], clickable: true, color: annoColor,
-                position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 1], fontSize: 'large'
+                position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
             });
 
             addLabelButton.on('click', _createLabel.bind(this));

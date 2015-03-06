@@ -101,6 +101,27 @@ define(function (require, exports, module)
         return properties;
     };
 
+    Utils.injectView = function(container,objectView)
+    {
+        console.log("Injecting view. Object = " + objectView._globalId + " InjectedContainer = " + container._globalId);
+        objectView.setPosition([0, objectView.position[1], 0]);
+        objectView.setAlign([0,0]);
+        objectView.setOrigin([0,0]);
+        if (objectView.parent)
+        {
+            var index = objectView.parent.children.indexOf(objectView);
+
+            objectView.parent.removeChild(objectView);
+            objectView.parent.addChild(container, {
+                weight: 2,
+                index: index,
+                align: 'center'
+            });
+        }
+        container.addChild(objectView);
+    };
+
+
     Utils.nameMap = {};
 
     module.exports = Utils;
