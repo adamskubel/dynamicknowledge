@@ -28,17 +28,21 @@ define(function (require, exports, module)
     var ModelLoader = require('ModelLoader');
     var GAPIAuthenticator = require('GAPIAuthenticator');
 
-    var AnnotationContainer = require('Model/AnnotationContainer');
     var DynamicObject = require('Model/DynamicObject');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
+
+    var EditManager = require('Editors/EditManager');
 
 	function init()
     {
 		this.context = Engine.createContext(null);
 
+
         var mainView = new MainView(this.context);
         mainView.setCameraMode("2D");
         this.context.add(mainView);
+
+        DynamicKnowledge.EditManager = new EditManager(mainView);
 
 
         var objectRegistry = {};
@@ -49,7 +53,7 @@ define(function (require, exports, module)
         this.mainView = mainView;
 
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgIT1NGTDd0MjVDX0E';
+        //this.fileId = '0B6eNzoTXZGgIT1NGTDd0MjVDX0E';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {
@@ -161,10 +165,6 @@ define(function (require, exports, module)
         var pageTable = DynamicObject.create(model,'PageTableObject','predef');
         pageTable.createState('base');
         pageTable.properties.set("predefinedName","PageTable");
-
-        var pageTableAnnotations = AnnotationContainer.create(model,'ac1');
-        pageTableAnnotations.createState('base');
-        pageTable.relationships.push(pageTableAnnotations);
 
         var memorySystem = DynamicObject.create(model,'MemorySystemController','predef');
         memorySystem.createState('base');

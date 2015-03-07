@@ -12,57 +12,27 @@ define(function(require,exports,module){
     var EventEmitter = require('famous/core/EventEmitter');
 
 
-    function ObjectEditModule(object, config)
+    function EditorFactory()
     {
-        this.eventEmitter = new EventEmitter();
-        this.object = object;
-        this.buttons = {};
     }
 
 
-    ObjectEditModule.prototype.show = function()
+    EditorFactory.prototype.addDeleteButton = function(object, deleteCallback)
     {
-        for (var key in this.buttons)
-        {
-            if (this.buttons.hasOwnProperty(key))
-                this.buttons[key].show();
-        }
+        return _makeDeleteButton(deleteCallback, object);
     };
 
-    ObjectEditModule.prototype.hide = function()
+    EditorFactory.prototype.addMoveEditor = function(object, moveCallback)
     {
-        for (var key in this.buttons)
-        {
-            if (this.buttons.hasOwnProperty(key))
-                this.buttons[key].hide();
-        }
+        return _makeBoxMovable(moveCallback, object);
     };
 
-    ObjectEditModule.prototype.onObjectDelete = function(deleteCallback)
+    EditorFactory.prototype.addSizeEditor = function(object, resizeCallback)
     {
-        this.eventEmitter.on('objectDeleted',deleteCallback);
-        if (!this.buttons.delete)
-            this.buttons.delete = _makeDeleteButton(this.eventEmitter, this.object);
-
+        return _makeBoxResizable(resizeCallback, object);
     };
 
-    ObjectEditModule.prototype.onObjectMoved = function(onMovedCallback)
-    {
-        this.eventEmitter.on('objectMoved',onMovedCallback);
-
-        if (!this.buttons.move)
-            this.buttons.move = _makeBoxMovable(this.eventEmitter, this.object);
-    };
-
-    ObjectEditModule.prototype.onObjectResized = function(onResizedCallback)
-    {
-        this.eventEmitter.on('objectResized',onResizedCallback);
-
-        if (!this.buttons.resize)
-            this.buttons.resize = _makeBoxResizable(this.eventEmitter, this.object);
-    };
-
-    function _makeBoxMovable(emitter,box)
+    function _makeBoxMovable(moveCallback,box)
     {
 
         var moveButton = new BoxView({
@@ -95,7 +65,7 @@ define(function(require,exports,module){
         dragController.on('end',function(data){
             box.setAnimated(true);
             box.parent.setAnimated(true);
-            emitter.emit('objectMoved');
+            moveCallback(box.position);
         }.bind(this));
 
         moveButton.textSurface.hide();
@@ -105,7 +75,7 @@ define(function(require,exports,module){
         return moveButton;
     }
 
-    function _makeBoxResizable(emitter,box)
+    function _makeBoxResizable(resizeCallback,box)
     {
 
         var resizeButton = new BoxView({
@@ -138,7 +108,7 @@ define(function(require,exports,module){
         dragController.on('end',function(data){
             box.setAnimated(true);
             box.parent.setAnimated(true);
-            emitter.emit('objectResized');
+            resizeCallback();
         }.bind(this));
 
         resizeButton.textSurface.hide();
@@ -147,7 +117,7 @@ define(function(require,exports,module){
     }
 
 
-    function _makeDeleteButton(emitter,box)
+    function _makeDeleteButton(deleteCallback,box)
     {
         var deleteButton = new BoxView({
             text: "X", size: [30, 30], clickable: true, color: 900,
@@ -156,12 +126,12 @@ define(function(require,exports,module){
         box.add(deleteButton.getModifier()).add(deleteButton.getRenderController());
 
         deleteButton.on('click',function(){
-            emitter.emit('objectDeleted');
+            deleteCallback();
         }.bind(this));
 
         return deleteButton;
     }
 
 
-    module.exports = ObjectEditModule;
+    module.exports = EditorFactory;
 });

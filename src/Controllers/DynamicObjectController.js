@@ -3,23 +3,18 @@ define(function(require,exports,module){
 	var DynamicContainer = require('PositioningLayouts/DynamicContainer');
 	var BoxView = require('PositioningLayouts/BoxView');
 
-	var MouseSync = require('famous/inputs/MouseSync');
-	var Vector = require('ProperVector');
-	var LineCanvas = require('LineCanvas');
-	var Colors = require('Colors');
+    var Colors = require('Colors');
     var Transform = require('famous/core/Transform');
     var Modifier = require('famous/core/Modifier');
 
-	var AccessInspector = require('intrinsics/AccessInspector');
-
-	var ObjectEditModule = require('Modules/ObjectEditModule');
+	var EditorFactory = require('Editors/EditorFactory');
 	var DynamicObject = require('Model/DynamicObject');
     var Surface = require('famous/core/Surface');
     var Connection = require('Model/Connection');
 	var Utils = require('Utils');
 
     var AbstractObjectController = require('./AbstractObjectController');
-    var DynamicContainerController = require('.DynamicContainerController');
+    var DynamicContainerController = require('./DynamicContainerController');
 
 	function DynamicObjectController(objectDef, modelLoader, objectView)
 	{
@@ -34,6 +29,7 @@ define(function(require,exports,module){
             objectView.setController(this);
 
         objectView.applyProperties(pmap);
+
 	}
 
     DynamicObjectController.prototype = Object.create(AbstractObjectController.prototype);
@@ -67,13 +63,12 @@ define(function(require,exports,module){
 		controller.parent = this;
 
 		controller.setState(this.state);
-
-		if (this._activeChildEditConfig)
-			controller.setEditMode(this.editMode,this._activeChildEditConfig);
 	};
 
     DynamicObjectController.prototype.createEditTrigger = function()
     {
+        this.destroyEditTrigger();
+
         var trigger = new BoxView({
             size: [10, undefined],
             clickable: true,
@@ -98,104 +93,70 @@ define(function(require,exports,module){
 
 	DynamicObjectController.prototype.createEditors = function(editContext)
 	{
-        var myEditors = _getEditableProperties.call(this, editContext);
+        if (!this._activeEditorViews)
+            this._activeEditorViews = [];
+
+        var myEditors = this.createEditRules(editContext);
+
+        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : _getObject("MenuBar");
 
         for (var e = 0; e < myEditors.length; e++)
         {
-            _enableEditor.call(this, myEditors[e]);
+            var newEditor = _createEditor.call(this, myEditors[e]);
+
+            if (newEditor.isMenuButton)
+                menuBar.addChild(newEditor);
+
+            this._activeEditorViews.push(newEditor);
         }
+
+        if (!editContext.isGlobal)
+            this._activeEditorViews.push(menuBar);
 
         _loadObjectEditors.call(this);
     };
 
     DynamicObjectController.prototype.destroyEditors = function()
     {
-        if (this.menuBar)
-            this.menuBar.hide();
-
-        if (this.objectEditor)
-            this.objectEditor.hide();
-
-        if (this.editButton)
-            this.editButton.hide();
+        for (var i=0;i<this._activeEditorViews.length;i++)
+        {
+            this._activeEditorViews[i].hide();
+        }
+        this._activeEditorViews.clear();
 
         _cleanupObjectEditors.call(this);
 	};
 
 
-	function _getEditableProperties(parentConfig)
+    DynamicObjectController.prototype.createEditRules = function(editContext)
 	{
 		var editors = [];
 
-		if (this.parent)
-			editors.push("position");
+        if (editContext.isGlobal)
+        {
+            editors.push("connect");
+        }
+        else
+        {
+            if (this.parent)
+            {
+                editors.push("delete");
 
-		editors.push("add");
+                if (this.objectView.parent.childControlsPosition())
+                    editors.push("position");
 
-		if (!parentConfig)
-			editors.push("connect");
-
-		var hasAnnotationController = false;
-		for (var i=0;i<this.controllers.length;i++)
-		{
-			if (this.controllers[i] instanceof AnnotationController)
-			{
-				hasAnnotationController = true;
-				break;
-			}
-		}
-
-		if (!hasAnnotationController && this.parent)
-			editors.push("annotate");
-
+                editors.push("resize");
+            }
+        }
 
 		return editors;
-	}
-
-	function _getChildEditableProperties(parentConfig)
-	{
-		return ["position"];
-	}
-
-	DynamicObjectController.prototype.makeChildEditConfig = function(parentConfig)
-	{
-		var editConfig = {};
-
-        editConfig.viewMenu = _getObject.call(this, "menuBar");
-
-        if (this.containerView)
-            editConfig.containerMenu = _getObject.call(this, "menuBar_container");
-
-        if (parentConfig)
-            editConfig.globalMenu = parentConfig.containerMenu || parentConfig.viewMenu;
-        else
-            editConfig = editConfig.viewMenu;
-
-		editConfig.editRules = _getChildEditableProperties.call(this,parentConfig);
-
-		if (!parentConfig)
-		{
-			editConfig.owner = this;
-			editConfig.depth = 0;
-		}
-		else
-		{
-			editConfig.owner = parentConfig.owner;
-			editConfig.depth = parentConfig.depth + 1;
-		}
-
-		return editConfig;
 	};
 
-	DynamicObjectController.prototype.setState = function(state){
-		this.state = state;
 
+	DynamicObjectController.prototype.setState = function(state)
+    {
+		AbstractObjectController.prototype.setState.call(this,state);
 		updateObjectState();
-
-		for (var i=0;i<this.controllers.length;i++)
-		{
-			this.controllers[i].setState(state);
-		}
 	};
 
 
@@ -280,17 +241,32 @@ define(function(require,exports,module){
 		switch (editorName)
 		{
 			case "position":
-				return new PositionEditor(this.objectView,this.objectDef);
+				return new EditorFactory.addMoveEditor(this.objectView,function(newPosition)
+                {
+                    this.objectDef.getState(this.state).set('position',newPosition);
+                }.bind(this));
 			case "size":
-                return new SizeEditor(this.objectView,this.objectDef);
+                return new EditorFactory.addSizeEditor(this.objectView,function(newSize)
+                {
+                    this.objectDef.getState(this.state).set('size',newSize);
+                }.bind(this));
 			case "delete":
-
-				break;
+                return new EditorFactory.addDeleteButton(this.objectView,function(){
+                    this.parent.deleteControllerModel(this);
+                }.bind(this));
+            case "containerize":
+                var containerButton = new BoxView({
+                    text: "[A]", size: [40, 40], clickable: true, color: Colors.EditColor,
+                    position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
+                });
+                containerButton.on('click', _addContainer.bind(this));
+                containerButton.isMenuButton = true;
+                return containerButton;
 			default:
 				console.error("Editor '" + editorName + "' is not allowed");
 				break;
 		}
-	};
+	}
 
 
 	function _addController(controller)
@@ -318,13 +294,7 @@ define(function(require,exports,module){
 	{
 		switch (name)
 		{
-			case "containerizeButton":
-                var containerButton = new BoxView({
-                    text: "[A]", size: [40, 40], clickable: true, color: Colors.EditColor,
-                    position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
-                });
-                containerButton.on('click', _addContainer.bind(this));
-				return containerButton;
+
 			case "menuBar":
 				if (!this.menuBar)
 				{

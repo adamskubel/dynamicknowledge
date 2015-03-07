@@ -1,8 +1,6 @@
 define(function(require,exports,module){
 
     var DynamicObject = require('Model/DynamicObject');
-    var AnnotationContainer = require('Model/AnnotationContainer');
-    var AnnotationController = require('Controllers/AnnotationController');
     var Label = require('Model/Label');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
     var LabelController = require('Controllers/LabelController');
@@ -33,9 +31,9 @@ define(function(require,exports,module){
         console.log("Initialized model loader");
     };
 
-    ModelLoader.registerModels = function(){
+    ModelLoader.registerModels = function()
+    {
         Label.registerGAPI();
-        AnnotationContainer.registerGAPI();
         DynamicObject.registerGAPI();
         Connection.registerGAPI();
     };

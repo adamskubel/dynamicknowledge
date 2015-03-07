@@ -3,12 +3,10 @@ define(function(require,exports,module){
     var DynamicContainer = require('PositioningLayouts/DynamicContainer');
     var BoxView = require('PositioningLayouts/BoxView');
 
-    var LineCanvas = require('./../LineCanvas');
+    var LineCanvas = require('LineCanvas');
 
     var Label = require('Model/Label');
     var Colors = require('Colors');
-    var ObjectEditModule = require('Modules/ObjectEditModule');
-
 
 
     function LabelController(model)
@@ -124,12 +122,12 @@ define(function(require,exports,module){
 
         newLabel.getRenderController();
 
-        var objectEditor = new ObjectEditModule(newLabel);
-        objectEditor.onObjectDelete(this.deleteCallback);
-        objectEditor.onObjectMoved(this.persist.bind(this));
-        objectEditor.onObjectResized(this.persist.bind(this));
+        //var objectEditor = new ObjectEditModule(newLabel);
+        //objectEditor.onObjectDelete(this.deleteCallback);
+        //objectEditor.onObjectMoved(this.persist.bind(this));
+        //objectEditor.onObjectResized(this.persist.bind(this));
 
-        this.objectEditor = objectEditor;
+        //this.objectEditor = objectEditor;
         return newLabel;
     }
 

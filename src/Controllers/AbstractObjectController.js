@@ -1,5 +1,6 @@
 define(function(require,exports,module){
 
+    var Container = require('Model/Container');
 
     function AbstractObjectController(objectDef,modelLoader)
     {
@@ -19,12 +20,11 @@ define(function(require,exports,module){
 
     function _loadRelationship(relationship)
     {
-        console.log(relationship.type);
-        if (relationship instanceof AnnotationContainer)
+        if (relationship instanceof Container)
         {
-            var ac = new AnnotationController(relationship,this.modelLoader);
-
-            this.addController(ac);
+            var ContainerController = require('Controllers/ContainerController');
+            var container = new ContainerController(relationship,this.modelLoader);
+            this.addController(container);
         }
         else if (relationship instanceof Connection)
         {
@@ -148,12 +148,12 @@ define(function(require,exports,module){
 
     AbstractObjectController.prototype.createEditTrigger = function()
     {
-          throw "HOLY SHIT";
+        throw "I'm abstract LOL";
     };
 
     AbstractObjectController.prototype.destroyEditTrigger = function()
     {
-        throw "HOLY SHIT";
+        throw "I'm abstract LOL";
     };
 
     AbstractObjectController.prototype.createEditors = function(editContext)
@@ -166,32 +166,19 @@ define(function(require,exports,module){
 
     };
 
-    AbstractObjectController.prototype.createGlobalEditors = function()
+    AbstractObjectController.prototype.setState = function(state)
     {
-
-    };
-
-    AbstractObjectController.prototype.setEditMode = function(editMode, editContext)
-    {
-        if (!editContext)
-            editContext = {};
-
-        if (editMode == "IsEditing")
-        {
-            var trigger = this.createEditTrigger();
-            trigger.on('click',function(){
-                this.createEditors(editContext);
-            }.bind(this));
-        }
-        else
-        {
-            this.destroyEditors();
-        }
+        this.state = state;
 
         for (var i=0;i<this.controllers.length;i++)
         {
-            this.controllers[i].setEditMode(editMode, editContext);
+            this.controllers[i].setState(state);
         }
+    };
+
+    AbstractObjectController.prototype.deleteControllerModel = function(childModel)
+    {
+        this.objectDef.relationships.removeValue(childModel);
     };
 
     module.exports = AbstractObjectController;
