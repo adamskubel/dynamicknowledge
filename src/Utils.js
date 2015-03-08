@@ -3,13 +3,12 @@ define(function (require, exports, module)
 
     var Vector = require('./ProperVector');
     var RenderController = require("famous/views/RenderController");
+    var Colors = require('Colors');
 
-    function Utils(){
-
+    function Utils()
+    {
 
     }
-
-
 
     Utils.prototype.nextIdentifier = function(name){
 
@@ -123,6 +122,7 @@ define(function (require, exports, module)
         }
         container.addChild(objectView);
     };
+
 
 
     Utils.nameMap = {};

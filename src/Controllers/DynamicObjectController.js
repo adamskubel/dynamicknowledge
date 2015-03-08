@@ -15,6 +15,8 @@ define(function(require,exports,module){
     var AbstractObjectController = require('./AbstractObjectController');
     var DynamicContainerController = require('./DynamicContainerController');
 
+    var Container = require('Model/Container');
+
     var MenuBar = require('Views/MenuBar');
 
 	function DynamicObjectController(objectDef, modelLoader, objectView)
@@ -90,16 +92,30 @@ define(function(require,exports,module){
 
         var myEditors = this.createEditRules(editContext);
 
-        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : _getObject.call(this,"menuBar");
+        var makeMenuBar = function()
+        {
+            var menuBar = new MenuBar({
+                viewOrigin:[0,1]
+            });
+            this.objectView.add(menuBar.getModifier()).add(menuBar.getRenderController());
+            return menuBar;
+        }.bind(this);
+
+        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : makeMenuBar();
 
         for (var e = 0; e < myEditors.length; e++)
         {
-            var newEditor = _createEditor.call(this, myEditors[e]);
+            var newEditor = this.makeEditor(myEditors[e]);
 
             if (!newEditor) continue;
 
             if (newEditor.isMenuButton)
                 menuBar.addChild(newEditor);
+            else if (newEditor.createUI)
+            {
+                console.debug("Creating editor UI");
+                newEditor.createUI(menuBar);
+            }
 
             this._activeEditorViews.push(newEditor);
         }
@@ -131,7 +147,7 @@ define(function(require,exports,module){
 
         if (editContext.isGlobal)
         {
-            editors.push("connect");
+            editors.push("add");
         }
         else
         {
@@ -143,6 +159,7 @@ define(function(require,exports,module){
                     editors.push("position");
 
                 editors.push("resize");
+                editors.push("containerize");
             }
         }
 
@@ -253,58 +270,22 @@ define(function(require,exports,module){
                 }.bind(this));
             case "containerize":
                 var containerButton = new BoxView({
-                    text: "[A]", size: [40, 40], clickable: true, color: Colors.EditColor,
+                    text: "[ ]", size: [40, 40], clickable: true, color: Colors.EditColor,
                     position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
                 });
                 containerButton.on('click', _addContainer.bind(this));
                 containerButton.isMenuButton = true;
                 return containerButton;
-			default:
-				console.error("Editor '" + editorName + "' is not allowed");
-				break;
+            default:
+                return AbstractObjectController.prototype.makeEditor.call(this,editorName);
 		}
 	};
 
-
-	//function _addController(controller)
-	//{
-	//	//Controller already belongs to this controller's objectview
-	//	if (controller.getView() && controller.getView().parent == this.objectView)
-	//	{
-    //
-	//	}
-	//	//Container Controller
-	//	else if (controller instanceof DynamicContainerController)
-	//	{
-     //       var container = controller.getView();
-     //       injectView(container, this.objectView);
-	//	}
-	//}
-
     function _addContainer()
     {
-        this.objectDef.relationships.push();
+        this.objectDef.relationships.push(Container.create(this.gapiModel,this.modelLoader.nextObjectId("Container")));
     }
 
-
-	function _getObject(name)
-	{
-		switch (name)
-		{
-
-			case "menuBar":
-				if (!this.menuBar)
-				{
-					var menuBar = new MenuBar();
-					this.objectView.add(menuBar.getModifier()).add(menuBar.getRenderController(true));
-					this.menuBar = menuBar;
-				}
-				return this.menuBar;
-			default:
-				console.error("Can't make object '" + name + "'");
-				return undefined;
-		}
-	}
 
 
 	module.exports = DynamicObjectController;

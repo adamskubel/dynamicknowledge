@@ -3,7 +3,7 @@ define(function(require,exports,module){
     var Container = require('Model/Container');
     var Connection = require('Model/Connection');
     var ObjectCreationModule = require('Editors/ObjectCreationModule');
-    var LineConnectionModule = require('Editors/LineConnectionModuel');
+    var LineConnectionModule = require('Editors/LineConnectionModule');
 
     function AbstractObjectController(objectDef,modelLoader)
     {
@@ -39,7 +39,7 @@ define(function(require,exports,module){
         if (relationship instanceof Container)
         {
             //var DynamicContainerController = require('Controllers/DynamicContainerController');
-            var container = new ContainerController(relationship,this.modelLoader);
+            var container = new (require('Controllers/DynamicContainerController'))(relationship,this.modelLoader);
             this.addController(container);
         }
         else if (relationship instanceof Connection)
@@ -203,8 +203,10 @@ define(function(require,exports,module){
         {
             case "add":
                 return new ObjectCreationModule(this.objectDef);
-            case "connect":
-                return new LineConnectionModule();
+            default:
+                return null;
+            //case "connect":
+            //    return new LineConnectionModule();
         }
     };
 

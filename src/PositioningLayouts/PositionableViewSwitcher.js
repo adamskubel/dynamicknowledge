@@ -2,7 +2,7 @@ define(function(require,exports,module)
 {
 
     var PositionableView = require('./PositionableView');
-    var ListSelector = require('ListSelector');
+    var ListSelector = require('Views/ListSelector');
 
     function PositionableViewSwitcher(options)
     {

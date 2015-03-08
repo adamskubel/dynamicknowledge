@@ -47,7 +47,10 @@ define(function(require,exports,module){
     {
         if (!this.globalMenu)
         {
-            var menu = new MenuBar();
+            var menu = new MenuBar({
+                viewAlign:[0,0],
+                viewOrigin:[0,0]
+            });
             this.mainView.add(menu.getModifier()).add(menu.getRenderController());
             this.globalMenu = menu;
         }

@@ -32,9 +32,9 @@ define(function(require,exports,module){
     {
         var listView = new SequenceView({
             direction:1,
-           position:[0,-this.options.size[1],0],
+            position:[0,10,5],
             viewAlign:[0,1],
-            viewOrigin:[0,1]
+            viewOrigin:[0,0]
         });
 
         this.add(listView.getModifier()).add(listView.getRenderController(true));
@@ -46,7 +46,6 @@ define(function(require,exports,module){
 
     function _onClick()
     {
-        console.log("Showing list");
         this.listView.show();
     }
 
@@ -60,6 +59,13 @@ define(function(require,exports,module){
             var item = _addItem.call(this,items[i]);
             this.listView.addChild(item);
         }
+        this.setSelectedItem(0);
+    };
+
+
+    ListSelector.prototype.getSelectedItem = function()
+    {
+        return this._selectedItem;
     };
 
 
@@ -107,8 +113,6 @@ define(function(require,exports,module){
             throw {"message" : "Not my item!"}
         }
 
-        console.log("Selecting item " + item);
-
         for (var itemKey in this.viewMap)
         {
             if (!this.viewMap.hasOwnProperty(itemKey)) continue;
@@ -118,6 +122,7 @@ define(function(require,exports,module){
         this.setText(item);
 
         this._eventOutput.emit('itemSelected',{item:item});
+        this._selectedItem = item;
     }
 
 

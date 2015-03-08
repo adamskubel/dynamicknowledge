@@ -76,10 +76,6 @@ define(function(require,exports,module){
     {
         switch (editorName)
         {
-            //case "add":
-            //    return new ObjectCreationModule(this.objectDef);
-            //case "connect":
-            //    return new LineConnectionModule();
             case "position":
                 return new EditorFactory.addMoveEditor(this.containerView,function(newPosition)
                 {

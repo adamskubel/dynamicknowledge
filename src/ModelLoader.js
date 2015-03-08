@@ -4,9 +4,9 @@ define(function(require,exports,module){
     var Label = require('Model/Label');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
     var LabelController = require('Controllers/LabelController');
-    var Vector = require('ProperVector');
     var AccessInspector = require('Intrinsics/AccessInspector');
     var Connection = require('Model/Connection');
+    var Container = require('Model/Container');
 
     function ModelLoader(_gapiModel, _objectRegistry){
         this.objectRegistry = _objectRegistry;
@@ -33,6 +33,7 @@ define(function(require,exports,module){
 
     ModelLoader.registerModels = function()
     {
+        Container.registerGAPI();
         Label.registerGAPI();
         DynamicObject.registerGAPI();
         Connection.registerGAPI();
