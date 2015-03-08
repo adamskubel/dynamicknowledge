@@ -24,7 +24,6 @@ define(function (require, exports, module)
     var Utils = require('./Utils');
     var Vector = require('./ProperVector');
 
-    var Label = require('Model/Label');
     var ModelLoader = require('ModelLoader');
     var GAPIAuthenticator = require('GAPIAuthenticator');
 
@@ -53,7 +52,7 @@ define(function (require, exports, module)
         this.mainView = mainView;
 
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgIMTZxbHVpdGFrQkE';
+        this.fileId = '0B6eNzoTXZGgIU0lyd1hTdGhKOFE';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {

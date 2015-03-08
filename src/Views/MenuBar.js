@@ -13,9 +13,10 @@ define(function(require,exports,module){
     {
         PSequenceView.call(this,options);
 
+        this.setOpacity(1);
         this.add(new Modifier({transform:Transform.translate(0,0,-1)})).add(new Surface({
             properties:{
-                backgroundColor : Colors.get([0,0,100],0.5)
+                backgroundColor : Colors.get([0,0,0],1)
             }
         }));
     }

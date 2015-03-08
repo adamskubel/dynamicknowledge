@@ -13,25 +13,23 @@ define(function(require,exports,module){
 	var Utils = require('Utils');
 
     var AbstractObjectController = require('./AbstractObjectController');
-    var DynamicContainerController = require('./DynamicContainerController');
-
-    var Container = require('Model/Container');
+    var Connection = require('Model/Connection');
 
     var MenuBar = require('Views/MenuBar');
 
 	function DynamicObjectController(objectDef, modelLoader, objectView)
 	{
-        AbstractObjectController.call(this,objectDef,modelLoader);
-
         this.objectView = objectView;
-        this.objectView.modelId = this.objectDef.id;
+        this.objectView.modelId = objectDef.id;
 
-        var pmap = Utils.getPropertyMap(objectDef.properties);
+        AbstractObjectController.call(this,objectDef,modelLoader);
 
         if (objectView.setController)
             objectView.setController(this);
 
+        var pmap = Utils.getPropertyMap(objectDef.properties);
         objectView.applyProperties(pmap);
+        objectView.applyProperties(Utils.getPropertyMap(objectDef.getState(this.state).properties));
 	}
 
     DynamicObjectController.prototype = Object.create(AbstractObjectController.prototype);
@@ -54,6 +52,7 @@ define(function(require,exports,module){
         }
 
         var controller = new DynamicObjectController(model,this.modelLoader,view);
+        DynamicKnowledge.EditManager.registerController(controller);
         this.addController(controller);
     };
 
@@ -62,12 +61,13 @@ define(function(require,exports,module){
         this.destroyEditTrigger();
 
         var trigger = new BoxView({
-            size: [10, undefined],
+            size: [undefined, undefined],
             clickable: true,
             color: Colors.EditColor,
-            position:[0,0,10],
+            position:[0,0,1],
             viewAlign:[0,0.5],
-            viewOrigin:[0,0.5]
+            viewOrigin:[0,0.5],
+            style:"borderOnly"
         });
 
         this.objectView.add(trigger.getModifier()).add(trigger.getRenderController());
@@ -102,7 +102,6 @@ define(function(require,exports,module){
         }.bind(this);
 
         var menuBar = (editContext.isGlobal) ? editContext.globalMenu : makeMenuBar();
-
         for (var e = 0; e < myEditors.length; e++)
         {
             var newEditor = this.makeEditor(myEditors[e]);
@@ -110,7 +109,10 @@ define(function(require,exports,module){
             if (!newEditor) continue;
 
             if (newEditor.isMenuButton)
+            {
+                newEditor.hide = function(){menuBar.removeChild(this);};
                 menuBar.addChild(newEditor);
+            }
             else if (newEditor.createUI)
             {
                 console.debug("Creating editor UI");
@@ -121,9 +123,15 @@ define(function(require,exports,module){
         }
 
         if (!editContext.isGlobal)
-            this._activeEditorViews.push(menuBar);
+        {
+            _loadObjectEditors.call(this,menuBar);
 
-        _loadObjectEditors.call(this);
+            if (menuBar.children.length > 0)
+                this._activeEditorViews.push(menuBar);
+            else
+                menuBar.hide();
+        }
+
     };
 
     DynamicObjectController.prototype.destroyEditors = function()
@@ -140,6 +148,22 @@ define(function(require,exports,module){
         _cleanupObjectEditors.call(this);
 	};
 
+    function hasContainer(objectDef)
+    {
+        var relationships = objectDef.relationships.asArray();
+        for (var i=0;i<relationships.length;i++)
+        {
+            if (relationships[i] instanceof Connection)
+            {
+                if (relationships[i].type == "container")
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     DynamicObjectController.prototype.createEditRules = function(editContext)
 	{
@@ -159,7 +183,11 @@ define(function(require,exports,module){
                     editors.push("position");
 
                 editors.push("resize");
-                editors.push("containerize");
+
+                if (!hasContainer(this.objectDef))
+                {
+                    editors.push("containerize");
+                }
             }
         }
 
@@ -222,17 +250,15 @@ define(function(require,exports,module){
 		}
 	}
 
-    function _loadObjectEditors(editContext)
+    function _loadObjectEditors(menuBar)
     {
         if (this.objectView && this.objectView.getEditors)
         {
-            console.log("Loading object editors");
             var editors = this.objectView.getEditors();
             for (var i=0;i<editors.length;i++)
             {
                 var editor = editors[i];
-                editor.createUI(editContext);
-
+                editor.createUI(menuBar);
                 editor.setModel(this.objectDef,this.state);
             }
             this.activeEditors = editors;
@@ -257,23 +283,26 @@ define(function(require,exports,module){
 			case "position":
 				return (new EditorFactory()).addMoveEditor(this.objectView,function(newPosition)
                 {
-                    this.objectDef.getState(this.state).set('position',newPosition);
+                    this.objectDef.getState(this.state).properties.set('position',newPosition);
                 }.bind(this));
 			case "size":
                 return (new EditorFactory()).addSizeEditor(this.objectView,function(newSize)
                 {
-                    this.objectDef.getState(this.state).set('size',newSize);
+                    this.objectDef.getState(this.state).properties.set('size',newSize);
                 }.bind(this));
 			case "delete":
                 return (new EditorFactory()).addDeleteButton(this.objectView,function(){
-                    this.parent.deleteControllerModel(this);
+                    this.parent.deleteControllerModel(this.objectDef);
                 }.bind(this));
             case "containerize":
                 var containerButton = new BoxView({
                     text: "[ ]", size: [40, 40], clickable: true, color: Colors.EditColor,
                     position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
                 });
-                containerButton.on('click', _addContainer.bind(this));
+                containerButton.on('click', function(){
+                    containerButton.hide();
+                    _addContainer.call(this);
+                }.bind(this));
                 containerButton.isMenuButton = true;
                 return containerButton;
             default:
@@ -283,7 +312,14 @@ define(function(require,exports,module){
 
     function _addContainer()
     {
-        this.objectDef.relationships.push(Container.create(this.gapiModel,this.modelLoader.nextObjectId("Container")));
+        var containerEdge = Connection.create(this.gapiModel,this.modelLoader.nextObjectId("ContainerEdge"),"container");
+
+        var containerObject = DynamicObject.create(this.gapiModel,this.modelLoader.nextObjectId("Container"),"container");
+        containerObject.createState(this.state);
+        this.modelLoader.addObject(containerObject.id,containerObject);
+
+        containerEdge.to = containerObject.id;
+        this.objectDef.relationships.push(containerEdge);
     }
 
 

@@ -46,7 +46,7 @@ define(function(require, exports, module) {
             child.parent = this;
             this.children.push(child);
             var offsetModifier = new Modifier({
-                transform:function(){return Transform.translate(child._dynamicOffset.x,child._dynamicOffset.y,0);}
+                transform:function(){return Transform.translate(child._dynamicOffset.x,child._dynamicOffset.y,1);}
             });
 
             this.offsetNode.add(offsetModifier).add(child.getModifier()).add(child.getRenderController());

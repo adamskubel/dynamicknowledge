@@ -6,8 +6,9 @@ define(function(require,exports,module)
     var MenuBar = require('Views/MenuBar');
     var Colors = require('Colors');
 
-    function ObjectCreationModule(objectDef)
+    function ObjectCreationModule(parentController, objectDef)
     {
+        this.parent = parentController;
         this.objectDef = objectDef;
     }
 
@@ -52,12 +53,23 @@ define(function(require,exports,module)
     function _addObject(objectName)
     {
         var model = gapi.drive.realtime.custom.getModel(this.objectDef);
-        var objDef = DynamicObject.create(model,this.modelLoader.nextObjectId(objectName),'constructed');
-        objDef.properties.set("constructorName",objectName);
+        var modelLoader = this.parent.modelLoader;
 
-        this.modelLoader.addObject(objDef.id,objDef);
+        var newObject;
+        if (objectName == "Label")
+        {
+            newObject = DynamicObject.create(model,modelLoader.nextObjectId("Label"),"label");
+        }
+        else
+        {
+            newObject = DynamicObject.create(model, modelLoader.nextObjectId(objectName), 'constructed');
+            newObject.properties.set("constructorName", objectName);
+        }
+        newObject.createState(this.parent.state);
 
-        this.objectDef.relationships.push(model.createString(objDef.id));
+        modelLoader.addObject(newObject.id,newObject);
+
+        this.objectDef.relationships.push(model.createString(newObject.id));
     }
 
 

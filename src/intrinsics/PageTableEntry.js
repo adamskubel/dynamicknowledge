@@ -17,7 +17,8 @@ define(function(require,exports,module){
     PageTableEntry.prototype.constructor = PageTableEntry;
 
     PageTableEntry.DEFAULT_OPTIONS = {
-        pfn: 0
+        pfn: 0,
+        position:[0,0,0]
     }
 
     function _makeAddressView(physicalPageFrameNumber)

@@ -5,7 +5,7 @@ define(function(require,exports,module){
         
     }
 
-    function _initialize(id)
+    function _initialize(id, type)
     {
         if (id == undefined)
         {
@@ -16,6 +16,7 @@ define(function(require,exports,module){
         var model = gapi.drive.realtime.custom.getModel(this);
         this.id = id;
         this.stateMap = model.createMap();
+        this.type = type;
     }
 
     Connection.registerGAPI = function()

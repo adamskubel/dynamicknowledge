@@ -94,6 +94,9 @@ define(function (require, exports, module)
     Utils.getPropertyMap = function(gapiMap)
     {
         var properties = {};
+        if (!gapiMap)
+            return properties;
+
         var items= gapiMap.items();
         for (var i=0;i<items.length;i++)
         {
@@ -123,6 +126,24 @@ define(function (require, exports, module)
         container.addChild(objectView);
     };
 
+    Utils.extractContainer = function(container,objectView)
+    {
+        if (!container.parent)
+            throw "Container has no parent";
+
+        var parentView = container.parent;
+
+        var index = parentView.children.indexOf(container);
+
+        container.removeChild(objectView);
+        parentView.removeChild(container);
+        parentView.addChild(objectView, {
+            weight: 2,
+            index: index,
+            align: 'center'
+        });
+
+    };
 
 
     Utils.nameMap = {};

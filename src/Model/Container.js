@@ -25,7 +25,7 @@ define(function(require,exports,module){
     function _initializeState()
     {
         var model = gapi.drive.realtime.custom.getModel(this);
-        this.children = model.createList();
+        this.relationships = model.createList();
     }
 
     function _onLoaded()
@@ -47,7 +47,7 @@ define(function(require,exports,module){
         //Register Container.State
         gapi.drive.realtime.custom.registerType(Container.State,'Container.State');
         gapi.drive.realtime.custom.setInitializer(Container.State, _initializeState);
-        Container.State.prototype.children = gapi.drive.realtime.custom.collaborativeField('children');
+        Container.State.prototype.relationships = gapi.drive.realtime.custom.collaborativeField('children');
     };
 
     Container.create = function(model, id){
@@ -68,6 +68,12 @@ define(function(require,exports,module){
 
         return newState;
     };
+
+
+    Container.prototype.hasState = function(stateId)
+    {
+        return this.stateMap.has(stateId);
+    }
 
     Container.prototype.getState = function(stateId){
         return this.stateMap.get(stateId);

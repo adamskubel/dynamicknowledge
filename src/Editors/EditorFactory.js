@@ -6,7 +6,6 @@ define(function(require,exports,module){
     var Utils = require('Utils');
     var MouseSync = require('famous/inputs/MouseSync');
     var Vector = require('ProperVector');
-    var Label = require('Model/Label');
     var Colors = require('Colors');
 
     var EventEmitter = require('famous/core/EventEmitter');

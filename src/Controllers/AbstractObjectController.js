@@ -26,98 +26,72 @@ define(function(require,exports,module){
 
     AbstractObjectController.prototype.addController = function(controller)
     {
-        //_addController.call(this,controller);
-
         this.controllers.push(controller);
         controller.parent = this;
 
         controller.setState(this.state);
     };
 
-    function _loadRelationship(relationship)
+    AbstractObjectController.prototype.removeController = function(controller)
     {
-        if (relationship instanceof Container)
-        {
-            //var DynamicContainerController = require('Controllers/DynamicContainerController');
-            var container = new (require('Controllers/DynamicContainerController'))(relationship,this.modelLoader);
-            this.addController(container);
-        }
-        else if (relationship instanceof Connection)
-        {
-            console.debug("Adding connection relationship: '" + relationship.from + "' -> '" + relationship.to + "'");
-            var fromView = this.modelLoader.getObject(relationship.from).objectView;
-            var toView = this.modelLoader.getObject(relationship.to).objectView;
+        var index = this.controllers.indexOf(controller);
+        this.controllers.splice(index,1);
+    };
 
-            var output = fromView.getOutputEvents()[relationship.type];
-            var input = toView.getInputEvents()[relationship.type];
-
-            if (output && input)
-            {
-                fromView.pipe(toView);
-
-                var connectionLine = new LineCanvas();
-                connectionLine.parent = this.getView();
-                this.getView().add(connectionLine.getModifier()).add(connectionLine.getRenderController());
-
-                console.log("Binding to " + input._globalId);
-                output.parent.on('positionChange', function (){
-                    output._eventOutput.emit('positionChange');
-                });
-
-                input.parent.on('positionChange',function(){
-                    input._eventOutput.emit('positionChange');
-                });
-
-                connectionLine.setLineObjects(output,input);
-            }
-            else
-            {
-                console.error("Can't find event type '" + relationship.type + "' on views");
-            }
-
-        }
-        else if (relationship.type == "List")
-        {
-            for (var x=0;x<relationship.length;x++)
-            {
-                var child = relationship.get(x);
-                this.addController(this.modelLoader.getObject(child));
-            }
-        }
-        else if (relationship.type == "EditableString")
-        {
-            this.addController(this.modelLoader.getObject(relationship.toString()));
-        }
-    }
 
     function _relationshipsAdded(event)
     {
         for (var i = 0; i < event.values.length; i++)
         {
-            _loadRelationship.call(this,event.values[i]);
+            this.modelLoader.makeRelationship(this,event.values[i]);
         }
     }
 
     function _relationshipsRemoved(event)
     {
-        console.error("REMOVING IS NOT SUPPORTED, GOT IT?");
+        for (var i = 0; i < event.values.length; i++)
+        {
+            var controller = getControllerWithObjectId.call(this,event.values[i]);
+            this.removeController(controller);
+        }
     }
+
+
+
+    function getControllerWithObjectId(objectId)
+    {
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            if (this.controllers[i].objectDef.id == objectId)
+                return this.controllers[i];
+        }
+    }
+
 
     function _attachModel(model)
     {
+        if (!model.hasState(this.state))
+        {
+            console.error("Model not enabled for current state '" + this.state + "'");
+            return;
+        }
         var relationshipList = model.relationships;
 
-        var r = relationshipList.asArray();
-        for (var i=0;i < r.length;i++)
+        if (relationshipList)
         {
-            _loadRelationship.call(this,r[i]);
-        }
+            var r = relationshipList.asArray();
+            for (var i = 0; i < r.length; i++)
+            {
+                this.modelLoader.makeRelationship(this, r[i]);
+            }
 
-        relationshipList.addEventListener(gapi.drive.realtime.EventType.VALUES_ADDED,_relationshipsAdded.bind(this));
-        relationshipList.addEventListener(gapi.drive.realtime.EventType.VALUES_REMOVED, _relationshipsRemoved.bind(this));
-        relationshipList.addEventListener(gapi.drive.realtime.EventType.VALUES_SET, function(){
-            console.error("SET IS NOT SUPPORTED OK");
-        });
+            relationshipList.addEventListener(gapi.drive.realtime.EventType.VALUES_ADDED, _relationshipsAdded.bind(this));
+            relationshipList.addEventListener(gapi.drive.realtime.EventType.VALUES_REMOVED, _relationshipsRemoved.bind(this));
+            relationshipList.addEventListener(gapi.drive.realtime.EventType.VALUES_SET, function ()
+            {
+                console.error("SET IS NOT SUPPORTED OK");
+            });
+        }
     }
 
     AbstractObjectController.prototype.getOutputs = function()
@@ -194,7 +168,30 @@ define(function(require,exports,module){
 
     AbstractObjectController.prototype.deleteControllerModel = function(childModel)
     {
-        this.objectDef.relationships.removeValue(childModel);
+        console.log("Deleting object: " + childModel.id);
+
+        var r = this.objectDef.relationships;
+        if (!r.removeValue(childModel.id))
+        {
+            for (var i=0;i< r.length;i++)
+            {
+                if (r.get(i).id == childModel.id || r.get(i).to == childModel.id)
+                {
+                    r.remove(i);
+                    break;
+                }
+            }
+        }
+    };
+
+    AbstractObjectController.prototype.hasControllerType = function(controllerType)
+    {
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            if (this.controllers[i] instanceof controllerType)
+                return true;
+        }
+        return false;
     };
 
     AbstractObjectController.prototype.makeEditor = function(editorName)
@@ -202,7 +199,7 @@ define(function(require,exports,module){
         switch (editorName)
         {
             case "add":
-                return new ObjectCreationModule(this.objectDef);
+                return new ObjectCreationModule(this, this.objectDef);
             default:
                 return null;
             //case "connect":

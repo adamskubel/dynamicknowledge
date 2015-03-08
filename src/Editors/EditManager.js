@@ -14,7 +14,7 @@ define(function(require,exports,module){
             this.controllers.push(controller);
         else
         {
-            console.error("Controller already registered");
+            console.warn("Controller '" + controller.objectDef.id + "' already registered");
             return;
         }
 
@@ -109,12 +109,12 @@ define(function(require,exports,module){
         this.isEnabled = true;
         for (var i=0;i<this.controllers.length;i++)
         {
-            setControllerEditMode(this.controllers[i],"Local");
+            setControllerEditMode.call(this,this.controllers[i],"Local");
         }
 
         if (this.globalController)
         {
-            setControllerEditMode(this.globalController,"Global");
+            setControllerEditMode.call(this,this.globalController,"Global");
         }
     };
 

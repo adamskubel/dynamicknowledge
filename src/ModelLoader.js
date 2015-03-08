@@ -1,12 +1,14 @@
 define(function(require,exports,module){
 
     var DynamicObject = require('Model/DynamicObject');
-    var Label = require('Model/Label');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
     var LabelController = require('Controllers/LabelController');
     var AccessInspector = require('Intrinsics/AccessInspector');
     var Connection = require('Model/Connection');
     var Container = require('Model/Container');
+    var DynamicContainerController = require('Controllers/DynamicContainerController');
+    var LineCanvas = require('LineCanvas');
+    var Utils = require('Utils');
 
     function ModelLoader(_gapiModel, _objectRegistry){
         this.objectRegistry = _objectRegistry;
@@ -34,7 +36,6 @@ define(function(require,exports,module){
     ModelLoader.registerModels = function()
     {
         Container.registerGAPI();
-        Label.registerGAPI();
         DynamicObject.registerGAPI();
         Connection.registerGAPI();
     };
@@ -49,8 +50,7 @@ define(function(require,exports,module){
                 this.objectRegistry[objectId] = _loadObject.call(this,objects.get(objectId));
             else
             {
-                console.error("Object name '" + objectId + "' does not exist");
-                return null;
+                throw { error: "Object name '" + objectId + "' does not exist"}
             }
         }
 
@@ -78,6 +78,7 @@ define(function(require,exports,module){
     ModelLoader.prototype.getObjectDef = function(name){
         return this.gapiModel.getRoot().get("objects").get(name);
     };
+
 
     function _loadObject(objectDef)
     {
@@ -123,22 +124,91 @@ define(function(require,exports,module){
             {
                 ;
             }
+            else if (objectDef.type == "container")
+            {
+                objectController = new DynamicContainerController(objectDef,this);
+            }
+            else if (objectDef.type == "label")
+            {
+                objectController = new LabelController(objectDef,this);
+            }
             else
             {
                 console.error("Object type '" + objectDef.type + "' not supported");
                 return;
             }
         }
-        else if (objectDef instanceof Label)
-        {
-            console.log("Creating new label controller");
-            objectController = new LabelController(objectDef);
-        }
 
         DynamicKnowledge.EditManager.registerController(objectController);
 
         return objectController;
     }
+
+
+    ModelLoader.prototype.makeRelationship = function(controller, relationship)
+    {
+        if (relationship instanceof Connection)
+        {
+            console.debug("Adding connection relationship of type '" + relationship.type + "' : '" + relationship.from + "' -> '" + relationship.to + "'");
+            if (relationship.type == "container")
+            {
+                var container = this.getObject(relationship.to);
+
+                controller.addController(container);
+                if (!controller.getView())
+                    console.error("Controller must have a view");
+
+                Utils.injectView(container.getView(),controller.getView());
+                DynamicKnowledge.EditManager.registerController(container);
+            }
+            else if (relationship.type == "line")
+            {
+                var fromView = this.getObject(relationship.from).objectView;
+                var toView = this.getObject(relationship.to).objectView;
+
+                var output = fromView.getOutputEvents()[relationship.type];
+                var input = toView.getInputEvents()[relationship.type];
+
+                if (output && input)
+                {
+                    fromView.pipe(toView);
+
+                    var connectionLine = new LineCanvas();
+                    connectionLine.parent = controller.getView();
+                    controller.getView().add(connectionLine.getModifier()).add(connectionLine.getRenderController());
+
+                    console.log("Binding to " + input._globalId);
+                    output.parent.on('positionChange', function ()
+                    {
+                        output._eventOutput.emit('positionChange');
+                    });
+
+                    input.parent.on('positionChange', function ()
+                    {
+                        input._eventOutput.emit('positionChange');
+                    });
+
+                    connectionLine.setLineObjects(output, input);
+                }
+                else
+                {
+                    console.error("Can't find event type '" + relationship.type + "' on views");
+                }
+            }
+        }
+        else if (relationship.type == "List")
+        {
+            for (var x=0;x<relationship.length;x++)
+            {
+                var child = relationship.get(x);
+                controller.addController(this.getObject(child));
+            }
+        }
+        else if (relationship.type == "EditableString")
+        {
+            controller.addController(this.getObject(relationship.toString()));
+        }
+    };
 
     module.exports = ModelLoader;
 

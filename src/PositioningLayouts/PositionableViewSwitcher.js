@@ -136,22 +136,17 @@ define(function(require,exports,module)
         this.view = view;
     }
 
-    SwitcherEditor.prototype.createUI = function(editContext)
+    SwitcherEditor.prototype.createUI = function(menu)
     {
-        //editContext.globalMenu
-        //editContext.objectMenu
-        //editContext.viewMenu
-
-        editContext.viewMenu.addChild(this.makeSelector());
-        this.activeContext = editContext;
+        var s = this.makeSelector();
+        menu.addChild(s);
+        s.hide = function(){ menu.removeChild(s)};
+        this._activeUI = s;
     };
 
     SwitcherEditor.prototype.cleanup = function(editContext)
     {
-        if (this.activeContext && this.selector)
-        {
-            this.activeContext.viewMenu.removeChild(this.selector);
-        }
+        this._activeUI.hide();
     }
 
     SwitcherEditor.prototype.setModel = function(model,modelState)
@@ -162,27 +157,25 @@ define(function(require,exports,module)
 
     SwitcherEditor.prototype.makeSelector = function()
     {
-        if (!this.selector)
+        var selector = new ListSelector({
+            size:[40,40]
+        });
+
+        var items = [];
+
+        for (var viewName in this.view.viewMap)
         {
-            this.selector = new ListSelector({
-                size:[40,40]
-            });
-
-            var items = [];
-
-            for (var viewName in this.view.viewMap)
-            {
-                items.push(viewName);
-            }
-
-            this.selector.setItems(items);
-            this.selector.setSelectedItem(0);
-            this.selector.on('itemSelected',function(data){
-                this.view.setActiveView(data.item);
-                this.model.getState(this.modelState).properties.set("activeView",data.item);
-            }.bind(this));
+            items.push(viewName);
         }
-        return this.selector;
+
+        selector.setItems(items);
+        selector.setSelectedItem(0);
+        selector.on('itemSelected',function(data){
+            this.view.setActiveView(data.item);
+            this.model.getState(this.modelState).properties.set("activeView",data.item);
+        }.bind(this));
+
+        return selector;
     };
 
 

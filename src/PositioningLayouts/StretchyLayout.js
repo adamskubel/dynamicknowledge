@@ -48,7 +48,7 @@ define(function(require, exports, module) {
     {
         var r = this.children.indexOf(view);
         this.children.splice(r,1);
-        view._renderController.hide();
+        view.hide();
     };
 
     StretchyLayout.prototype.addChild = function(view,config)
@@ -80,10 +80,7 @@ define(function(require, exports, module) {
         }
 
         view._stretchConfig = config;
-        view._renderController = new RenderController();
-
-        this.add(view.getModifier()).add(view._renderController);
-        view._renderController.show(view);
+        this.add(new Modifier({transform:Transform.translate(0,0,10)})).add(view.getModifier()).add(view.getRenderController());
 		this.requestLayout();
     };
     //
