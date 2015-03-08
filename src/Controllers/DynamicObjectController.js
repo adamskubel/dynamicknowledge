@@ -10,7 +10,6 @@ define(function(require,exports,module){
 	var EditorFactory = require('Editors/EditorFactory');
 	var DynamicObject = require('Model/DynamicObject');
     var Surface = require('famous/core/Surface');
-    var Connection = require('Model/Connection');
 	var Utils = require('Utils');
 
     var AbstractObjectController = require('./AbstractObjectController');
@@ -54,16 +53,6 @@ define(function(require,exports,module){
         var controller = new DynamicObjectController(model,view,this.modelLoader);
         this.addController(controller);
     };
-
-	DynamicObjectController.prototype.addController = function(controller)
-	{
-		_addController.call(this,controller);
-
-		this.controllers.push(controller);
-		controller.parent = this;
-
-		controller.setState(this.state);
-	};
 
     DynamicObjectController.prototype.createEditTrigger = function()
     {
@@ -269,20 +258,20 @@ define(function(require,exports,module){
 	}
 
 
-	function _addController(controller)
-	{
-		//Controller already belongs to this controller's objectview
-		if (controller.getView() && controller.getView().parent == this.objectView)
-		{
-
-		}
-		//Container Controller
-		else if (controller instanceof DynamicContainerController)
-		{
-            var container = controller.getView();
-            injectView(container, this.objectView);
-		}
-	}
+	//function _addController(controller)
+	//{
+	//	//Controller already belongs to this controller's objectview
+	//	if (controller.getView() && controller.getView().parent == this.objectView)
+	//	{
+    //
+	//	}
+	//	//Container Controller
+	//	else if (controller instanceof DynamicContainerController)
+	//	{
+     //       var container = controller.getView();
+     //       injectView(container, this.objectView);
+	//	}
+	//}
 
     function _addContainer()
     {

@@ -1,6 +1,7 @@
 define(function(require,exports,module){
 
     var Container = require('Model/Container');
+    var Connection = require('Model/Connection');
 
     function AbstractObjectController(objectDef,modelLoader)
     {
@@ -13,16 +14,28 @@ define(function(require,exports,module){
         _attachModel.call(this,objectDef);
     }
 
+    AbstractObjectController.prototype = {};
+    AbstractObjectController.prototype.constructor = AbstractObjectController;
+
     AbstractObjectController.prototype.getObjectDef = function(){
         return this.objectDef;
     };
 
+    AbstractObjectController.prototype.addController = function(controller)
+    {
+        //_addController.call(this,controller);
+
+        this.controllers.push(controller);
+        controller.parent = this;
+
+        controller.setState(this.state);
+    };
 
     function _loadRelationship(relationship)
     {
         if (relationship instanceof Container)
         {
-            var ContainerController = require('Controllers/ContainerController');
+            //var DynamicContainerController = require('Controllers/DynamicContainerController');
             var container = new ContainerController(relationship,this.modelLoader);
             this.addController(container);
         }

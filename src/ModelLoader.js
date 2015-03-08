@@ -101,7 +101,7 @@ define(function(require,exports,module){
                     console.error("Predefined object '" + pname + "' not found");
                     return;
                 }
-                objectController = new DynamicObjectController(objectDef, objectView, this);
+                objectController = new DynamicObjectController(objectDef, this, objectView);
             }
 
             else if (objectDef.type == "constructed")
@@ -111,7 +111,7 @@ define(function(require,exports,module){
                 {
                     case "AccessInspector":
                         objectView = new AccessInspector();
-                        objectController =  new DynamicObjectController(objectDef, objectView, this);
+                        objectController =  new DynamicObjectController(objectDef, this, objectView);
                         break;
                     default:
                         console.error("Unknown type '" + name + "'");

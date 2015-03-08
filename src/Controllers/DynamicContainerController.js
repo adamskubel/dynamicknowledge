@@ -1,19 +1,19 @@
 define(function(require,exports,module){
 
-    var AbstractObjectController = require('./AbstractObjectController');
+    var AbstractObjectController = require('Controllers/AbstractObjectController');
     var DynamicConstraintLayout = require('PositioningLayouts/DynamicConstraintLayout');
-    var DynamicObjectController = require('./DynamicObjectController');
+    //var DynamicObjectController = require('./DynamicObjectController');
     var BoxView = require('PositioningLayouts/BoxView');
     var EditorFactory = require('Editors/EditorFactory');
-
-    function DynamicContainerController()
-    {
-        this.containerView = _makeContainerView();
-    }
 
     DynamicContainerController.prototype = Object.create(AbstractObjectController.prototype);
     DynamicContainerController.prototype.constructor = DynamicContainerController;
 
+    function DynamicContainerController(objectDef, modelLoader)
+    {
+        AbstractObjectController.call(this,objectDef,modelLoader);
+        this.containerView = _makeContainerView();
+    }
 
 
     DynamicContainerController.prototype.getView = function()
@@ -118,7 +118,7 @@ define(function(require,exports,module){
         }
 
         return editors;
-    }
+    };
 
 
 
