@@ -49,6 +49,7 @@ define(function(require,exports,module){
         var focusObject = this.modelLoader.getObject(focusName);
 
         this.setActiveController(focusObject);
+
     };
 
     MainView.prototype.setEditMode = function(editMode)
@@ -71,6 +72,8 @@ define(function(require,exports,module){
         this.mainLayout.add(this.activeView.getModifier()).add(this.activeView.getRenderController());
         this.activeController = newController;
         this.dynamicNodes.push(this.activeView);
+
+        DynamicKnowledge.EditManager.setGlobalController(newController);
     };
 
     MainView.prototype.setCameraMode = function(cameraMode)

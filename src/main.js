@@ -43,7 +43,7 @@ define(function (require, exports, module)
         this.context.add(mainView);
 
         DynamicKnowledge.EditManager = new EditManager(mainView);
-
+        this.editManager = DynamicKnowledge.EditManager;
 
         var objectRegistry = {};
         this.objectRegistry = objectRegistry;
@@ -222,9 +222,9 @@ define(function (require, exports, module)
         this.editButton.setHighlighted(editMode);
 
         if (editMode)
-            this.mainView.setEditMode("IsEditing");
+            this.editManager.enable();
         else
-            this.mainView.setEditMode("ReadOnly");
+            this.editManager.disable();
     }
 
 

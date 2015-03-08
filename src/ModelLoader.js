@@ -134,6 +134,7 @@ define(function(require,exports,module){
             objectController = new LabelController(objectDef);
         }
 
+        DynamicKnowledge.EditManager.registerController(objectController);
 
         return objectController;
     }

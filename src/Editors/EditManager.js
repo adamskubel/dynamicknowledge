@@ -5,7 +5,7 @@ define(function(require,exports,module){
     function EditManager(mainView)
     {
         this.mainView = mainView;
-        this.controllers = {};
+        this.controllers = [];
     }
 
     EditManager.prototype.registerController = function(controller)
@@ -60,18 +60,24 @@ define(function(require,exports,module){
         if (this.activeController)
         {
             this.activeController.destroyEditors();
+            setControllerEditMode.call(this,this.activeController,"Local");
         }
 
         controller.destroyEditTrigger();
         controller.createEditors(editContext);
 
-        setControllerEditMode.call(this,this.activeController,"Local");
 
         this.activeController = controller;
     }
 
     function setControllerEditMode(controller,editMode)
     {
+        if (!controller)
+        {
+            console.error("Null controller");
+            return;
+        }
+
         switch (editMode)
         {
             case "Local":
@@ -114,7 +120,7 @@ define(function(require,exports,module){
         this.isEnabled = false;
         for (var i=0;i<this.controllers.length;i++)
         {
-            setControllerEditMode.call(this.controllers[i],"ReadOnly");
+            setControllerEditMode.call(this,this.controllers[i],"ReadOnly");
         }
 
         if (this.globalMenu)

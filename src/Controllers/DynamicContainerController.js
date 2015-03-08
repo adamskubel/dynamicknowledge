@@ -72,7 +72,7 @@ define(function(require,exports,module){
         return dc;
     }
 
-    function _createEditor(editorName)
+    DynamicContainerController.prototype.makeEditor = function(editorName)
     {
         switch (editorName)
         {
@@ -90,8 +90,7 @@ define(function(require,exports,module){
                     this.parent.deleteControllerModel(this);
                 }.bind(this));
             default:
-                console.error("Editor '" + editorName + "' is not allowed");
-                break;
+                return AbstractObjectController.prototype.makeEditor.call(this,editorName);
         }
     }
 

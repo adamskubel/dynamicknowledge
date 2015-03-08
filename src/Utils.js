@@ -76,7 +76,10 @@ define(function (require, exports, module)
 
     Utils.attachRenderController = function(object){
 
-        object.renderController = new RenderController();
+        object.renderController = new RenderController({
+            inTransition:false,
+            outTransition:false
+        });
 
         object.show = function(){
             this.renderController.show(this);

@@ -2,6 +2,8 @@ define(function(require,exports,module){
 
     var Container = require('Model/Container');
     var Connection = require('Model/Connection');
+    var ObjectCreationModule = require('Editors/ObjectCreationModule');
+    var LineConnectionModule = require('Editors/LineConnectionModuel');
 
     function AbstractObjectController(objectDef,modelLoader)
     {
@@ -16,6 +18,7 @@ define(function(require,exports,module){
 
     AbstractObjectController.prototype = {};
     AbstractObjectController.prototype.constructor = AbstractObjectController;
+    module.exports = AbstractObjectController;
 
     AbstractObjectController.prototype.getObjectDef = function(){
         return this.objectDef;
@@ -194,6 +197,16 @@ define(function(require,exports,module){
         this.objectDef.relationships.removeValue(childModel);
     };
 
-    module.exports = AbstractObjectController;
+    AbstractObjectController.prototype.makeEditor = function(editorName)
+    {
+        switch (editorName)
+        {
+            case "add":
+                return new ObjectCreationModule(this.objectDef);
+            case "connect":
+                return new LineConnectionModule();
+        }
+    };
+
 
 });

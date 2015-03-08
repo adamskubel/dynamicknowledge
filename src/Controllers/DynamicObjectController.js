@@ -15,6 +15,8 @@ define(function(require,exports,module){
     var AbstractObjectController = require('./AbstractObjectController');
     var DynamicContainerController = require('./DynamicContainerController');
 
+    var MenuBar = require('Views/MenuBar');
+
 	function DynamicObjectController(objectDef, modelLoader, objectView)
 	{
         AbstractObjectController.call(this,objectDef,modelLoader);
@@ -28,7 +30,6 @@ define(function(require,exports,module){
             objectView.setController(this);
 
         objectView.applyProperties(pmap);
-
 	}
 
     DynamicObjectController.prototype = Object.create(AbstractObjectController.prototype);
@@ -50,7 +51,7 @@ define(function(require,exports,module){
             model.createState(this.state);
         }
 
-        var controller = new DynamicObjectController(model,view,this.modelLoader);
+        var controller = new DynamicObjectController(model,this.modelLoader,view);
         this.addController(controller);
     };
 
@@ -77,7 +78,9 @@ define(function(require,exports,module){
     DynamicObjectController.prototype.destroyEditTrigger = function()
     {
         if (this._activeEditTrigger)
+        {
             this._activeEditTrigger.hide();
+        }
     };
 
 	DynamicObjectController.prototype.createEditors = function(editContext)
@@ -87,11 +90,13 @@ define(function(require,exports,module){
 
         var myEditors = this.createEditRules(editContext);
 
-        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : _getObject("MenuBar");
+        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : _getObject.call(this,"menuBar");
 
         for (var e = 0; e < myEditors.length; e++)
         {
             var newEditor = _createEditor.call(this, myEditors[e]);
+
+            if (!newEditor) continue;
 
             if (newEditor.isMenuButton)
                 menuBar.addChild(newEditor);
@@ -107,11 +112,14 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.destroyEditors = function()
     {
-        for (var i=0;i<this._activeEditorViews.length;i++)
+        if (this._activeEditorViews)
         {
-            this._activeEditorViews[i].hide();
+            for (var i = 0; i < this._activeEditorViews.length; i++)
+            {
+                this._activeEditorViews[i].hide();
+            }
+            this._activeEditorViews = [];
         }
-        this._activeEditorViews.clear();
 
         _cleanupObjectEditors.call(this);
 	};
@@ -225,22 +233,22 @@ define(function(require,exports,module){
         }
     }
 
-	function _createEditor(editorName)
+	DynamicObjectController.prototype.makeEditor = function(editorName)
 	{
 		switch (editorName)
 		{
 			case "position":
-				return new EditorFactory.addMoveEditor(this.objectView,function(newPosition)
+				return (new EditorFactory()).addMoveEditor(this.objectView,function(newPosition)
                 {
                     this.objectDef.getState(this.state).set('position',newPosition);
                 }.bind(this));
 			case "size":
-                return new EditorFactory.addSizeEditor(this.objectView,function(newSize)
+                return (new EditorFactory()).addSizeEditor(this.objectView,function(newSize)
                 {
                     this.objectDef.getState(this.state).set('size',newSize);
                 }.bind(this));
 			case "delete":
-                return new EditorFactory.addDeleteButton(this.objectView,function(){
+                return (new EditorFactory()).addDeleteButton(this.objectView,function(){
                     this.parent.deleteControllerModel(this);
                 }.bind(this));
             case "containerize":
@@ -255,7 +263,7 @@ define(function(require,exports,module){
 				console.error("Editor '" + editorName + "' is not allowed");
 				break;
 		}
-	}
+	};
 
 
 	//function _addController(controller)
