@@ -51,8 +51,10 @@ define(function (require, exports, module)
 
         this.mainView = mainView;
 
+        DynamicKnowledge.MainView = mainView;
+
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgIU0lyd1hTdGhKOFE';
+        this.fileId = '0B6eNzoTXZGgIblR3bFZwODlaSE0';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {
@@ -133,16 +135,16 @@ define(function (require, exports, module)
         this.modelLoader = new ModelLoader(document.getModel(),this.objectRegistry);
         this.modelLoader.loadModel(this.mainView);
 
-        jQuery.get('./text.txt', function(data)
-        {
-            var blocks = parseText.call(this,data);
-            for (var i=0;i<blocks.length;i++)
-            {
-                var block = blocks[i];
-                this.mainView.addText(block.text,block.name);
-            }
-
-        }.bind(this));
+        //jQuery.get('./text.txt', function(data)
+        //{
+        //    var blocks = Utils.parseText.call(this,data);
+        //    for (var i=0;i<blocks.length;i++)
+        //    {
+        //        var block = blocks[i];
+        //        this.mainView.addText(block.text,block.name);
+        //    }
+        //
+        //}.bind(this));
     }
 
     function _initializeModel(model)
@@ -165,12 +167,16 @@ define(function (require, exports, module)
         pageTable.createState('base');
         pageTable.properties.set("predefinedName","PageTable");
 
+
+        var sideBar = DynamicObject.create(model,"MemorySideBar","sidebar");
+        sideBar.createState("base");
+
         var memorySystem = DynamicObject.create(model,'MemorySystemController','predef');
         memorySystem.createState('base');
         memorySystem.properties.set('predefinedName',"MemorySystemView");
-        memorySystem.relationships.push(model.createList(["PageTableObject","VirtualSpaceObject"]));
+        memorySystem.relationships.push(model.createList(["PageTableObject","VirtualSpaceObject","MemorySideBar"]));
 
-
+        objects.set(sideBar.id,sideBar);
         objects.set(pageTable.id,pageTable);
         objects.set(memorySystem.id,memorySystem);
         objects.set(virtualSpace.id,virtualSpace);
@@ -337,48 +343,7 @@ define(function (require, exports, module)
     }
 
 
-    function parseText(text)
-    {
 
-        var textBlocks = [];
-
-        var openTag = "{LINK=";
-        var closeTag = "{/LINK}";
-
-        var i =0;
-        while (i < text.length)
-        {
-            var index = text.indexOf(openTag, i);
-
-            if (index != i)
-            {
-                var end = index;
-                if (index < 0)
-                    end = text.length;
-                textBlocks.push({
-                    name:"",
-                    text:text.slice(i,end)
-                });
-            }
-
-            if (index < 0)
-                break;
-
-            var nameEndIndex = text.indexOf("}",index);
-            var closingIndex = text.indexOf(closeTag,index);
-
-            textBlocks.push({
-                name:text.slice(index + openTag.length, nameEndIndex),
-                text:text.slice(nameEndIndex+1, closingIndex)
-            });
-
-            i = closingIndex+closeTag.length;
-            if (i < 0)
-                break;
-        }
-
-        return textBlocks;
-    }
 
 	init();
 });

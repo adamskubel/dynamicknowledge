@@ -3,8 +3,8 @@ define(function(require, exports, module) {
     var SequenceView = require('famous/views/SequentialLayout');
     var PositionableView = require('./PositionableView');
     var View = require('famous/core/View');
-    var Vector = require('../ProperVector');
-    var Utils = require('../Utils');
+    var Vector = require('ProperVector');
+    var Utils = require('Utils');
 
     function PSequenceView(options) {
         PositionableView.call(this, options);
@@ -102,7 +102,7 @@ define(function(require, exports, module) {
 
         var wrap = new View();
         wrap._view = child;
-        wrap.add(child.getModifier()).add(child);
+        wrap.add(Utils.makeZOffset(10)).add(child.getModifier()).add(child);
         child._wrap = wrap;
 
         if (child.textSurface && child.backSurface){

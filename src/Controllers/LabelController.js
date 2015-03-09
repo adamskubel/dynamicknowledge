@@ -4,10 +4,9 @@ define(function(require,exports,module){
     var Colors = require('Colors');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
 
-
     function LabelController(objectDef, modelLoader)
     {
-        var label = makeLabelView(objectDef);
+        var label = this.makeLabelView(objectDef);
         DynamicObjectController.call(this,objectDef,modelLoader,label);
 
         this.labelView = label;
@@ -21,7 +20,7 @@ define(function(require,exports,module){
     LabelController.prototype.constructor = LabelController;
     module.exports = LabelController;
 
-    function makeLabelView(model)
+    LabelController.prototype.makeLabelView = function(model)
     {
         var labelState = model.getState('base');
         if (!labelState)
@@ -44,7 +43,7 @@ define(function(require,exports,module){
             color: Colors.Annotation,
             useMarkdown:true
         });
-    }
+    };
 
     LabelController.prototype.createEditors = function(editContext)
     {
@@ -65,10 +64,10 @@ define(function(require,exports,module){
         editors.push("delete");
 
         if (this.labelView.parent.childControlsPosition())
+        {
             editors.push("position");
-
-        editors.push("size");
-
+            editors.push("size");
+        }
         return editors;
     };
 });

@@ -6,15 +6,19 @@ define(function(require,exports,module)
     var MenuBar = require('Views/MenuBar');
     var Colors = require('Colors');
 
-    function ObjectCreationModule(parentController, objectDef)
+    function ObjectCreationModule(parentController, objectDef, creationList)
     {
         this.parent = parentController;
         this.objectDef = objectDef;
+        this.creationList = creationList;
     }
 
     function _getCreationList(objectDef)
     {
-        return ["Label","AccessInspector"];
+        if (!this.creationList)
+            return ["Label","AccessInspector"];
+
+        return this.creationList;
     }
 
     ObjectCreationModule.prototype.createUI = function(menu)
@@ -25,7 +29,7 @@ define(function(require,exports,module)
             size:[80,40],
             color:Colors.EditColor
         });
-        selector.setItems(_getCreationList(this.objectDef));
+        selector.setItems(_getCreationList.call(this,this.objectDef));
 
         var addButton = MenuBar.makeMenuButton("+");
         addButton.on('click',function(){
@@ -59,6 +63,10 @@ define(function(require,exports,module)
         if (objectName == "Label")
         {
             newObject = DynamicObject.create(model,modelLoader.nextObjectId("Label"),"label");
+        }
+        else if (objectName == "SideBarLabel")
+        {
+            newObject = DynamicObject.create(model,modelLoader.nextObjectId("SideLabel"),"sidebar_label");
         }
         else
         {

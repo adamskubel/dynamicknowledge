@@ -115,7 +115,7 @@ define(function(require, exports, module) {
 
         var wrap = new View();
         wrap._view = child;
-        wrap.add(child.getModifier()).add(child);
+        wrap.add(Utils.makeZOffset(10)).add(child.getModifier()).add(child);
         child._wrap = wrap;
 
         if (child.textSurface && child.backSurface){
@@ -131,6 +131,21 @@ define(function(require, exports, module) {
 
         this.requestLayout();
         child.parent = this;
+    };
+
+
+    PositioningScrollView.prototype.indexOfChild = function(child){
+        return this.children.indexOf(child._wrap);
+    };
+
+
+    PositioningScrollView.prototype.removeChild = function(view)
+    {
+        var r = this.indexOfChild(view);
+        if (r >= 0)
+        {
+            this.children.splice(r, 1);
+        }
     };
 
     module.exports = PositioningScrollView;

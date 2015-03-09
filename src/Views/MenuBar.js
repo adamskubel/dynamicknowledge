@@ -41,6 +41,18 @@ define(function(require,exports,module){
     };
 
 
+    MenuBar.makeSpacer = function()
+    {
+        var spacerBox = new BoxView({
+            text: "", size: [13, 40], clickable: true, color: Colors.EditColor,
+            position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large',
+            style:"hidden"
+        });
+
+        return spacerBox;
+    };
+
+
     module.exports = MenuBar;
 
 });

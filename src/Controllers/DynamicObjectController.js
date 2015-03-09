@@ -89,6 +89,15 @@ define(function(require,exports,module){
         }
     };
 
+    DynamicObjectController.prototype.makeMenuBar = function()
+    {
+        var menuBar = new MenuBar({
+            viewOrigin:[0,1]
+        });
+        this.objectView.add(menuBar.getModifier()).add(menuBar.getRenderController());
+        return menuBar;
+    };
+
 	DynamicObjectController.prototype.createEditors = function(editContext)
 	{
         if (!this._activeEditorViews)
@@ -96,16 +105,7 @@ define(function(require,exports,module){
 
         var myEditors = this.createEditRules(editContext);
 
-        var makeMenuBar = function()
-        {
-            var menuBar = new MenuBar({
-                viewOrigin:[0,1]
-            });
-            this.objectView.add(menuBar.getModifier()).add(menuBar.getRenderController());
-            return menuBar;
-        }.bind(this);
-
-        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : makeMenuBar();
+        var menuBar = (editContext.isGlobal) ? editContext.globalMenu : this.makeMenuBar();
         for (var e = 0; e < myEditors.length; e++)
         {
             var newEditor = this.makeEditor(myEditors[e]);
@@ -184,9 +184,10 @@ define(function(require,exports,module){
                 editors.push("delete");
 
                 if (this.objectView.parent.childControlsPosition())
+                {
                     editors.push("position");
-
-                editors.push("resize");
+                    editors.push("resize");
+                }
 
                 if (!hasContainer(this.objectDef))
                 {

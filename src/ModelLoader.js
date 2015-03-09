@@ -9,10 +9,13 @@ define(function(require,exports,module){
     var DynamicContainerController = require('Controllers/DynamicContainerController');
     var LineCanvas = require('LineCanvas');
     var Utils = require('Utils');
+    var SideBarController = require('Controllers/SideBarController');
+    var SideBarLabelController = require('Controllers/SideBarLabelController');
 
     function ModelLoader(_gapiModel, _objectRegistry){
         this.objectRegistry = _objectRegistry;
         this.gapiModel = _gapiModel;
+        DynamicKnowledge.ModelLoader = this;
     }
 
     var instance;
@@ -131,6 +134,14 @@ define(function(require,exports,module){
             else if (objectDef.type == "label")
             {
                 objectController = new LabelController(objectDef,this);
+            }
+            else if (objectDef.type == "sidebar")
+            {
+                objectController = new SideBarController(objectDef);
+            }
+            else if (objectDef.type == "sidebar_label")
+            {
+                objectController = new SideBarLabelController(objectDef);
             }
             else
             {

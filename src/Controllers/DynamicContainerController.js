@@ -13,7 +13,7 @@ define(function(require,exports,module){
 
     function DynamicContainerController(objectDef, modelLoader)
     {
-        this.containerView = _makeContainerView();
+        this.containerView = this.makeContainerView();
         AbstractObjectController.call(this,objectDef,modelLoader);
     }
 
@@ -73,7 +73,7 @@ define(function(require,exports,module){
         DynamicObjectController.prototype.destroyEditors.call(this);
     };
 
-    function _makeContainerView()
+    DynamicContainerController.prototype.makeContainerView = function()
     {
         var dc = new DynamicConstraintLayout();
 

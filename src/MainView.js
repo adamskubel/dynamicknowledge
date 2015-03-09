@@ -101,47 +101,6 @@ define(function(require,exports,module){
         this.cameraMode = cameraMode;
     };
 
-    MainView.prototype.addText = function(string, name)
-    {
-        var pointAt = (name) ? this.modelLoader.getObject(name) : null;
-
-        var linkValid = (pointAt != undefined);
-
-        var textView = new BoxView({
-            size:[this.textLayout.textWidth,true],
-            color:Colors.Annotation,
-            text:string,
-            textAlign:[0,0],
-            style:(linkValid) ? 'borderOnly' : 'noBorder',
-            fontSize:'normal',
-            scrollviewSizeHack: true,
-            clickable:linkValid,
-            useMarkdown:true
-        });
-
-        if (linkValid)
-        {
-            //var pointLine = new LineCanvas();
-            //pointLine.setLineObjects(textView, pointAt);
-            //rootNode.add(pointLine.getModifier()).add(pointLine);
-            //textLayout.on('positionUpdate',function(){
-            //    pointLine.update();
-            //});
-
-            textView.on('click', function ()
-            {
-                pointAt.setState(string);
-
-            }.bind(this));
-        }
-
-        //textView.//textSurface.setContent(markdown.toHTML(string));
-
-        this.textLayout.addChild(textView);
-        return textView;
-    };
-
-
     function _buildCamera(){
 
         var _this = this;
@@ -251,7 +210,50 @@ define(function(require,exports,module){
         this.textLayout = textLayout;
         this.mainLayout = mainLayout;
         this.rootNode = rootNode;
+
     }
+
+
+    //SideBarController.prototype.addText = function(string, name)
+    //{
+    //    var pointAt = (name) ? this.modelLoader.getObject(name) : null;
+    //
+    //    var linkValid = (pointAt != undefined);
+    //
+    //    var textView = new BoxView({
+    //        size:[this.textLayout.textWidth,true],
+    //        color:Colors.Annotation,
+    //        text:string,
+    //        textAlign:[0,0],
+    //        style:(linkValid) ? 'borderOnly' : 'noBorder',
+    //        fontSize:'normal',
+    //        scrollviewSizeHack: true,
+    //        clickable:linkValid,
+    //        useMarkdown:true
+    //    });
+    //
+    //    if (linkValid)
+    //    {
+    //        //var pointLine = new LineCanvas();
+    //        //pointLine.setLineObjects(textView, pointAt);
+    //        //rootNode.add(pointLine.getModifier()).add(pointLine);
+    //        //textLayout.on('positionUpdate',function(){
+    //        //    pointLine.update();
+    //        //});
+    //
+    //        textView.on('click', function ()
+    //        {
+    //            pointAt.setState(string);
+    //
+    //        }.bind(this));
+    //    }
+    //
+    //    //textView.//textSurface.setContent(markdown.toHTML(string));
+    //
+    //    this.textLayout.addChild(textView);
+    //    return textView;
+    //};
+
     module.exports = MainView;
 
 });

@@ -79,7 +79,7 @@ define(function(require,exports,module){
         for (var i = 0; i < event.values.length; i++)
         {
             var controller = getControllerWithObjectId.call(this,event.values[i]);
-            
+
             if (!controller)
                 console.error("Removed non-existent controller '" + event.values[i]);
             else

@@ -4,6 +4,8 @@ define(function (require, exports, module)
     var Vector = require('./ProperVector');
     var RenderController = require("famous/views/RenderController");
     var Colors = require('Colors');
+    var Transform = require('famous/core/Transform');
+    var Modifier = require('famous/core/Modifier');
 
     function Utils()
     {
@@ -144,6 +146,57 @@ define(function (require, exports, module)
         });
 
     };
+
+    Utils.parseText = function(text)
+    {
+
+        var textBlocks = [];
+
+        var openTag = "{LINK=";
+        var closeTag = "{/LINK}";
+
+        var i =0;
+        while (i < text.length)
+        {
+            var index = text.indexOf(openTag, i);
+
+            if (index != i)
+            {
+                var end = index;
+                if (index < 0)
+                    end = text.length;
+                textBlocks.push({
+                    name:"",
+                    text:text.slice(i,end)
+                });
+            }
+
+            if (index < 0)
+                break;
+
+            var nameEndIndex = text.indexOf("}",index);
+            var closingIndex = text.indexOf(closeTag,index);
+
+            textBlocks.push({
+                name:text.slice(index + openTag.length, nameEndIndex),
+                text:text.slice(nameEndIndex+1, closingIndex)
+            });
+
+            i = closingIndex+closeTag.length;
+            if (i < 0)
+                break;
+        }
+
+        return textBlocks;
+    };
+
+    Utils.makeZOffset = function(offsetDepth)
+    {
+        if (!offsetDepth)
+            offsetDepth = 1;
+
+        return new Modifier({transform: Transform.translate(0,0,offsetDepth)});
+    }
 
 
     Utils.nameMap = {};
