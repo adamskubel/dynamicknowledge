@@ -64,11 +64,15 @@ define(function(require,exports,module){
             size: [undefined, undefined],
             clickable: true,
             color: Colors.EditColor,
-            position:[0,0,1],
+            position:[0,0,5],
             viewAlign:[0,0.5],
             viewOrigin:[0,0.5],
-            style:"borderOnly"
+            style:"noBorder",
+            isAnimated:false
         });
+
+        trigger.setOpacity(0.1);
+        trigger.setAnimated(false);
 
         this.objectView.add(trigger.getModifier()).add(trigger.getRenderController());
 
@@ -195,9 +199,9 @@ define(function(require,exports,module){
 	};
 
 
-	DynamicObjectController.prototype.setState = function(state)
+	DynamicObjectController.prototype.propagateState = function(state)
     {
-		AbstractObjectController.prototype.setState.call(this,state);
+		AbstractObjectController.prototype.propagateState.call(this,state);
 		updateObjectState();
 	};
 

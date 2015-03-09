@@ -11,6 +11,10 @@ define(function(require,exports,module){
         DynamicObjectController.call(this,objectDef,modelLoader,label);
 
         this.labelView = label;
+
+        this.labelView._eventOutput.on("textChanged",function(newText){
+             this.objectDef.properties.set("text",newText);
+        }.bind(this));
     }
 
     LabelController.prototype = Object.create(DynamicObjectController.prototype);
@@ -63,7 +67,7 @@ define(function(require,exports,module){
         if (this.labelView.parent.childControlsPosition())
             editors.push("position");
 
-        editors.push("resize");
+        editors.push("size");
 
         return editors;
     };

@@ -57,7 +57,7 @@ define(function (require, exports, module)
     PositionableView.DEFAULT_OPTIONS =
     {
         position:[0,0,0],
-        isAnimated: true,
+        isAnimated: false,
         positionTransition: {duration: 250, curve: Easing.outQuad},
         sizeTransition: {duration: 250, curve: Easing.outQuad}
     };

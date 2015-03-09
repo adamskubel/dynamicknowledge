@@ -36,6 +36,11 @@ define(function(require, exports, module) {
             font:1,
             background:0,
             border:1
+        },
+        "hidden" : {
+            font: 0,
+            background:0,
+            border: 0
         }
     };
 
@@ -185,6 +190,7 @@ define(function(require, exports, module) {
 
         editTextSurface.on('keyup',function(data){
             this._text = editTextSurface.getValue();
+            this._eventOutput.emit("textChanged",this._text);
         }.bind(this));
 
         return editTextSurface;

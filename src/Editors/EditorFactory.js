@@ -107,7 +107,7 @@ define(function(require,exports,module){
         dragController.on('end',function(data){
             box.setAnimated(true);
             box.parent.setAnimated(true);
-            resizeCallback();
+            resizeCallback(box.size);
         }.bind(this));
 
         resizeButton.textSurface.hide();

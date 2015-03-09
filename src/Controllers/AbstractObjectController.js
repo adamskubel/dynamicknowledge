@@ -13,6 +13,8 @@ define(function(require,exports,module){
         this.modelLoader = modelLoader;
         this.state = 'base';
 
+        this._specifiedState = undefined;
+
         _attachModel.call(this,objectDef);
     }
 
@@ -43,6 +45,25 @@ define(function(require,exports,module){
     AbstractObjectController.prototype.cleanup = function()
     {
 
+    };
+
+    AbstractObjectController.prototype.setState = function(state)
+    {
+        this._specifiedState = state;
+        this.propagateState(state);
+    };
+
+    //This would be protected if I was using Java
+    AbstractObjectController.prototype.propagateState = function(state)
+    {
+        if (this._specifiedState == undefined)
+        {
+            this.state = state;
+            for (var i=0;i<this.controllers.length;i++)
+            {
+                this.controllers[i].propagateState(state);
+            }
+        }
     };
 
     function _relationshipsAdded(event)
