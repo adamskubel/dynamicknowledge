@@ -36,8 +36,14 @@ define(function(require,exports,module){
     {
         var index = this.controllers.indexOf(controller);
         this.controllers.splice(index,1);
+        controller.cleanup();
     };
 
+
+    AbstractObjectController.prototype.cleanup = function()
+    {
+
+    };
 
     function _relationshipsAdded(event)
     {
@@ -52,7 +58,11 @@ define(function(require,exports,module){
         for (var i = 0; i < event.values.length; i++)
         {
             var controller = getControllerWithObjectId.call(this,event.values[i]);
-            this.removeController(controller);
+            
+            if (!controller)
+                console.error("Removed non-existent controller '" + event.values[i]);
+            else
+                this.removeController(controller);
         }
     }
 

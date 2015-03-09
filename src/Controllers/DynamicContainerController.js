@@ -6,6 +6,7 @@ define(function(require,exports,module){
     var BoxView = require('PositioningLayouts/BoxView');
     var EditorFactory = require('Editors/EditorFactory');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
+    var Utils = require('Utils');
 
     DynamicContainerController.prototype = Object.create(AbstractObjectController.prototype);
     DynamicContainerController.prototype.constructor = DynamicContainerController;
@@ -40,8 +41,8 @@ define(function(require,exports,module){
 
     DynamicContainerController.prototype.cleanup = function()
     {
-        var originalParent = this.containerView.parent;
-        this.parent.objectView
+        if (this.parent && this.parent.getView() && this.parent.getView().parent == this.containerView)
+            Utils.extractContainer(this.containerView,this.parent.getView());
     };
 
 
