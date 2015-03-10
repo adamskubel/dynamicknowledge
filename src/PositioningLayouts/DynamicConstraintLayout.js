@@ -233,6 +233,8 @@ define(function(require, exports, module) {
 
         for (var i=0;i<children.length;i++)
         {
+            if (!children[i].visible) continue;
+
             var childExtents = _measureChildExtents(children[i]);
 
             bottomRight.x = Math.max(childExtents.bottomRight.x,bottomRight.x);

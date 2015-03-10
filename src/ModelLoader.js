@@ -160,7 +160,7 @@ define(function(require,exports,module){
     {
         if (relationship instanceof Connection)
         {
-            console.debug("Adding connection relationship of type '" + relationship.type + "' : '" + relationship.from + "' -> '" + relationship.to + "'");
+            //console.debug("Adding connection relationship of type '" + relationship.type + "' : '" + relationship.from + "' -> '" + relationship.to + "'");
             if (relationship.type == "container")
             {
                 var container = this.getObject(relationship.to);

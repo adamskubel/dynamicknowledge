@@ -49,8 +49,6 @@ define(function(require,exports,module){
 
     AbstractObjectController.prototype.setState = function(state)
     {
-        console.debug("Setting state '" + state + "'");
-
         this._specifiedState = state;
 
         var parentState = 'base';
@@ -63,6 +61,8 @@ define(function(require,exports,module){
         {
             this.controllers[i].propagateState(this.state);
         }
+
+        this.setObjectState(this.state);
     };
 
     AbstractObjectController.prototype.createState = function(state)
@@ -82,6 +82,9 @@ define(function(require,exports,module){
         if (this._specifiedState == undefined)
         {
             this.state = state;
+
+            this.setObjectState(this.state);
+
             for (var i=0;i<this.controllers.length;i++)
             {
                 this.controllers[i].propagateState(this.state);
@@ -123,11 +126,6 @@ define(function(require,exports,module){
 
     function _attachModel(model)
     {
-        if (!model.hasState(this.state))
-        {
-            console.error("Model '" + this.objectDef.id + "' not enabled for current state '" + this.state + "'");
-            return;
-        }
         var relationshipList = model.relationships;
 
         if (relationshipList)
@@ -146,6 +144,12 @@ define(function(require,exports,module){
             });
         }
     }
+
+
+    AbstractObjectController.prototype.setObjectState = function(state)
+    {
+
+    };
 
     AbstractObjectController.prototype.getOutputs = function()
     {

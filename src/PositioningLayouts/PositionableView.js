@@ -10,6 +10,7 @@ define(function (require, exports, module)
     var Easing = require('famous/transitions/Easing');
     var Utils = require('../Utils');
     var Vector = require('../ProperVector');
+    var RenderController = require("famous/views/RenderController");
 
     var id;
 
@@ -47,6 +48,16 @@ define(function (require, exports, module)
         if (this.viewAlign)
             this.alignState = new Transitionable(this.viewAlign);
 
+        this.visible = (this.options.visible == undefined) ? true : this.options.visible;
+
+        this.renderController = new RenderController({
+            inTransition:false,
+            outTransition:false
+        });
+
+        if (this.visible)
+            this.renderController.show(this);
+
         this.opacityState = new Transitionable(1);
     }
 
@@ -59,7 +70,8 @@ define(function (require, exports, module)
         position:[0,0,0],
         isAnimated: false,
         positionTransition: {duration: 250, curve: Easing.outQuad},
-        sizeTransition: {duration: 250, curve: Easing.outQuad}
+        sizeTransition: {duration: 250, curve: Easing.outQuad},
+        visible:true
     };
 
     PositionableView.prototype.childControlsPosition = function()
@@ -147,16 +159,30 @@ define(function (require, exports, module)
         return this.modifier;
     };
 
-    PositionableView.prototype.getRenderController = function(hide){
-
-        if (!this.renderController)
-        {
-            Utils.attachRenderController(this);
-        }
-
-        if (!hide)
-        {
+    PositionableView.prototype.setVisible = function(visible)
+    {
+        this.visible = visible;
+        if (this.visible)
             this.renderController.show(this);
+        else
+            this.renderController.hide();
+    };
+
+    PositionableView.prototype.hide = function()
+    {
+        this.setVisible(false);
+    };
+
+    PositionableView.prototype.show = function()
+    {
+        this.setVisible(true);
+    };
+
+    PositionableView.prototype.getRenderController = function(hide)
+    {
+        if (hide)
+        {
+            this.renderController.hide();
         }
 
         return this.renderController;

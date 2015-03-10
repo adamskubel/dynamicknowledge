@@ -30,7 +30,19 @@ define(function(require,exports,module){
 
         var pmap = Utils.getPropertyMap(objectDef.properties);
         objectView.applyProperties(pmap);
-        objectView.applyProperties(Utils.getPropertyMap(objectDef.getState(this.state).properties));
+
+        if (objectDef.hasState(this.state))
+        {
+            objectView.applyProperties(Utils.getPropertyMap(objectDef.getState(this.state).properties));
+            objectView.show();
+        }
+        else
+        {
+            if (objectView.hide)
+                objectView.hide();
+            else
+                console.error("Can't hide view: " + objectView._globalId);
+        }
 	}
 
     DynamicObjectController.prototype = Object.create(AbstractObjectController.prototype);
@@ -120,7 +132,6 @@ define(function(require,exports,module){
             }
             else if (newEditor.createUI)
             {
-                console.debug("Creating editor UI");
                 newEditor.createUI(menuBar);
             }
 
@@ -208,11 +219,23 @@ define(function(require,exports,module){
 	};
 
 
-	DynamicObjectController.prototype.propagateState = function(state)
+    DynamicObjectController.prototype.setObjectState = function(state)
     {
-		AbstractObjectController.prototype.propagateState.call(this,state);
-		updateObjectState.call(this);
-	};
+        if (this.objectDef.hasState(this.state))
+        {
+            this.objectView.show();
+            if (this.objectView.applyProperties)
+                this.objectView.applyProperties(Utils.getPropertyMap(this.objectDef.getState(this.state).properties));
+        }
+        else
+        {
+            console.debug ("Object " + this.objectDef.id + " doesn't define state " + state);
+            if (this.objectView.hide)
+                this.objectView.hide();
+            else
+                console.error("Can't hide object '" + this.objectView._globalId + "'");
+        }
+    };
 
 
 	DynamicObjectController.prototype.getOutputs = function()
@@ -245,22 +268,6 @@ define(function(require,exports,module){
 	{
 		return this.objectView;
 	};
-
-	function updateObjectState()
-	{
-        console.debug("Updating object state to " + this.state);
-
-		if (this.objectDef.hasState(this.state))
-		{
-			if (this.objectView && this.objectView.applyProperties)
-				this.objectView.applyProperties(Utils.getPropertyMap(this.objectDef.getState(this.state).properties));
-		}
-		else
-		{
-			console.error("State '" + this.state + "' not defined for object '" + this.objectDef.id + "'");
-			//Handle no state defined
-		}
-	}
 
     function _loadObjectEditors(menuBar)
     {
@@ -295,7 +302,6 @@ define(function(require,exports,module){
 			case "position":
 				return (new EditorFactory()).addMoveEditor(this.objectView,function(newPosition)
                 {
-                    console.debug("Saving position for state '" + this.state + "'");
                     this.objectDef.getState(this.state).properties.set('position',newPosition);
                 }.bind(this));
 			case "size":

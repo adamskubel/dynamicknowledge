@@ -54,7 +54,7 @@ define(function (require, exports, module)
         DynamicKnowledge.MainView = mainView;
 
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgILXo0cE9Ga2RYWGc';
+        this.fileId = '0B6eNzoTXZGgIYmgyWjlkVFdRTkE';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {

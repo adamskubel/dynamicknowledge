@@ -350,5 +350,13 @@ define(function(require, exports, module) {
         this.textAlignState.set(textAlign,textAlignTransition);
     };
 
+    BoxView.prototype.applyProperties = function(properties)
+    {
+        if (properties.text)
+            this.setText(properties.text);
+
+        SurfaceWrappingView.prototype.applyProperties.call(this,properties);
+    };
+
     module.exports = BoxView;
 });	

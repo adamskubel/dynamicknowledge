@@ -24,26 +24,13 @@ define(function(require,exports,module){
 
     LabelController.prototype.makeLabelView = function(model)
     {
-        var labelState = model.getState(this.state);
-        if (!labelState)
-        {
-            console.error("Model does not have current state");
-            return;
-        }
-
-        if (!model.properties.has("text"))
-        {
-            model.properties.set("text","Hello!");
-            labelState.properties.set("size",[200, 100]);
-            labelState.properties.set("position",[0,0,0]);
-        }
-
         return new BoxView({
-            text: model.properties.get("text"),
-            position: labelState.properties.get("position"),
-            size: labelState.properties.get("size"),
+            text: "Meow",
+            position: [0,0,10],
+            size: [100,100],
             color: Colors.Annotation,
-            useMarkdown:true
+            useMarkdown:true,
+            rendercontrol:true
         });
     };
 
