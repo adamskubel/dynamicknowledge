@@ -94,8 +94,12 @@ define(function(require, exports, module) {
         return false;
     };
 
-    PSequenceView.prototype.indexOfChild = function(child){
-        return this.children.indexOf(child._wrap);
+    PSequenceView.prototype.indexOfChild = function(child)
+    {
+        var wrapIndex = this.children.indexOf(child._wrap);
+        if (wrapIndex >= 0) return wrapIndex;
+
+        return this.children.indexOf(child);
     };
 
     PSequenceView.prototype.addChild = function(child, config){
@@ -122,10 +126,11 @@ define(function(require, exports, module) {
 
     PSequenceView.prototype.clearChildren = function()
     {
-        for (var i=0;i<this.children.length;i++)
-        {
-            this.removeChild(this.children[i]);
-        }
+        this.children.splice(0,this.children.length);
+        //for (var i=0;i<this.children.length;i++)
+        //{
+        //    this.removeChild(this.children[i]);
+        //}
     };
 
     PSequenceView.prototype.removeChild = function(view)

@@ -76,5 +76,17 @@ define(function(require,exports,module){
         return this.stateMap.get(stateId);
     };
 
+    DynamicObject.prototype.getAllStates = function()
+    {
+        var states = [];
+        var items= this.stateMap.items();
+        for (var i=0;i<items.length;i++)
+        {
+            var item = items[i];
+            states.push(item[0]);
+        }
+        return states;
+    };
+
     module.exports = DynamicObject;
 });

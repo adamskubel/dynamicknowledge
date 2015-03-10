@@ -51,6 +51,11 @@ define(function(require,exports,module){
         return this.containerView;
     };
 
+    DynamicContainerController.prototype.makeMenuBar = function()
+    {
+        return DynamicObjectController.prototype.makeMenuBar.call(this);
+    };
+
     DynamicContainerController.prototype.createEditTrigger = function()
     {
         this.objectView = this.containerView;

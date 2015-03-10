@@ -16,6 +16,7 @@ define(function(require,exports,module){
     var Connection = require('Model/Connection');
 
     var MenuBar = require('Views/MenuBar');
+    var ListSelector = require('Views/ListSelector');
 
 	function DynamicObjectController(objectDef, modelLoader, objectView)
 	{
@@ -71,7 +72,7 @@ define(function(require,exports,module){
             isAnimated:false
         });
 
-        trigger.setOpacity(0.1);
+        trigger.setOpacity(0.3);
         trigger.setAnimated(false);
 
         this.objectView.add(trigger.getModifier()).add(trigger.getRenderController());
@@ -128,6 +129,8 @@ define(function(require,exports,module){
 
         if (!editContext.isGlobal)
         {
+            menuBar.addChild(MenuBar.makeMenuButton(this.state));
+
             _loadObjectEditors.call(this,menuBar);
 
             if (menuBar.children.length > 0)
@@ -193,6 +196,11 @@ define(function(require,exports,module){
                 {
                     editors.push("containerize");
                 }
+
+                if (this.controllers.length > 0)
+                {
+                    editors.push("stateSelector");
+                }
             }
         }
 
@@ -203,7 +211,7 @@ define(function(require,exports,module){
 	DynamicObjectController.prototype.propagateState = function(state)
     {
 		AbstractObjectController.prototype.propagateState.call(this,state);
-		updateObjectState();
+		updateObjectState.call(this);
 	};
 
 
@@ -240,6 +248,8 @@ define(function(require,exports,module){
 
 	function updateObjectState()
 	{
+        console.debug("Updating object state to " + this.state);
+
 		if (!this.objectDef)
 			return;
 
@@ -288,6 +298,7 @@ define(function(require,exports,module){
 			case "position":
 				return (new EditorFactory()).addMoveEditor(this.objectView,function(newPosition)
                 {
+                    console.debug("Saving position for state '" + this.state + "'");
                     this.objectDef.getState(this.state).properties.set('position',newPosition);
                 }.bind(this));
 			case "size":
@@ -310,6 +321,40 @@ define(function(require,exports,module){
                 }.bind(this));
                 containerButton.isMenuButton = true;
                 return containerButton;
+            case "stateSelector":
+                var stateSelector = new ListSelector({
+                    size:[120,40],
+                    color: Colors.EditColor
+                });
+                var items = this.objectDef.getAllStates();
+                items.push("+");
+                items.splice(0,0,["---"])
+                stateSelector.setItems(items);
+                stateSelector.setSelectedItem(this._specifiedState || 0);
+
+                stateSelector.on('itemSelected',function(data)
+                {
+                    var item = data.selectedItem;
+                    if (item == "---")
+                    {
+                        this.setState(undefined);
+                        this.propagateState(this.parent.state || 'base');
+                    }
+                    else if (item == "+")
+                    {
+                        var newStateName = "State_" + (items.length-2);
+                        console.debug("Creating new state '" + newStateName + "'");
+                        this.objectDef.createState(newStateName);
+                        items.push(newStateName);
+                        stateSelector.setItems(items);
+                    }
+                    else
+                    {
+                        this.setState(item);
+                    }
+                }.bind(this));
+                stateSelector.isMenuButton = true;
+                return stateSelector;
             default:
                 return AbstractObjectController.prototype.makeEditor.call(this,editorName);
 		}

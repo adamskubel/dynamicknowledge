@@ -49,8 +49,16 @@ define(function(require,exports,module){
 
     AbstractObjectController.prototype.setState = function(state)
     {
+        console.debug("Setting state '" + state + "'");
+
         this._specifiedState = state;
-        this.propagateState(state);
+
+        var parentState = 'base';
+        if (this.parent)
+            parentState = this.parent.state || parentState;
+
+        this.state = this._specifiedState || parentState;
+        this.propagateState(this.state);
     };
 
     //This would be protected if I was using Java
@@ -88,7 +96,6 @@ define(function(require,exports,module){
     }
 
 
-
     function getControllerWithObjectId(objectId)
     {
         for (var i=0;i<this.controllers.length;i++)
@@ -103,7 +110,7 @@ define(function(require,exports,module){
     {
         if (!model.hasState(this.state))
         {
-            console.error("Model not enabled for current state '" + this.state + "'");
+            console.error("Model '" + this.objectDef.id + "' not enabled for current state '" + this.state + "'");
             return;
         }
         var relationshipList = model.relationships;
@@ -185,16 +192,6 @@ define(function(require,exports,module){
     AbstractObjectController.prototype.destroyEditors = function()
     {
 
-    };
-
-    AbstractObjectController.prototype.setState = function(state)
-    {
-        this.state = state;
-
-        for (var i=0;i<this.controllers.length;i++)
-        {
-            this.controllers[i].setState(state);
-        }
     };
 
     AbstractObjectController.prototype.deleteControllerModel = function(childModel)

@@ -1,7 +1,7 @@
 define(function(require,exports,module){
 
     var BoxView = require('PositioningLayouts/BoxView');
-    var SequenceView = require('PositioningLayouts/PSequenceView');
+    var PSequenceView = require('PositioningLayouts/PSequenceView');
 
     function ListSelector(options)
     {
@@ -30,7 +30,7 @@ define(function(require,exports,module){
 
     function _initView()
     {
-        var listView = new SequenceView({
+        var listView = new PSequenceView({
             direction:1,
             position:[0,10,5],
             viewAlign:[0,1],
@@ -90,7 +90,8 @@ define(function(require,exports,module){
     {
         var itemView = new BoxView({
             size: this.options.size,
-            clickable: true
+            clickable: true,
+            color: this.options.color
         });
 
         itemView.setText(item);
@@ -110,7 +111,7 @@ define(function(require,exports,module){
     {
         if (this.items.indexOf(item) < 0)
         {
-            throw {"message" : "Not my item!"}
+            throw "Non-owned item " + item;
         }
 
         for (var itemKey in this.viewMap)
@@ -121,7 +122,7 @@ define(function(require,exports,module){
         }
         this.setText(item);
 
-        this._eventOutput.emit('itemSelected',{item:item});
+        this._eventOutput.emit('itemSelected',{selectedItem:item});
         this._selectedItem = item;
     }
 
