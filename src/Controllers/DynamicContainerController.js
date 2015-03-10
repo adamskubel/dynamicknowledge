@@ -21,9 +21,14 @@ define(function(require,exports,module){
     {
         AbstractObjectController.prototype.addController.call(this,controller);
 
+        console.debug("Adding controller " + controller.objectDef.id);
         if (controller.getView().parent != this.containerView)
         {
             this.containerView.addChild(controller.getView());
+        }
+        else
+        {
+            console.warn("Object '" + controller.objectDef.id + "' already exists in container");
         }
     };
 

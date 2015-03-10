@@ -250,13 +250,10 @@ define(function(require,exports,module){
 	{
         console.debug("Updating object state to " + this.state);
 
-		if (!this.objectDef)
-			return;
-
 		if (this.objectDef.hasState(this.state))
 		{
 			if (this.objectView && this.objectView.applyProperties)
-				this.objectView.applyProperties(this.objectDef.getState(this.state).properties);
+				this.objectView.applyProperties(Utils.getPropertyMap(this.objectDef.getState(this.state).properties));
 		}
 		else
 		{
@@ -343,8 +340,7 @@ define(function(require,exports,module){
                     else if (item == "+")
                     {
                         var newStateName = "State_" + (items.length-2);
-                        console.debug("Creating new state '" + newStateName + "'");
-                        this.objectDef.createState(newStateName);
+                        this.createState(newStateName);
                         items.push(newStateName);
                         stateSelector.setItems(items);
                     }
@@ -366,6 +362,7 @@ define(function(require,exports,module){
 
         var containerObject = DynamicObject.create(this.gapiModel,this.modelLoader.nextObjectId("Container"),"container");
         containerObject.createState(this.state);
+        console.debug("Created container with state: '" + this.state + "'");
         this.modelLoader.addObject(containerObject.id,containerObject);
 
         containerEdge.to = containerObject.id;

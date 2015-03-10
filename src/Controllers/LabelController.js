@@ -4,8 +4,10 @@ define(function(require,exports,module){
     var Colors = require('Colors');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
 
-    function LabelController(objectDef, modelLoader)
+    function LabelController(objectDef, state)
     {
+        this.state = state || 'base';
+
         var label = this.makeLabelView(objectDef);
         DynamicObjectController.call(this,objectDef,modelLoader,label);
 
@@ -22,7 +24,7 @@ define(function(require,exports,module){
 
     LabelController.prototype.makeLabelView = function(model)
     {
-        var labelState = model.getState('base');
+        var labelState = model.getState(this.state);
         if (!labelState)
         {
             console.error("Model does not have current state");

@@ -31,7 +31,7 @@ define(function(require,exports,module){
         this.controllers.push(controller);
         controller.parent = this;
 
-        controller.setState(this.state);
+        controller.propagateState(this.state);
     };
 
     AbstractObjectController.prototype.removeController = function(controller)
@@ -58,7 +58,22 @@ define(function(require,exports,module){
             parentState = this.parent.state || parentState;
 
         this.state = this._specifiedState || parentState;
-        this.propagateState(this.state);
+
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            this.controllers[i].propagateState(this.state);
+        }
+    };
+
+    AbstractObjectController.prototype.createState = function(state)
+    {
+        if (!this.objectDef.hasState(state))
+            this.objectDef.createState(state);
+
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            this.controllers[i].createState(state);
+        }
     };
 
     //This would be protected if I was using Java
@@ -69,7 +84,7 @@ define(function(require,exports,module){
             this.state = state;
             for (var i=0;i<this.controllers.length;i++)
             {
-                this.controllers[i].propagateState(state);
+                this.controllers[i].propagateState(this.state);
             }
         }
     };
