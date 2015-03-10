@@ -35,9 +35,12 @@ define(function(require,exports,module){
             size:[100,true],
             color: Colors.Annotation,
             useMarkdown:true,
-            scrollviewSizeHack:true
+            scrollviewSizeHack:true,
+            style:"noBorder"
         });
     };
+
+
 
 
 });
