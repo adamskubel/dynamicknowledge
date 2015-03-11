@@ -4,6 +4,7 @@ define(function(require,exports,module){
     var Connection = require('Model/Connection');
     var ObjectCreationModule = require('Editors/ObjectCreationModule');
     var LineConnectionModule = require('Editors/LineConnectionModule');
+    var StateLinkingModule = require('Editors/StateLinkingModule');
 
     function AbstractObjectController(objectDef,modelLoader)
     {
@@ -90,6 +91,20 @@ define(function(require,exports,module){
                 this.controllers[i].propagateState(this.state);
             }
         }
+    };
+
+    AbstractObjectController.prototype.visitAll = function(onVisit)
+    {
+        onVisit(this);
+        for (var i=0;i<this.controllers.length;i++)
+        {
+            this.controllers[i].visitAll(onVisit);
+        }
+    };
+
+    AbstractObjectController.prototype.enableMode = function(mode, modeContext)
+    {
+
     };
 
     function _relationshipsAdded(event)
@@ -247,10 +262,13 @@ define(function(require,exports,module){
         {
             case "add":
                 return new ObjectCreationModule(this, this.objectDef);
+            case "stateLinking":
+                return new StateLinkingModule(this);
+            //case "connect":
+                //return new LineConnectionModule();
             default:
                 return null;
-            //case "connect":
-            //    return new LineConnectionModule();
+
         }
     };
 

@@ -190,6 +190,7 @@ define(function(require,exports,module){
         if (editContext.isGlobal)
         {
             editors.push("add");
+            editors.push("stateLinking");
         }
         else
         {
@@ -361,6 +362,40 @@ define(function(require,exports,module){
                 return AbstractObjectController.prototype.makeEditor.call(this,editorName);
 		}
 	};
+
+    function _makeStateTriggerListener()
+    {
+        var enableButton = new BoxView({
+            size:[undefined,40],
+            color:800,
+            clickable:true,
+            visible: false,
+            opacity: 1,
+            viewOrigin:[0,1],
+            position:[0,0,20]
+        });
+
+        this.objectView.add(enableButton.getModifier()).add(enableButton.getRenderController());
+
+        return {
+            button:enableButton,
+            controller:this
+        };
+    }
+
+    DynamicObjectController.prototype.enableMode = function(mode, modeContext)
+    {
+        switch (mode)
+        {
+            case "stateLinking":
+                if (this.createEditRules({}).indexOf("stateSelector") < 0)
+                    break;
+
+                var listenEnabler = _makeStateTriggerListener.call(this);
+                modeContext.listenEnablers.push(listenEnabler);
+                break;
+        }
+    };
 
     function _addContainer()
     {

@@ -40,6 +40,47 @@ define(function(require,exports,module){
         });
     };
 
+    function _addStateListener(targetController, targetState)
+    {
+        this.labelView.on('click',function(){
+            targetController.setState(targetState);
+        });
+        this.labelView.setClickable(true);
+    }
+
+    function _makeStateTrigger()
+    {
+        var triggerButton = new BoxView({
+            size:[60,60],
+            color:Colors.EditColor,
+            clickable:true,
+            viewAlign:[1,0],
+            viewOrigin:[1,0],
+            position:[0,0,20]
+        });
+
+        this.objectView.add(triggerButton.getModifier()).add(triggerButton.getRenderController());
+
+        return {
+            button:triggerButton,
+            controller:this,
+            addListener:_addStateListener.bind(this)
+        };
+    }
+
+    SideBarLabelController.prototype.enableMode = function(mode, modeContext)
+    {
+        switch (mode)
+        {
+            case "stateLinking":
+                var stateSelector = _makeStateTrigger.call(this);
+                modeContext.stateTriggers.push(stateSelector);
+                break;
+        }
+    };
+
+
+
 
 
 
