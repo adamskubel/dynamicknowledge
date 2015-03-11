@@ -88,5 +88,17 @@ define(function(require,exports,module){
         return states;
     };
 
+    DynamicObject.prototype.getRelationshipsOfType = function(type)
+    {
+        var result = [];
+        for (var i=0;i<this.relationships.length;i++)
+        {
+            var r = this.relationships.get(i);
+            if (r.type == type)
+                result.push(r);
+        }
+        return result;
+    };
+
     module.exports = DynamicObject;
 });

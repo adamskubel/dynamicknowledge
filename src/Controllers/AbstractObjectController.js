@@ -23,6 +23,12 @@ define(function(require,exports,module){
     AbstractObjectController.prototype.constructor = AbstractObjectController;
     module.exports = AbstractObjectController;
 
+
+    AbstractObjectController.prototype.getId = function()
+    {
+        return this.objectDef.id;
+    };
+
     AbstractObjectController.prototype.getObjectDef = function(){
         return this.objectDef;
     };
@@ -51,6 +57,9 @@ define(function(require,exports,module){
     AbstractObjectController.prototype.setState = function(state)
     {
         this._specifiedState = state;
+
+        if (state == "*inherited*")
+            this._specifiedState = undefined;
 
         var parentState = 'base';
         if (this.parent)

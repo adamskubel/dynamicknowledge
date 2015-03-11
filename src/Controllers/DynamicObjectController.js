@@ -17,6 +17,7 @@ define(function(require,exports,module){
 
     var MenuBar = require('Views/MenuBar');
     var ListSelector = require('Views/ListSelector');
+    var ToggleButton = require('Views/ToggleButton');
 
 	function DynamicObjectController(objectDef, modelLoader, objectView)
 	{
@@ -65,6 +66,7 @@ define(function(require,exports,module){
         }
 
         var controller = new DynamicObjectController(model,this.modelLoader,view);
+        this.modelLoader.registerController(name,controller);
         DynamicKnowledge.EditManager.registerController(controller);
         this.addController(controller);
     };
@@ -365,12 +367,10 @@ define(function(require,exports,module){
 
     function _makeStateTriggerListener()
     {
-        var enableButton = new BoxView({
+        var enableButton = new ToggleButton({
             size:[undefined,40],
             color:800,
-            clickable:true,
             visible: false,
-            opacity: 1,
             viewOrigin:[0,1],
             position:[0,0,20]
         });
@@ -393,7 +393,7 @@ define(function(require,exports,module){
 
                 var listenEnabler = _makeStateTriggerListener.call(this);
                 modeContext.listenEnablers.push(listenEnabler);
-                break;
+                break;1
         }
     };
 

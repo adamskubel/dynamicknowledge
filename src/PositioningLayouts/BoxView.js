@@ -47,8 +47,11 @@ define(function(require, exports, module) {
     function makeStyle(colorName,styleName,fontSize)
     {
         var opacity = opacityMap.base;
-        if (styleName)
+
+        if (styleName && opacityMap[styleName])
             opacity = opacityMap[styleName];
+        else if (styleName && (styleName.font && styleName.background && styleName.border))
+            opacity = styleName;
 
         return {
             "text" :

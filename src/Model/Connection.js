@@ -16,6 +16,7 @@ define(function(require,exports,module){
         var model = gapi.drive.realtime.custom.getModel(this);
         this.id = id;
         this.stateMap = model.createMap();
+        this.properties = model.createMap();
         this.type = type;
     }
 
@@ -30,6 +31,8 @@ define(function(require,exports,module){
 
         Connection.prototype.from = gapi.drive.realtime.custom.collaborativeField('from');
         Connection.prototype.to = gapi.drive.realtime.custom.collaborativeField('to');
+
+        Connection.prototype.properties = gapi.drive.realtime.custom.collaborativeField('properties');
 
         Connection.prototype.stateMap = gapi.drive.realtime.custom.collaborativeField('stateMap');
     };

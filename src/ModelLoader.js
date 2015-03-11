@@ -53,7 +53,7 @@ define(function(require,exports,module){
                 this.objectRegistry[objectId] = _loadObject.call(this,objects.get(objectId));
             else
             {
-                throw { error: "Object name '" + objectId + "' does not exist"}
+                throw "Object name '" + objectId + "' does not exist";
             }
         }
 
@@ -82,6 +82,9 @@ define(function(require,exports,module){
         return this.gapiModel.getRoot().get("objects").get(name);
     };
 
+    ModelLoader.prototype.registerController = function(id,controller){
+        this.objectRegistry[id] = controller;
+    };
 
     function _loadObject(objectDef)
     {
@@ -122,10 +125,10 @@ define(function(require,exports,module){
                         console.error("Unknown type '" + name + "'");
                 }
             }
-            //Object already exists in model, just make the controller
             else if (objectDef.type == "generated")
             {
-                ;
+                //Object already exists in model and controller was already created, so we shouldn't be here.
+                throw "Controller was not found for generated object '" + objectDef.id + "'";
             }
             else if (objectDef.type == "container")
             {
@@ -145,9 +148,13 @@ define(function(require,exports,module){
             }
             else
             {
-                console.error("Object type '" + objectDef.type + "' not supported");
-                return;
+                throw "Object type '" + objectDef.type + "' not supported";
             }
+        }
+
+        if (!objectController)
+        {
+            throw "Could not create controller for object '" + objectDef.id + "'";
         }
 
         DynamicKnowledge.EditManager.registerController(objectController);
@@ -161,50 +168,57 @@ define(function(require,exports,module){
         if (relationship instanceof Connection)
         {
             //console.debug("Adding connection relationship of type '" + relationship.type + "' : '" + relationship.from + "' -> '" + relationship.to + "'");
-            if (relationship.type == "container")
+            switch (relationship.type)
             {
-                var container = this.getObject(relationship.to);
+                case "container":
+                    var container = this.getObject(relationship.to);
 
-                controller.addController(container);
-                if (!controller.getView())
-                    console.error("Controller must have a view");
+                    controller.addController(container);
+                    if (!controller.getView())
+                        console.error("Controller must have a view");
 
-                Utils.injectView(container.getView(),controller.getView());
-                DynamicKnowledge.EditManager.registerController(container);
-            }
-            else if (relationship.type == "line")
-            {
-                var fromView = this.getObject(relationship.from).objectView;
-                var toView = this.getObject(relationship.to).objectView;
+                    Utils.injectView(container.getView(),controller.getView());
+                    DynamicKnowledge.EditManager.registerController(container);
+                    break;
+                case "Line":
+                    var fromView = this.getObject(relationship.from).objectView;
+                    var toView = this.getObject(relationship.to).objectView;
+                    var eventType = relationship.properties.get("eventType");
 
-                var output = fromView.getOutputEvents()[relationship.type];
-                var input = toView.getInputEvents()[relationship.type];
+                    var output = fromView.getOutputEvents()[eventType];
+                    var input = toView.getInputEvents()[eventType];
 
-                if (output && input)
-                {
-                    fromView.pipe(toView);
-
-                    var connectionLine = new LineCanvas();
-                    connectionLine.parent = controller.getView();
-                    controller.getView().add(connectionLine.getModifier()).add(connectionLine.getRenderController());
-
-                    console.log("Binding to " + input._globalId);
-                    output.parent.on('positionChange', function ()
+                    if (output && input)
                     {
-                        output._eventOutput.emit('positionChange');
-                    });
+                        fromView.pipe(toView);
 
-                    input.parent.on('positionChange', function ()
+                        var connectionLine = new LineCanvas();
+                        connectionLine.parent = controller.getView();
+                        controller.getView().add(connectionLine.getModifier()).add(connectionLine.getRenderController());
+
+                        console.log("Binding to " + input._globalId);
+                        output.parent.on('positionChange', function ()
+                        {
+                            output._eventOutput.emit('positionChange');
+                        });
+
+                        input.parent.on('positionChange', function ()
+                        {
+                            input._eventOutput.emit('positionChange');
+                        });
+
+                        connectionLine.setLineObjects(output, input);
+                    }
+                    else
                     {
-                        input._eventOutput.emit('positionChange');
-                    });
-
-                    connectionLine.setLineObjects(output, input);
-                }
-                else
-                {
-                    console.error("Can't find event type '" + relationship.type + "' on views");
-                }
+                        console.error("Can't find event type '" + relationship.type + "' on views");
+                    }
+                    break;
+                case "stateTrigger":
+                    var targetController = this.getObject(relationship.to);
+                    var targetState = relationship.properties.get("targetState");
+                    controller.addStateTrigger(targetController,targetState);
+                    break;
             }
         }
         else if (relationship.type == "List")

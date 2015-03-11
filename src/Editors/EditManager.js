@@ -77,8 +77,7 @@ define(function(require,exports,module){
     {
         if (!controller)
         {
-            console.error("Null controller");
-            return;
+            throw "Undefined controller";
         }
 
         switch (editMode)

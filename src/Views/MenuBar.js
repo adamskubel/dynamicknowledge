@@ -8,6 +8,7 @@ define(function(require,exports,module){
     var Colors = require('Colors');
     var PSequenceView = require('PositioningLayouts/PSequenceView');
     var BoxView = require('PositioningLayouts/BoxView');
+    var ToggleButton = require('Views/ToggleButton');
 
     function MenuBar(options)
     {
@@ -33,6 +34,16 @@ define(function(require,exports,module){
     MenuBar.makeMenuButton = function(symbol)
     {
         var containerButton = new BoxView({
+            text: symbol, size: [40, 40], clickable: true, color: Colors.EditColor,
+            position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
+        });
+        containerButton.isMenuButton = true;
+        return containerButton;
+    };
+
+    MenuBar.makeToggleButton = function(symbol)
+    {
+        var containerButton = new ToggleButton({
             text: symbol, size: [40, 40], clickable: true, color: Colors.EditColor,
             position: [0, 0, 5], viewAlign: [0, 0], viewOrigin: [0, 0], fontSize: 'large'
         });

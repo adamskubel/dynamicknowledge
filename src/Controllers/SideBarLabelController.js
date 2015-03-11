@@ -3,10 +3,13 @@ define(function(require,exports,module){
     var LabelController = require('./LabelController');
     var BoxView = require('PositioningLayouts/BoxView');
     var Colors = require('Colors');
+    var ToggleButton = require('Views/ToggleButton');
+    var Connection = require('Model/Connection');
 
     function SideBarLabelController(objectDef)
     {
         LabelController.call(this,objectDef,DynamicKnowledge.ModelLoader);
+
     }
 
     SideBarLabelController.prototype = Object.create(LabelController.prototype);
@@ -40,17 +43,88 @@ define(function(require,exports,module){
         });
     };
 
+    function _triggerStates()
+    {
+        for (var id in this._stateListenerMap)
+        {
+            if (!this._stateListenerMap.hasOwnProperty(id)) continue;
+
+            this._stateListenerMap[id]();
+        }
+    }
+
+
+    SideBarLabelController.prototype.addStateTrigger = function(targetController, targetState)
+    {
+        _addStateListener.call(this,targetController,targetState);
+    };
+
+    function _isStateListener(controller)
+    {
+        if (!this._stateListenerMap)
+            return false;
+
+        if (!this._stateListenerMap[controller.getId()])
+            return false;
+
+        return this._stateListenerMap[controller.getId()]._targetState;
+    };
+
     function _addStateListener(targetController, targetState)
     {
-        this.labelView.on('click',function(){
+        if (!this._stateListenerMap)
+        {
+            this._stateListenerMap = {};
+            this.labelView.setClickable(true);
+            this.labelView.on('click',_triggerStates.bind(this));
+        }
+
+        var stateFunction = function(){
             targetController.setState(targetState);
-        });
-        this.labelView.setClickable(true);
+        };
+
+        stateFunction._targetState = targetState;
+        stateFunction._targetController = targetController;
+
+        this._stateListenerMap[targetController.getId()] = stateFunction;
+    }
+
+    function _removeStateListener(controller)
+    {
+        delete this._stateListenerMap[controller.getId()];
+    }
+
+    function _addStateListenerModel(targetController, targetState)
+    {
+        var triggerRelationship = Connection.create(
+            this.gapiModel,
+            targetController.getId() + ":" + targetState,
+            "stateTrigger");
+
+        triggerRelationship.to = targetController.getId();
+        triggerRelationship.properties.set("targetState",targetState);
+
+        this.objectDef.relationships.push(triggerRelationship);
+    }
+
+    function _removeStateListenerModel(targetController)
+    {
+        _removeStateListener.call(this,targetController);
+
+        var stateRelationships = this.objectDef.getRelationshipsOfType("stateTrigger");
+
+        for (var i=0;i<stateRelationships.length;i++)
+        {
+            if (stateRelationships[i].to == targetController.getId())
+            {
+                this.objectDef.relationships.removeValue(stateRelationships[i]);
+            }
+        }
     }
 
     function _makeStateTrigger()
     {
-        var triggerButton = new BoxView({
+        var triggerButton = new ToggleButton({
             size:[60,60],
             color:Colors.EditColor,
             clickable:true,
@@ -64,7 +138,9 @@ define(function(require,exports,module){
         return {
             button:triggerButton,
             controller:this,
-            addListener:_addStateListener.bind(this)
+            addListener:_addStateListenerModel.bind(this),
+            removeListener:_removeStateListenerModel.bind(this),
+            hasListener:_isStateListener.bind(this)
         };
     }
 

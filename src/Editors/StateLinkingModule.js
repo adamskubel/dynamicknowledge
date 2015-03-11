@@ -17,8 +17,9 @@ define(function(require,exports,module)
     {
         this.hide();
 
-        var addButton = MenuBar.makeMenuButton("S");
-        addButton.on('click',_editStates.bind(this));
+        var addButton = MenuBar.makeToggleButton("S");
+        addButton.on('toggleOn',_editStates.bind(this));
+        addButton.on('toggleOff',_stopEditing.bind(this));
 
         this._hideObjectFunction = function()
         {
@@ -35,20 +36,23 @@ define(function(require,exports,module)
 
     StateLinkingModule.prototype.hide = function()
     {
-        console.debug("Hiding state link");
-        _deactivateTrigger.call(this);
-
+        _stopEditing.call(this);
         if (this._hideObjectFunction)
             this._hideObjectFunction();
+    };
 
-        for (var i=0;i<this._objectsToHide;i++)
+    function _stopEditing()
+    {
+        _deactivateTrigger.call(this);
+
+        for (var i=0;i<this._objectsToHide.length;i++)
         {
             var object =  this._objectsToHide[i];
             object.hide();
         }
 
         this._objectsToHide = [];
-    };
+    }
 
 
     function _deactivateTrigger()
@@ -56,7 +60,7 @@ define(function(require,exports,module)
         if (!this._activeTrigger)
             return;
 
-        this._activeTrigger.button.setHighlighted(false);
+        this._activeTrigger.button.setState(false);
 
         for (var i=0;i<this._activeTriggerCleanupFunctions.length;i++)
         {
@@ -68,25 +72,57 @@ define(function(require,exports,module)
 
     function _activateTrigger(trigger, listenEnablers)
     {
-        _deactivateTrigger.call(this);
+        if (this._activeTrigger != trigger)
+            _deactivateTrigger.call(this);
 
         this._activeTrigger = trigger;
-
-        trigger.button.setHighlighted(true);
 
         function prepareEnabler(enabler)
         {
             enabler.button.show();
 
-            var onEnable = function(){
-                enabler.button.setHighlighted(true);
-                trigger.addListener(enabler.controller, enabler.controller.state);
+            var currentTriggeredState = trigger.hasListener(enabler.controller);
+            if (!currentTriggeredState)
+            {
+                enabler.button.setState(false);
+                enabler.button.setText("");
+            }
+            else
+            {
+                enabler.button.setState(true);
+
+                if (currentTriggeredState == enabler.controller._specifiedState ||
+                    (!enabler.controller._specifiedState  && currentTriggeredState == "*inherited*"))
+                    enabler.button.setText(currentTriggeredState)
+                else
+                    enabler.button.setText("[" + currentTriggeredState + "]");
+            }
+
+            var onEvent = function()
+            {
+                var state = enabler.controller._specifiedState;
+                if (!state)
+                {
+                    console.log("Setting state to inherited");
+                    state = "*inherited*";
+                }
+
+                enabler.button.setText(state);
+                trigger.addListener(enabler.controller, state);
             };
 
-            enabler.button.on('click',onEnable);
+            var offEvent = function(){
+                enabler.button.setText("");
+                trigger.removeListener(enabler.controller);
+            };
 
-            this._activeTriggerCleanupFunctions.push(function(){
-                enabler.button.removeListener('click',onEnable);
+            enabler.button.on('toggleOn',onEvent);
+            enabler.button.on('toggleOff', offEvent);
+
+            this._activeTriggerCleanupFunctions.push(function()
+            {
+                enabler.button.removeListener('toggleOn',onEvent);
+                enabler.button.removeListener('toggleOff', offEvent);
                 enabler.button.hide();
             });
         }
@@ -118,15 +154,12 @@ define(function(require,exports,module)
 
         function prepareTrigger(stateTrigger)
         {
-            stateTrigger.button.on('click', function ()
-            {
-                if (this._activeTrigger != stateTrigger)
-                {
-                    _activateTrigger.call(this,stateTrigger, triggerListenEnablers);
-                }
-                else
-                   _deactivateTrigger.call(this);
+            stateTrigger.button.on('toggleOn', function () {
+                _activateTrigger.call(this, stateTrigger, triggerListenEnablers);
+            }.bind(this));
 
+            stateTrigger.button.on('toggleOff', function () {
+                _deactivateTrigger.call(this);
             }.bind(this));
         }
 

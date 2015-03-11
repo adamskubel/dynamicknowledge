@@ -57,9 +57,8 @@ define(function(require,exports,module)
 
         if (!this.viewMap[name])
         {
-            throw {
-                message: "View '" + name + "' not found"
-            };
+            throw "View '" + name + "' not found";
+
         }
         else if (this.viewMap[name] != this.activeView)
         {
@@ -171,8 +170,8 @@ define(function(require,exports,module)
         selector.setItems(items);
         selector.setSelectedItem(0);
         selector.on('itemSelected',function(data){
-            this.view.setActiveView(data.item);
-            this.model.getState(this.modelState).properties.set("activeView",data.item);
+            this.view.setActiveView(data.selectedItem);
+            this.model.getState(this.modelState).properties.set("activeViewName",data.selectedItem);
         }.bind(this));
 
         return selector;

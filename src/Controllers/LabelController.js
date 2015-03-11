@@ -9,9 +9,9 @@ define(function(require,exports,module){
         this.state = state || 'base';
 
         var label = this.makeLabelView(objectDef);
+        this.labelView = label;
         DynamicObjectController.call(this,objectDef,modelLoader,label);
 
-        this.labelView = label;
 
         this.labelView._eventOutput.on("textChanged",function(newText){
              this.objectDef.properties.set("text",newText);
