@@ -3,7 +3,7 @@ define(function(require,exports,module){
     var Container = require('Model/Container');
     var Connection = require('Model/Connection');
     var ObjectCreationModule = require('Editors/ObjectCreationModule');
-    var LineConnectionModule = require('Editors/LineConnectionModule');
+    var LineConnectorModule = require('Editors/LineConnectorModule');
     var StateLinkingModule = require('Editors/StateLinkingModule');
 
     function AbstractObjectController(objectDef,modelLoader)
@@ -278,6 +278,8 @@ define(function(require,exports,module){
                 return new ObjectCreationModule(this, this.objectDef);
             case "stateLinking":
                 return new StateLinkingModule(this);
+            case "lineConnecting":
+                return new LineConnectorModule(this);
             //case "connect":
                 //return new LineConnectionModule();
             default:

@@ -193,6 +193,7 @@ define(function(require,exports,module){
         {
             editors.push("add");
             editors.push("stateLinking");
+            editors.push("lineConnecting");
         }
         else
         {
@@ -386,10 +387,10 @@ define(function(require,exports,module){
     function _makeVertexObject()
     {
         var lineVertexButton = new BoxView({
-            size:[undefined,40],
+            size:[undefined,undefined],
             color:800,
             visible: false,
-            viewOrigin:[0,1],
+            viewOrigin:[0,0],
             position:[0,0,20]
         });
 

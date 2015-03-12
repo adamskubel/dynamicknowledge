@@ -8,6 +8,10 @@ define(function(require,exports,module){
 
     };
 
+    DynamicObject.Types = {
+        ConnectingLine : "connectingLine",
+        Predefined: "predef"
+    };
 
     function _initialize(id,type)
     {
@@ -54,7 +58,7 @@ define(function(require,exports,module){
         if (model.nextObjectId && model.getModel)
         {
             var m = model.getModel();
-            return m.create(DynamicObject, model.nextObjectId(type),type);
+            return m.create(DynamicObject, model.nextObjectId(id),id);
         }
         else
         {

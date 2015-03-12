@@ -9,6 +9,7 @@ define(function(require,exports,module)
     var Vector = require('ProperVector');
     var DynamicObject = require('Model/DynamicObject');
     var Connection = require('Model/Connection');
+    var MouseSync = require('famous/inputs/MouseSync');
 
     function LineConnectorModule(parentController)
     {
@@ -18,12 +19,14 @@ define(function(require,exports,module)
         this._modelLoader = parentController.modelLoader;
     }
 
+    module.exports = LineConnectorModule;
+
 
     LineConnectorModule.prototype.createUI = function(menu)
     {
         this.hide();
 
-        var lineButton = MenuBar.makeMenuButton("Line");
+        var lineButton = MenuBar.makeToggleButton("Line");
         lineButton.on('toggleOn',_startEditing.bind(this));
         lineButton.on('toggleOff',_stopEditing.bind(this));
 
@@ -63,7 +66,7 @@ define(function(require,exports,module)
         if (!this._activeVertex)
             return;
 
-        this._activeVertex.button.setState(false);
+        //this._activeVertex.button.setState(false);
 
         for (var i=0;i<this._activeVertexCleanupFunctions.length;i++)
         {
@@ -165,11 +168,14 @@ define(function(require,exports,module)
         lineObject.relationships.push(lineEnd);
 
         this._modelLoader.addObject(lineObject.id,lineObject);
+
+        this.controller.objectDef.relationships.push(lineObject.id);
     }
 
     function _prepareVertex(vertex, lineVertices)
     {
         var parentView = this.controller.getView();
+        vertex.button.show();
 
         var lineSync = new MouseSync({
             propogate: true

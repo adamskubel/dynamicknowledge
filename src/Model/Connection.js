@@ -5,6 +5,12 @@ define(function(require,exports,module){
         
     }
 
+    Connection.Types = {
+        LineConnector   : "lineConnector",
+        StateTrigger    : "stateTrigger",
+        Container       : "container"
+    };
+
     function _initialize(id, type)
     {
         if (id == undefined)
@@ -41,12 +47,21 @@ define(function(require,exports,module){
         if (model.nextObjectId && model.getModel)
         {
             var m = model.getModel();
-            return m.create(Connection, model.nextObjectId(type),type);
+            return m.create(Connection, model.nextObjectId(id),id);
         }
         else
         {
             return model.create(Connection, id, type);
         }
+    };
+
+    Connection.prototype.createState = function(stateId)
+    {
+        if (!this.hasState(stateId))
+        {
+            this.stateMap.set(stateId,"");
+        }
+        return this.stateMap.get(stateId);
     };
 
     Connection.prototype.hasState = function(stateId)
