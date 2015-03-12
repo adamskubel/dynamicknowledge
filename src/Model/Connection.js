@@ -38,7 +38,15 @@ define(function(require,exports,module){
     };
 
     Connection.create = function(model, id, type){
-        return model.create(Connection, id, type);
+        if (model.nextObjectId && model.getModel)
+        {
+            var m = model.getModel();
+            return m.create(Connection, model.nextObjectId(type),type);
+        }
+        else
+        {
+            return model.create(Connection, id, type);
+        }
     };
 
     Connection.prototype.hasState = function(stateId)

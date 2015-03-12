@@ -383,6 +383,25 @@ define(function(require,exports,module){
         };
     }
 
+    function _makeVertexObject()
+    {
+        var lineVertexButton = new BoxView({
+            size:[undefined,40],
+            color:800,
+            visible: false,
+            viewOrigin:[0,1],
+            position:[0,0,20]
+        });
+
+        this.objectView.add(lineVertexButton.getModifier()).add(lineVertexButton.getRenderController());
+
+        return {
+            button:lineVertexButton,
+            controller:this
+        };
+    }
+
+
     DynamicObjectController.prototype.enableMode = function(mode, modeContext)
     {
         switch (mode)
@@ -393,7 +412,10 @@ define(function(require,exports,module){
 
                 var listenEnabler = _makeStateTriggerListener.call(this);
                 modeContext.listenEnablers.push(listenEnabler);
-                break;1
+                break;
+            case "connectingLines":
+                modeContext.vertices.push(_makeVertexObject.call(this));
+                break;
         }
     };
 

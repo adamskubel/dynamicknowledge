@@ -57,25 +57,25 @@ define(function(require,exports,module)
 
     function _deactivateTrigger()
     {
-        if (!this._activeTrigger)
+        if (!this._activeVertex)
             return;
 
-        this._activeTrigger.button.setState(false);
+        this._activeVertex.button.setState(false);
 
         for (var i=0;i<this._activeTriggerCleanupFunctions.length;i++)
         {
             this._activeTriggerCleanupFunctions[i]();
         }
 
-        this._activeTrigger = undefined;
+        this._activeVertex = undefined;
     }
 
     function _activateTrigger(trigger, listenEnablers)
     {
-        if (this._activeTrigger != trigger)
+        if (this._activeVertex != trigger)
             _deactivateTrigger.call(this);
 
-        this._activeTrigger = trigger;
+        this._activeVertex = trigger;
 
         function prepareEnabler(enabler)
         {

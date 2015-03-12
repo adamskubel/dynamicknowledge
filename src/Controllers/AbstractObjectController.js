@@ -54,6 +54,11 @@ define(function(require,exports,module){
 
     };
 
+    AbstractObjectController.prototype.getState = function()
+    {
+        return this.state;
+    };
+
     AbstractObjectController.prototype.setState = function(state)
     {
         this._specifiedState = state;

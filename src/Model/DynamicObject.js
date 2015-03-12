@@ -51,8 +51,17 @@ define(function(require,exports,module){
     };
 
     DynamicObject.create = function(model, id, type){
-        return model.create(DynamicObject, id, type);
+        if (model.nextObjectId && model.getModel)
+        {
+            var m = model.getModel();
+            return m.create(DynamicObject, model.nextObjectId(type),type);
+        }
+        else
+        {
+            return model.create(DynamicObject, id, type);
+        }
     };
+
 
     DynamicObject.prototype.createState = function(stateId)
     {

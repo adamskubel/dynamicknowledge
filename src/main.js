@@ -9,7 +9,7 @@ define(function (require, exports, module)
 	var Easing = require('famous/transitions/Easing');
 	var RenderController = require("famous/views/RenderController");
     var MouseSync = require('famous/inputs/MouseSync');
-	var LineCanvas = require('./LineCanvas');
+	var LineCanvas = require('./Views/LineCanvas');
 
     var StretchyLayout = require('./PositioningLayouts/StretchyLayout');
     var PositionableView = require('./PositioningLayouts/PositionableView');

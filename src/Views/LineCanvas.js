@@ -8,7 +8,7 @@ define(function(require, exports, module) {
     var CanvasSurface = require('famous/surfaces/CanvasSurface');
 	var Transitionable = require('famous/transitions/Transitionable');
 	var Easing = require('famous/transitions/Easing');
-    var Colors = require('./Colors');
+    var Colors = require('./../Colors');
 
 	function LineCanvas(options) 
 	{
