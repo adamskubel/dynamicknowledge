@@ -111,7 +111,7 @@ define(function(require,exports,module){
                         console.error("Predefined object '" + pname + "' not found");
                         return;
                     }
-                    objectController = new DynamicObjectController(objectDef, this, objectView);
+                    objectController = new DynamicObjectController({objectDef:objectDef, view:objectView});
                     break;
                 case "constructed":
                     var name = objectDef.properties.get("constructorName");
@@ -119,7 +119,7 @@ define(function(require,exports,module){
                     {
                         case "AccessInspector":
                             objectView = new AccessInspector();
-                            objectController = new DynamicObjectController(objectDef, this, objectView);
+                            objectController = new DynamicObjectController({objectDef:objectDef, view:objectView});
                             break;
                         default:
                             console.error("Unknown type '" + name + "'");
@@ -129,19 +129,19 @@ define(function(require,exports,module){
                     //Object already exists in model and controller was already created, so we shouldn't be here.
                     throw "Controller was not found for generated object '" + objectDef.id + "'";
                 case "container":
-                    objectController = new DynamicContainerController(objectDef, this);
+                    objectController = new DynamicContainerController({objectDef:objectDef});
                     break;
                 case "label":
-                    objectController = new LabelController(objectDef, this);
+                    objectController = new LabelController({objectDef:objectDef});
                     break;
                 case "sidebar":
-                    objectController = new SideBarController(objectDef);
+                    objectController = new SideBarController({objectDef:objectDef});
                     break;
                 case "sidebar_label":
-                    objectController = new SideBarLabelController(objectDef);
+                    objectController = new SideBarLabelController({objectDef:objectDef});
                     break;
-                case DynamicObject.Types.LineConnector:
-                    objectController = new LineController(objectDef);
+                case DynamicObject.Types.ConnectingLine:
+                    objectController = new LineController({objectDef:objectDef});
                     break;
                 default:
                     throw "Object type '" + objectDef.type + "' not supported";
@@ -164,7 +164,7 @@ define(function(require,exports,module){
     {
         if (relationship instanceof Connection)
         {
-            //console.debug("Adding connection relationship of type '" + relationship.type + "' : '" + relationship.from + "' -> '" + relationship.to + "'");
+            console.debug("Adding connection relationship of type '" + relationship.type + "' : '" + relationship.from + "' -> '" + relationship.to + "'");
             switch (relationship.type)
             {
                 case Connection.Types.Container:
@@ -216,7 +216,7 @@ define(function(require,exports,module){
                     var targetState = relationship.properties.get("targetState");
                     controller.addStateTrigger(targetController,targetState);
                     break;
-                case Connection.Types.LineConnector:
+                case Connection.Types.LineVertex:
                     //Skip because controller handles it
                     break;
                 default:

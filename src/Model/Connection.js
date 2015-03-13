@@ -6,7 +6,7 @@ define(function(require,exports,module){
     }
 
     Connection.Types = {
-        LineConnector   : "lineConnector",
+        LineVertex   : "lineVertex",
         StateTrigger    : "stateTrigger",
         Container       : "container"
     };

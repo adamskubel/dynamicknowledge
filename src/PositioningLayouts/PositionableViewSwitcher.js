@@ -21,13 +21,12 @@ define(function(require,exports,module)
 
     PositionableViewSwitcher.prototype.calculatePosition = function (relativeTo)
     {
-        return this.activeView.calculatePosition();
+        return this.activeView.calculatePosition(relativeTo);
     };
 
     PositionableViewSwitcher.prototype.calculateChildPosition = function (child, relativeTo)
     {
-
-        return this.activeView.calculateChildPosition();
+        return this.activeView.calculateChildPosition(child,relativeTo);
     };
 
     PositionableViewSwitcher.prototype.addView = function (name, view)

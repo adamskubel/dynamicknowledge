@@ -6,17 +6,17 @@ define(function(require,exports,module){
     var LineConnectorModule = require('Editors/LineConnectorModule');
     var StateLinkingModule = require('Editors/StateLinkingModule');
 
-    function AbstractObjectController(objectDef,modelLoader)
+    function AbstractObjectController(options)
     {
-        this.objectDef = objectDef;
+        this.objectDef = options.objectDef;
         this.controllers = [];
-        this.gapiModel = gapi.drive.realtime.custom.getModel(this.objectDef);
-        this.modelLoader = modelLoader;
-        this.state = 'base';
+        this.gapiModel = DynamicKnowledge.ModelLoader.getModel();
+        this.modelLoader = DynamicKnowledge.ModelLoader;
+        this.state = options.state || 'base';
 
         this._specifiedState = undefined;
 
-        _attachModel.call(this,objectDef);
+        _attachModel.call(this,this.objectDef);
     }
 
     AbstractObjectController.prototype = {};
@@ -38,6 +38,7 @@ define(function(require,exports,module){
         this.controllers.push(controller);
         controller.parent = this;
 
+        controller.attachToParent(this);
         controller.propagateState(this.state);
     };
 
@@ -46,6 +47,12 @@ define(function(require,exports,module){
         var index = this.controllers.indexOf(controller);
         this.controllers.splice(index,1);
         controller.cleanup();
+    };
+
+
+    AbstractObjectController.prototype.attachToParent = function(parentController)
+    {
+
     };
 
 

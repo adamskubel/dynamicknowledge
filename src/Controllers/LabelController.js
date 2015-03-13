@@ -4,13 +4,13 @@ define(function(require,exports,module){
     var Colors = require('Colors');
     var DynamicObjectController = require('Controllers/DynamicObjectController');
 
-    function LabelController(objectDef, state)
+    function LabelController(options)
     {
-        this.state = state || 'base';
+        this.state = options.state || 'base';
 
-        var label = this.makeLabelView(objectDef);
+        var label = this.makeLabelView(options.objectDef);
         this.labelView = label;
-        DynamicObjectController.call(this,objectDef,modelLoader,label);
+        DynamicObjectController.call(this,{objectDef: options.objectDef, view:label});
 
 
         this.labelView._eventOutput.on("textChanged",function(newText){

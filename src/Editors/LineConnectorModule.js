@@ -87,6 +87,9 @@ define(function(require,exports,module)
 
         function prepareDestVertex(destVertex)
         {
+            if (destVertex == sourceVertex)
+                return;
+
             var activeDest = undefined;
 
             var moveListener = function ()
@@ -131,6 +134,8 @@ define(function(require,exports,module)
 
         this.controller.visitAll(function(controller){
 
+            if (controller == this.controller)
+                return;
             if (!controller.enableMode)
                 return;
 
@@ -139,7 +144,7 @@ define(function(require,exports,module)
             };
 
             controller.enableMode("connectingLines",stateModeContext);
-        });
+        }.bind(this));
 
         for (var i=0;i<lineVertices.length;i++)
         {
@@ -150,10 +155,10 @@ define(function(require,exports,module)
 
     function _lineComplete(fromVertex,toVertex)
     {
-        var lineObject = DynamicObject.create(this._modelLoader,"connectingLine");
+        var lineObject = DynamicObject.create(this._modelLoader,DynamicObject.Types.ConnectingLine);
 
-        var lineStart = Connection.create(this._modelLoader,"lineConnector");
-        var lineEnd = Connection.create(this._modelLoader,"lineConnector");
+        var lineStart = Connection.create(this._modelLoader,Connection.Types.LineVertex);
+        var lineEnd = Connection.create(this._modelLoader,Connection.Types.LineVertex);
 
         lineStart.properties.set("direction","outgoing");
         lineEnd.properties.set("direction","incoming");
@@ -161,15 +166,18 @@ define(function(require,exports,module)
         lineStart.createState(this.controller.getState());
         lineEnd.createState(this.controller.getState());
 
-        lineStart.to = fromVertex;
-        lineEnd.to = toVertex;
+        lineStart.to = fromVertex.controller.getId();
+        lineEnd.to = toVertex.controller.getId();
 
         lineObject.relationships.push(lineStart);
         lineObject.relationships.push(lineEnd);
+        lineObject.createState(this.controller.getState());
 
         this._modelLoader.addObject(lineObject.id,lineObject);
 
-        this.controller.objectDef.relationships.push(lineObject.id);
+        this.controller.objectDef.relationships.push(this._modelLoader.getModel().createString(lineObject.id));
+
+        console.debug("Created line relationship");
     }
 
     function _prepareVertex(vertex, lineVertices)

@@ -19,12 +19,13 @@ define(function(require,exports,module){
     var ListSelector = require('Views/ListSelector');
     var ToggleButton = require('Views/ToggleButton');
 
-	function DynamicObjectController(objectDef, modelLoader, objectView)
+	function DynamicObjectController(options)
 	{
+        var objectView = options.view;
+        var objectDef = options.objectDef;
         this.objectView = objectView;
-        this.objectView.modelId = objectDef.id;
 
-        AbstractObjectController.call(this,objectDef,modelLoader);
+        AbstractObjectController.call(this,options);
 
         if (objectView.setController)
             objectView.setController(this);
@@ -52,20 +53,20 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.addDynamicObject = function(name, view)
     {
-        var model = this.modelLoader.getObjectDef(name);
+        var objectModel = this.modelLoader.getObjectDef(name);
 
-        if (!model)
+        if (!objectModel)
         {
-            model = DynamicObject.create(this.gapiModel,name,"generated");
-            this.modelLoader.addObject(name,model);
+            objectModel = DynamicObject.create(this.gapiModel,name,"generated");
+            this.modelLoader.addObject(name,objectModel);
         }
-        if (!model.hasState(this.state))
+        if (!objectModel.hasState(this.state))
         {
             console.log("Adding current state '" + this.state + "' to generated model");
-            model.createState(this.state);
+            objectModel.createState(this.state);
         }
 
-        var controller = new DynamicObjectController(model,this.modelLoader,view);
+        var controller = new DynamicObjectController({objectDef:objectModel,view:view});
         this.modelLoader.registerController(name,controller);
         DynamicKnowledge.EditManager.registerController(controller);
         this.addController(controller);

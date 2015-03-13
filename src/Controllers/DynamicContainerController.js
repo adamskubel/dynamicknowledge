@@ -11,10 +11,10 @@ define(function(require,exports,module){
     DynamicContainerController.prototype = Object.create(AbstractObjectController.prototype);
     DynamicContainerController.prototype.constructor = DynamicContainerController;
 
-    function DynamicContainerController(objectDef, modelLoader)
+    function DynamicContainerController(options)
     {
         this.containerView = this.makeContainerView();
-        AbstractObjectController.call(this,objectDef,modelLoader);
+        AbstractObjectController.call(this,options);
     }
 
     DynamicContainerController.prototype.addController = function(controller)
