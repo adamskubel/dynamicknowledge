@@ -99,6 +99,9 @@ define(function (require, exports, module)
             return [0,0,0];
         else if (this.parent)
             return this.parent.calculateChildPosition(this,relativeTo);
+        else
+            return [0, 0, 0];
+
 
         return this.position;
     };

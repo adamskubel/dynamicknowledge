@@ -20,11 +20,10 @@ define(function(require, exports, module) {
 
         this.minimumContainerSize = this.options.minimumContainerSize;
         this.size = this.minimumSize;
-        this.offsetVector = new Vector(0,0,0);
 
         this.offsetState = new Transitionable(Transform.translate(0,0,0));
         this.offsetNode = this.add(new Modifier({transform: function(){return this.offsetState.get();}.bind(this)}));
-
+        this.offsetVector = new Vector(0,0,0);
     }
 
 	DynamicConstraintLayout.prototype = Object.create(PositionableView.prototype);
@@ -94,7 +93,17 @@ define(function(require, exports, module) {
     DynamicConstraintLayout.prototype.calculateChildPosition = function(child, relativeTo){
 
         var basePosition = Vector.fromArray(PositionableView.prototype.calculateChildPosition.call(this,child,relativeTo));
-        return basePosition.add(this.offsetVector).toArray();
+
+        var actualOffset = new Vector(0,0,0);
+
+        if (child._dynamicOffset)
+        {
+            actualOffset = child._dynamicOffset.clone();
+            actualOffset.x = Math.max(0, actualOffset.x);
+            actualOffset.y = Math.max(0, actualOffset.y);
+        }
+
+        return basePosition.add(actualOffset).add(this.offsetVector).toArray();
     };
 
     function adjustToFit(fixedView,adjustView)

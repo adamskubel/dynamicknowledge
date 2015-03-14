@@ -392,7 +392,8 @@ define(function(require,exports,module){
             color:800,
             visible: false,
             viewOrigin:[0,0],
-            position:[0,0,20]
+            position:[0,0,20],
+            clickable:true
         });
 
         this.objectView.add(lineVertexButton.getModifier()).add(lineVertexButton.getRenderController());

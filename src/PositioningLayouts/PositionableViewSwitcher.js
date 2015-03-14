@@ -1,6 +1,6 @@
 define(function(require,exports,module)
 {
-
+    var Vector = require('ProperVector');
     var PositionableView = require('./PositionableView');
     var ListSelector = require('Views/ListSelector');
 
@@ -19,14 +19,14 @@ define(function(require,exports,module)
         return this.activeView.calculateSize();
     };
 
-    PositionableViewSwitcher.prototype.calculatePosition = function (relativeTo)
-    {
-        return this.activeView.calculatePosition(relativeTo);
-    };
+    //PositionableViewSwitcher.prototype.calculatePosition = function (relativeTo)
+    //{
+    //    return this.activeView.calculatePosition(relativeTo);
+    //};
 
     PositionableViewSwitcher.prototype.calculateChildPosition = function (child, relativeTo)
     {
-        return this.activeView.calculateChildPosition(child,relativeTo);
+        return PositionableView.prototype.calculateChildPosition.call(this,child,relativeTo);
     };
 
     PositionableViewSwitcher.prototype.addView = function (name, view)
@@ -35,6 +35,7 @@ define(function(require,exports,module)
         {
             this.viewMap[name] = view;
             this.add(view.getModifier()).add(view.getRenderController(true));
+            view.parent = this;
         }
         else
         {

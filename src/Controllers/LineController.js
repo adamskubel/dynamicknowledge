@@ -30,7 +30,6 @@ define(function(require,exports,module)
         for (var i=0;i<lineEdges.length;i++)
         {
             var edge = lineEdges[i];
-            console.debug("Edge direction = " + edge.properties.get("direction"));
 
             if (lineEdges[i].properties.get("direction") == "outgoing")
                 fromEdge = lineEdges[i];
@@ -42,6 +41,9 @@ define(function(require,exports,module)
         {
             throw "Line does not have to/from edges defined";
         }
+
+
+        console.debug("Line: '" + fromEdge.to + "' -> '" + toEdge.to + "'");
 
         var fromController = DynamicKnowledge.ModelLoader.getObject(fromEdge.to);
         var toController = DynamicKnowledge.ModelLoader.getObject(toEdge.to);

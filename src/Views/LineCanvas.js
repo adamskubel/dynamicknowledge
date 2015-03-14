@@ -61,7 +61,7 @@ define(function(require, exports, module) {
 
     LineCanvas.prototype.setLinePoints = function setPosition(p,p2)
     {
-        console.debug("LineCanvas: " + p + "--> " + p2);
+        //console.debug("LineCanvas: " + p + "--> " + p2);
 
         if (p == undefined || p2 == undefined)
             return;

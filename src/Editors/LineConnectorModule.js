@@ -66,6 +66,7 @@ define(function(require,exports,module)
         if (!this._activeVertex)
             return;
 
+        console.debug("Killing " + this._activeVertex.controller.getId());
         //this._activeVertex.button.setState(false);
 
         for (var i=0;i<this._activeVertexCleanupFunctions.length;i++)
@@ -73,6 +74,7 @@ define(function(require,exports,module)
             this._activeVertexCleanupFunctions[i]();
         }
 
+        this._activeVertex.button.show();
         this._activeVertex = undefined;
     }
 
@@ -82,42 +84,65 @@ define(function(require,exports,module)
         if (this._activeVertex != sourceVertex)
             _deactivateVertex.call(this);
 
+        console.debug("Activing " + sourceVertex.controller.getId());
+
         this._activeVertex = sourceVertex;
 
+        this._activeVertex.button.hide();
 
         function prepareDestVertex(destVertex)
         {
             if (destVertex == sourceVertex)
                 return;
 
-            var activeDest = undefined;
+
+            //destVertex.button.textSurface.pipe(sourceVertex._drawMouseSync);
+            //destVertex.button.backSurface.pipe(sourceVertex._drawMouseSync);
+
+            //var activeDest = undefined;
+
+            destVertex.button._listenerAction = connectCallback.bind(this,destVertex);
+
 
             var moveListener = function ()
             {
+                console.debug("move");
                 if (activeDest !== destVertex)
                 {
+                    if (activeDest)
+                        activeDest.button.setHighlighted(false);
+
                     activeDest = destVertex;
+                    activeDest.button.setHighlighted(true);
                     connectCallback(activeDest);
                 }
             };
 
             var leaveListener = function ()
             {
+                console.debug("leave!");
                 if (activeDest === destVertex)
                 {
+                    activeDest.button.setHighlighted(false);
                     activeDest = undefined;
                     connectCallback(activeDest);
                 }
             };
 
             destVertex.button.show();
-            destVertex.button.textSurface.on('mousemove',moveListener);
-            destVertex.button.backSurface.on('mouseleave',leaveListener);
+            //destVertex.button.textSurface.on('mousemove',moveListener);
+            //destVertex.button.textSurface.on('mouseleave',leaveListener);
+            //
+            //destVertex.button.backSurface.on('mousemove',moveListener);
+            //destVertex.button.backSurface.on('mouseleave',leaveListener);
 
             this._activeVertexCleanupFunctions.push(function()
             {
-                destVertex.button.textSurface.removeListener('mousemove',moveListener);
-                destVertex.button.backSurface.removeListener('mouseleave', leaveListener);
+                //destVertex.button.textSurface.removeListener('mousemove',moveListener);
+                //destVertex.button.textSurface.removeListener('mouseleave', leaveListener);
+                //destVertex.button.backSurface.removeListener('mousemove',moveListener);
+                //destVertex.button.backSurface.removeListener('mouseleave', leaveListener);
+                destVertex.button.removeListener('click',clickListener);
                 destVertex.button.hide();
             });
         }
@@ -155,6 +180,9 @@ define(function(require,exports,module)
 
     function _lineComplete(fromVertex,toVertex)
     {
+        console.debug("Created line relationship");
+        return;
+
         var lineObject = DynamicObject.create(this._modelLoader,DynamicObject.Types.ConnectingLine);
 
         var lineStart = Connection.create(this._modelLoader,Connection.Types.LineVertex);
@@ -177,7 +205,6 @@ define(function(require,exports,module)
 
         this.controller.objectDef.relationships.push(this._modelLoader.getModel().createString(lineObject.id));
 
-        console.debug("Created line relationship");
     }
 
     function _prepareVertex(vertex, lineVertices)
@@ -189,45 +216,57 @@ define(function(require,exports,module)
             propogate: true
         });
 
-        var line = new LineCanvas();
-        parentView.add(line.getModifier()).add(line.getRenderController());
-        line.parent = parentView;
+        //var line = new LineCanvas();
+        //parentView.add(line.getModifier()).add(line.getRenderController());
+        //line.parent = parentView;
 
         var fromVertex = vertex.button;
-        var activeLineEnd = new Vector(0,0,0);
+        //var activeLineEnd = new Vector(0,0,0);
 
         var activeDestVertex = undefined;
+        vertex.button.on('click',function(){
+            vertex.button._listenerAction();
+        });
+
 
         function _connectCallback(destVertex)
         {
-            activeDestVertex = destVertex;
+            //activeDestVertex = destVertex;
+            if (destVertex)
+                _lineComplete.call(this,this._activeVertex,destVertex);
         }
 
-        lineSync.on('start', function (data)
-        {
-            _activateVertex.call(this, vertex, lineVertices, _connectCallback.bind(this));
-            activeLineEnd = Vector.fromArray(fromVertex.calculatePosition(parentView));
-        }.bind(this));
+        vertex.button._listenerAction = _activateVertex.bind(this, vertex, lineVertices, _connectCallback.bind(this));
 
-        lineSync.on('update', function (data)
-        {
-            activeLineEnd = Vector.fromArray(data.delta).add(activeLineEnd);
-            line.setLinePoints(fromVertex.calculatePosition(parentView), activeLineEnd.toArray());
-        });
 
-        lineSync.on('end', function (data)
-        {
-            if (activeDestVertex)
-            {
-                _lineComplete.call(this,this._activeVertex,activeDestVertex);
-            }
-            line.hide();
-            _deactivateVertex.call(this);
-        }.bind(this));
+
+        //lineSync.on('start', function (data)
+        //{
+        //    console.debug("start");
+        //    _activateVertex.call(this, vertex, lineVertices, _connectCallback.bind(this));
+        //    activeLineEnd = Vector.fromArray(fromVertex.calculatePosition(parentView));
+        //}.bind(this));
+        //
+        //lineSync.on('update', function (data)
+        //{
+        //    activeLineEnd = Vector.fromArray(data.delta).add(activeLineEnd);
+        //    line.setLinePoints(fromVertex.calculatePosition(parentView), activeLineEnd.toArray());
+        //});
+        //
+        //lineSync.on('end', function (data)
+        //{
+        //    console.debug("end");
+        //    if (activeDestVertex)
+        //    {
+        //        _lineComplete.call(this,this._activeVertex,activeDestVertex);
+        //    }
+        //    line.hide();
+        //    _deactivateVertex.call(this);
+        //}.bind(this));
 
         fromVertex.backSurface.pipe(lineSync);
         fromVertex.textSurface.pipe(lineSync);
-        fromVertex._drawMouseSync = lineSync;
+        vertex._drawMouseSync = lineSync;
     }
 
 
