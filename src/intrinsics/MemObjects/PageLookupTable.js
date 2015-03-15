@@ -67,6 +67,7 @@ define(function(require, exports, module)
             this.addChild(pageCell);
 
             this.controller.addDynamicObject("PTE_" + Utils.hexString(pfn), pageCell);
+            pageCell.registerDynamicObjects(this.controller);
 
             this.cells[startPage + i] = pageCell;
         }

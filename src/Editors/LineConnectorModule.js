@@ -95,54 +95,14 @@ define(function(require,exports,module)
             if (destVertex == sourceVertex)
                 return;
 
-
-            //destVertex.button.textSurface.pipe(sourceVertex._drawMouseSync);
-            //destVertex.button.backSurface.pipe(sourceVertex._drawMouseSync);
-
-            //var activeDest = undefined;
-
+            var oldListener = destVertex.button._listenerAction;
             destVertex.button._listenerAction = connectCallback.bind(this,destVertex);
 
-
-            var moveListener = function ()
-            {
-                console.debug("move");
-                if (activeDest !== destVertex)
-                {
-                    if (activeDest)
-                        activeDest.button.setHighlighted(false);
-
-                    activeDest = destVertex;
-                    activeDest.button.setHighlighted(true);
-                    connectCallback(activeDest);
-                }
-            };
-
-            var leaveListener = function ()
-            {
-                console.debug("leave!");
-                if (activeDest === destVertex)
-                {
-                    activeDest.button.setHighlighted(false);
-                    activeDest = undefined;
-                    connectCallback(activeDest);
-                }
-            };
-
             destVertex.button.show();
-            //destVertex.button.textSurface.on('mousemove',moveListener);
-            //destVertex.button.textSurface.on('mouseleave',leaveListener);
-            //
-            //destVertex.button.backSurface.on('mousemove',moveListener);
-            //destVertex.button.backSurface.on('mouseleave',leaveListener);
 
             this._activeVertexCleanupFunctions.push(function()
             {
-                //destVertex.button.textSurface.removeListener('mousemove',moveListener);
-                //destVertex.button.textSurface.removeListener('mouseleave', leaveListener);
-                //destVertex.button.backSurface.removeListener('mousemove',moveListener);
-                //destVertex.button.backSurface.removeListener('mouseleave', leaveListener);
-                destVertex.button.removeListener('click',clickListener);
+                destVertex.button._listenerAction = oldListener;
                 destVertex.button.hide();
             });
         }
@@ -181,7 +141,6 @@ define(function(require,exports,module)
     function _lineComplete(fromVertex,toVertex)
     {
         console.debug("Created line relationship");
-        return;
 
         var lineObject = DynamicObject.create(this._modelLoader,DynamicObject.Types.ConnectingLine);
 
@@ -212,61 +171,26 @@ define(function(require,exports,module)
         var parentView = this.controller.getView();
         vertex.button.show();
 
-        var lineSync = new MouseSync({
-            propogate: true
-        });
-
         //var line = new LineCanvas();
         //parentView.add(line.getModifier()).add(line.getRenderController());
         //line.parent = parentView;
 
         var fromVertex = vertex.button;
-        //var activeLineEnd = new Vector(0,0,0);
 
         var activeDestVertex = undefined;
         vertex.button.on('click',function(){
             vertex.button._listenerAction();
         });
 
-
         function _connectCallback(destVertex)
         {
-            //activeDestVertex = destVertex;
             if (destVertex)
                 _lineComplete.call(this,this._activeVertex,destVertex);
         }
 
         vertex.button._listenerAction = _activateVertex.bind(this, vertex, lineVertices, _connectCallback.bind(this));
 
-
-
-        //lineSync.on('start', function (data)
-        //{
-        //    console.debug("start");
-        //    _activateVertex.call(this, vertex, lineVertices, _connectCallback.bind(this));
-        //    activeLineEnd = Vector.fromArray(fromVertex.calculatePosition(parentView));
-        //}.bind(this));
-        //
-        //lineSync.on('update', function (data)
-        //{
-        //    activeLineEnd = Vector.fromArray(data.delta).add(activeLineEnd);
-        //    line.setLinePoints(fromVertex.calculatePosition(parentView), activeLineEnd.toArray());
-        //});
-        //
-        //lineSync.on('end', function (data)
-        //{
-        //    console.debug("end");
-        //    if (activeDestVertex)
-        //    {
-        //        _lineComplete.call(this,this._activeVertex,activeDestVertex);
-        //    }
-        //    line.hide();
-        //    _deactivateVertex.call(this);
-        //}.bind(this));
-
-        fromVertex.backSurface.pipe(lineSync);
-        fromVertex.textSurface.pipe(lineSync);
-        vertex._drawMouseSync = lineSync;
+        //line.setLinePoints(fromVertex.calculatePosition(parentView), activeLineEnd.toArray());
     }
 
 

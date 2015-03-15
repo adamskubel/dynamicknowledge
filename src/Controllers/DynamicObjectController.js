@@ -53,6 +53,11 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.addDynamicObject = function(name, view)
     {
+        if (!view)
+            view = name;
+
+        name = DynamicKnowledge.ModelLoader.nextObjectId("generated");
+
         var objectModel = this.modelLoader.getObjectDef(name);
 
         if (!objectModel)
