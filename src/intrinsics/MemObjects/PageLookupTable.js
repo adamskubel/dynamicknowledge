@@ -66,7 +66,7 @@ define(function(require, exports, module)
             var pageCell = new PageTableEntry({pfn:pfn});
             this.addChild(pageCell);
 
-            this.controller.addDynamicObject("PTE_" + Utils.hexString(pfn), pageCell);
+            //this.controller.addDynamicObject("PTE_" + Utils.hexString(pfn), pageCell);
             pageCell.registerDynamicObjects(this.controller);
 
             this.cells[startPage + i] = pageCell;

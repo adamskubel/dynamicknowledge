@@ -51,12 +51,13 @@ define(function(require,exports,module){
     DynamicObjectController.prototype.constructor = DynamicObjectController;
 
 
-    DynamicObjectController.prototype.addDynamicObject = function(name, view)
+    DynamicObjectController.prototype.addDynamicObject = function(view,name)
     {
-        if (!view)
-            view = name;
+        if (!name)
+            name = DynamicKnowledge.ModelLoader.nextObjectId("generated");
 
-        name = DynamicKnowledge.ModelLoader.nextObjectId("generated");
+        if (!view)
+            throw "Gotta give me a real view nigga";
 
         var objectModel = this.modelLoader.getObjectDef(name);
 
@@ -84,11 +85,11 @@ define(function(require,exports,module){
         var trigger = new BoxView({
             size: [undefined, undefined],
             clickable: true,
-            color: Colors.EditColor,
+            color: 600,
             position:[0,0,5],
             viewAlign:[0,0.5],
             viewOrigin:[0,0.5],
-            style:"noBorder",
+            //style:"noBorder",
             isAnimated:false
         });
 
