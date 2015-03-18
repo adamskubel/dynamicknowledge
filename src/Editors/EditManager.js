@@ -84,14 +84,19 @@ define(function(require,exports,module){
         {
             case "Local":
                 var editContext = {};
-                editContext.trigger = controller.createEditTrigger();
+                //editContext.trigger = controller.createEditTrigger();
+                controller.enableMode("edit",editContext);
+                if (!editContext.trigger)
+                    return;
+
                 editContext.trigger.on('click', function(){
                     setActiveController.call(this,controller,editContext);
                 }.bind(this));
                 break;
             case "ReadOnly":
+                controller.enableMode();
                 controller.destroyEditors();
-                controller.destroyEditTrigger();
+                //controller.destroyEditTrigger();
                 break;
             case "Global":
                 editContext = {

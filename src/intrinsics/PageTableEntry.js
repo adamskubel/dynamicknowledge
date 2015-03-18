@@ -13,7 +13,6 @@ define(function(require,exports,module){
 
         _buildViews.call(this);
         this.setActiveView("AddressOnly");
-
     }
 
     PageTableEntry.prototype = Object.create(PViewSwitcher.prototype);
@@ -26,12 +25,17 @@ define(function(require,exports,module){
 
     PageTableEntry.prototype.registerDynamicObjects = function(controller)
     {
-        controller.addDynamicObject(this.simpleView);
-        controller.addDynamicObject(this.detailedView);
-        controller.addDynamicObject(this.detailedView.pte_addressView);
-        controller.addDynamicObject(this.detailedView.pte_validFlag);
-        controller.addDynamicObject(this.detailedView.pte_writeFlag);
-        controller.addDynamicObject(this.detailedView.pte_readFlag);
+        //controller.addDynamicObject(this.simpleView);
+        //controller.addDynamicObject(this.detailedView);
+
+        controller.addDynamicObject({view:this});
+
+        var options = { respectViewState:true, editingDisabled:true, allowedModes:["connectingLines"]};
+
+        controller.addDynamicObject({view:this.detailedView.pte_addressView,options:options});
+        controller.addDynamicObject({view:this.detailedView.pte_validFlag,options:options});
+        controller.addDynamicObject({view:this.detailedView.pte_writeFlag,options:options});
+        controller.addDynamicObject({view:this.detailedView.pte_readFlag,options:options});
     };
 
     function _makeAddressView(physicalPageFrameNumber)
@@ -53,7 +57,7 @@ define(function(require,exports,module){
         var address = new BoxView({
             text: Utils.hexString(pteConfig.pfn,5),
             textAlign:[0,0.5],
-            size:[true,undefined]
+            size:[80,undefined]
         });
 
         var validFlag = new ToggleButton({
@@ -78,6 +82,8 @@ define(function(require,exports,module){
         layout.pte_writeFlag = writeFlag;
         layout.pte_readFlag = readFlag;
 
+        layout.hide();
+
         return layout;
     }
 
@@ -93,6 +99,11 @@ define(function(require,exports,module){
     PageTableEntry.prototype.access = function()
     {
         this.activeView.pulse(50,500);
+    };
+
+    PageTableEntry.prototype.getUniqueSuffix = function()
+    {
+        return Utils.hexString(this.options.pfn,5);
     };
 
     module.exports = PageTableEntry;

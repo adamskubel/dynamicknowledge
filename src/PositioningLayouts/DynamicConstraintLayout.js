@@ -86,7 +86,7 @@ define(function(require, exports, module) {
             this._fixedChild = view;
         }
         else
-            console.error("This is not my child: '" + view._globalId + "'");
+            console.error("This is not my child: '" + view.getViewName() + "'");
     };
 
 

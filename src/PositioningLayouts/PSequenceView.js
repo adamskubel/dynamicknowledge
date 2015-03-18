@@ -24,7 +24,7 @@ define(function(require, exports, module) {
     PSequenceView.DEFAULT_OPTIONS = {
         direction:0,
         position:[0,0,0]
-    }
+    };
 
     PSequenceView.prototype = Object.create(PositionableView.prototype);
     PSequenceView.prototype.constructor = PSequenceView;
@@ -59,14 +59,18 @@ define(function(require, exports, module) {
 
     PSequenceView.prototype.measure = function(){
 
+        var totalSize = [this.size[0],this.size[1]];
+        var dir = this.options.direction;
+
         for (var i=0;i<this.children.length;i++){
             var child = this.children[i]._view;
             child._dynamicSize = child.measure().maximumSize;
+            totalSize[dir] += child._dynamicSize[dir];
         }
 
         return {
-            minimumSize: this.size,
-            maximumSize: this.size
+            minimumSize: totalSize,
+            maximumSize: totalSize
         }
     };
 

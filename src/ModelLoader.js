@@ -193,7 +193,7 @@ define(function(require,exports,module){
                         connectionLine.parent = controller.getView();
                         controller.getView().add(connectionLine.getModifier()).add(connectionLine.getRenderController());
 
-                        console.log("Binding to " + input._globalId);
+                        console.log("Binding to " + input.getViewName());
                         output.parent.on('positionChange', function ()
                         {
                             output._eventOutput.emit('positionChange');

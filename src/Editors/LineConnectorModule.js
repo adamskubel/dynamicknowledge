@@ -59,6 +59,8 @@ define(function(require,exports,module)
         }
 
         this._objectsToHide = [];
+
+        this.controller.disableMode();
     }
 
     function _deactivateVertex()

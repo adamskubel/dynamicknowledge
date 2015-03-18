@@ -74,7 +74,7 @@ define(function(require, exports, module) {
         }
 
         //if (!size)
-        //console.debug(this._globalId + " _ surfaceSize = " + surfaceSize);
+        //console.debug(this.getViewName() + " _ surfaceSize = " + surfaceSize);
 		return size;
 	};
 
@@ -89,7 +89,7 @@ define(function(require, exports, module) {
             if (this.size[1] == true || this.size[1] == undefined)
                 size[1] = surfaceSize[1];
         }
-        //console.log(this._globalId + " _ minSize = " + size);
+        //console.log(this.getViewName() + " _ minSize = " + size);
         return size;
     }
 
@@ -102,7 +102,7 @@ define(function(require, exports, module) {
 	};
 
     SurfaceWrappingView.prototype.layout = function(layoutSize){
-        //console.debug(this._globalId + " _ layoutSize = " + layoutSize);
+        //console.debug(this.getViewName() + " _ layoutSize = " + layoutSize);
         PositionableView.prototype.layout.call(this,layoutSize);
         if (this.wrapSurface._size)
     		this._layoutDirty = false;

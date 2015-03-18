@@ -13,6 +13,7 @@ define(function(require,exports,module){
         this.gapiModel = DynamicKnowledge.ModelLoader.getModel();
         this.modelLoader = DynamicKnowledge.ModelLoader;
         this.state = options.state || 'base';
+        this.options = options || {};
 
         this._specifiedState = undefined;
 

@@ -36,7 +36,7 @@ define(function(require,exports,module){
 
         var moveButton = new BoxView({
             text: "", size: [30, 30], clickable: true, color: Colors.EditColor,
-            position: [0, 0, 10], viewAlign: [0, 0], viewOrigin: [0.8, 0.8], fontSize: 'large'
+            position: [0, 0, 150], viewAlign: [0, 0], viewOrigin: [0.8, 0.8], fontSize: 'large'
         });
 
         box.add(moveButton.getModifier()).add(moveButton.getRenderController());
@@ -79,7 +79,7 @@ define(function(require,exports,module){
 
         var resizeButton = new BoxView({
             text: "", size: [30, 30], clickable: true, color: Colors.EditColor,
-            position: [0, 0, 5], viewAlign: [1, 1], viewOrigin: [0.2, 0.2], fontSize: 'large'
+            position: [0, 0, 150], viewAlign: [1, 1], viewOrigin: [0.2, 0.2], fontSize: 'large'
         });
 
         box.add(resizeButton.getModifier()).add(resizeButton.getRenderController());
@@ -119,8 +119,8 @@ define(function(require,exports,module){
     function _makeDeleteButton(deleteCallback,box)
     {
         var deleteButton = new BoxView({
-            text: "X", size: [30, 30], clickable: true, color: 900,
-            position: [0, 0, 5], viewAlign: [0, 1], viewOrigin: [0.8, 0.2], fontSize: 'large'
+            text: "X", size: [30, 30], clickable: true, color: 900, textAlign:[0.5,0.5],
+            position: [0, 0, 150], viewAlign: [0, 1], viewOrigin: [0.8, 0.2], fontSize: 'large'
         });
         box.add(deleteButton.getModifier()).add(deleteButton.getRenderController());
 

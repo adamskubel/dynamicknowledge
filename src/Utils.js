@@ -45,19 +45,19 @@ define(function (require, exports, module)
     Utils.assertValidMeasure = function(view,measure){
 
         if (measure == undefined)
-            console.error("Invalid measureObject. View = " + view._globalId);
+            console.error("Invalid measureObject. View = " + view.getViewName());
 
         if (measure.minimumSize == undefined)
-            console.error("Invalid minSize. View = " + view._globalId);
+            console.error("Invalid minSize. View = " + view.getViewName());
 
 
         if (measure.maximumSize == undefined)
-            console.error("Invalid maxSize. View = " + view._globalId);
+            console.error("Invalid maxSize. View = " + view.getViewName());
     };
 
     Utils.assertValidSize = function(size){
         if (size == undefined)
-            console.error("Invalid size. View = " + view._globalId);
+            console.error("Invalid size. View = " + view.getViewName());
     };
 
     Utils.getDirectionVector = function (dirIndex){
@@ -110,7 +110,7 @@ define(function (require, exports, module)
 
     Utils.injectView = function(container,objectView)
     {
-        console.log("Injecting view. Object = " + objectView._globalId + " InjectedContainer = " + container._globalId);
+        console.log("Injecting view. Object = " + objectView.getViewName() + " InjectedContainer = " + container.getViewName());
         objectView.setPosition([0, objectView.position[1], 0]);
         objectView.setAlign([0,0]);
         objectView.setOrigin([0,0]);

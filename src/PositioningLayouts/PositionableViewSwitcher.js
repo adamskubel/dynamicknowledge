@@ -34,7 +34,8 @@ define(function(require,exports,module)
         if (!this.viewMap[name])
         {
             this.viewMap[name] = view;
-            this.add(view.getModifier()).add(view.getRenderController(true));
+            this.add(view.getModifier()).add(view.getRenderController());
+            view.setVisible(this.activeViewName == name);
             view.parent = this;
         }
         else

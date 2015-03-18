@@ -93,7 +93,7 @@ define(function(require, exports, module) {
     //
     //    if (!child.position)
     //    {
-    //        console.error(child._globalId + " has no def. position!");
+    //        console.error(child.getViewName() + " has no def. position!");
     //        return undefined;
     //    }
     //
@@ -228,7 +228,7 @@ define(function(require, exports, module) {
 			}
 
             view.layout(view._dynamicSize.toArray(2));
-			//console.debug(view._globalId + " Size = " + view._dynamicSize.toString());
+			//console.debug(view.getViewName() + " Size = " + view._dynamicSize.toString());
 			currentPosition = currentPosition.add((view._dynamicSize.add(viewSpacing)).multiply(dir));
 
         }

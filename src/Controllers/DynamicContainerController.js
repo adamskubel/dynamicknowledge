@@ -13,6 +13,7 @@ define(function(require,exports,module){
 
     function DynamicContainerController(options)
     {
+        this.options = options;
         this.containerView = this.makeContainerView();
         AbstractObjectController.call(this,options);
     }
@@ -95,7 +96,7 @@ define(function(require,exports,module){
         dc.add(containerBackground.getModifier()).add(containerBackground.getRenderController());
 
         return dc;
-    }
+    };
 
     DynamicContainerController.prototype.makeEditor = function(editorName)
     {

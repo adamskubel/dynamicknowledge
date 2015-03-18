@@ -44,6 +44,11 @@ define(function (require, exports, module)
         DynamicKnowledge.EditManager = new EditManager(mainView);
         this.editManager = DynamicKnowledge.EditManager;
 
+        DynamicKnowledge._uniqueCounter = 0;
+        DynamicKnowledge.nextUniqueId = function(){
+            return DynamicKnowledge._uniqueCounter++;
+        };
+
         var objectRegistry = {};
         this.objectRegistry = objectRegistry;
 
@@ -54,7 +59,7 @@ define(function (require, exports, module)
         DynamicKnowledge.MainView = mainView;
 
         this.gapiAuthenticator = new GAPIAuthenticator();
-        this.fileId = '0B6eNzoTXZGgIRS1iejRoR252VWM';
+        this.fileId = '0B6eNzoTXZGgISW9henVuYVlOMkk';
 
         gapi.load('auth:client,drive-realtime,drive-share', function()
         {

@@ -19,11 +19,6 @@ define(function (require, exports, module)
         View.call(this, options);
 
         this.name = (this.options.name) ? this.options.name : this.constructor.name;
-        id = (new Utils()).nextIdentifier(this.name);
-
-        this._globalId = id;
-
-
         this.size = this.options.size;
         this.position = this.options.position;
 
@@ -57,6 +52,8 @@ define(function (require, exports, module)
 
         if (this.visible)
             this.renderController.show(this);
+
+        this._viewUniqueName = this.options.uniqueName;
 
         this.opacityState = new Transitionable(1);
     }
@@ -101,9 +98,6 @@ define(function (require, exports, module)
             return this.parent.calculateChildPosition(this,relativeTo);
         else
             return [0, 0, 0];
-
-
-        return this.position;
     };
 
     PositionableView.prototype.calculateChildPosition = function (child, relativeTo)
@@ -233,7 +227,7 @@ define(function (require, exports, module)
 
     function _setSize(newSize)
     {
-        //console.debug(this._globalId + "_SIZE: " + this._size + " --> " + newSize);
+        //console.debug(this.getViewName() + "_SIZE: " + this._size + " --> " + newSize);
         if (this.sizeState)
         {
             if (this.sizeState.isActive())
@@ -249,7 +243,7 @@ define(function (require, exports, module)
     PositionableView.prototype.setSize = function (newSize)
     {
         _setSize.call(this,newSize);
-        //console.log(this._globalId + " SetSize = " + newSize);
+        //console.log(this.getViewName() + " SetSize = " + newSize);
         this.size = newSize;
     };
 
@@ -323,9 +317,33 @@ define(function (require, exports, module)
 
     PositionableView.prototype.getEditors = function()
     {
-        var editors = [];
+        return [];
+    };
 
-        return editors;
+
+    PositionableView.prototype.getUniqueSuffix = function()
+    {
+        if (!this._uniqueSuffix)
+        {
+            this._uniqueSuffix = DynamicKnowledge.nextUniqueId();
+        }
+
+        return this._uniqueSuffix;
+    };
+
+    PositionableView.prototype.getViewName = function()
+    {
+        return this.name + "_" + this.getUniqueSuffix();
+    };
+
+    PositionableView.prototype.getViewPath = function()
+    {
+        if (this.parent)
+        {
+            return this.parent.getViewPath() + "." + this.getViewName();
+        }
+
+        return this.getViewName();
     };
 
     module.exports = PositionableView;

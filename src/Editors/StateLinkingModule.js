@@ -39,6 +39,7 @@ define(function(require,exports,module)
         _stopEditing.call(this);
         if (this._hideObjectFunction)
             this._hideObjectFunction();
+
     };
 
     function _stopEditing()
@@ -52,6 +53,8 @@ define(function(require,exports,module)
         }
 
         this._objectsToHide = [];
+
+        this.controller.disableMode();
     }
 
 

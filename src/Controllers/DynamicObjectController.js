@@ -24,6 +24,7 @@ define(function(require,exports,module){
         var objectView = options.view;
         var objectDef = options.objectDef;
         this.objectView = objectView;
+        this.options = options;
 
         AbstractObjectController.call(this,options);
 
@@ -33,17 +34,20 @@ define(function(require,exports,module){
         var pmap = Utils.getPropertyMap(objectDef.properties);
         objectView.applyProperties(pmap);
 
-        if (objectDef.hasState(this.state))
+        if (!this.options.respectViewState)
         {
-            objectView.applyProperties(Utils.getPropertyMap(objectDef.getState(this.state).properties));
-            objectView.show();
-        }
-        else
-        {
-            if (objectView.hide)
-                objectView.hide();
+            if (objectDef.hasState(this.state))
+            {
+                objectView.applyProperties(Utils.getPropertyMap(objectDef.getState(this.state).properties));
+                objectView.show();
+            }
             else
-                console.error("Can't hide view: " + objectView._globalId);
+            {
+                if (objectView.hide)
+                    objectView.hide();
+                else
+                    console.error("Can't hide view: " + objectView.getViewName());
+            }
         }
 	}
 
@@ -51,20 +55,22 @@ define(function(require,exports,module){
     DynamicObjectController.prototype.constructor = DynamicObjectController;
 
 
-    DynamicObjectController.prototype.addDynamicObject = function(view,name)
+    DynamicObjectController.prototype.addDynamicObject = function(params)
     {
-        if (!name)
-            name = DynamicKnowledge.ModelLoader.nextObjectId("generated");
+        var name = params.name;
 
-        if (!view)
-            throw "Gotta give me a real view nigga";
+        if (!params.view)
+            throw "THIS IS NOT A VIEW IT IS A NULL";
+
+        if (!name)
+            name = params.view.getViewName();
 
         var objectModel = this.modelLoader.getObjectDef(name);
 
         if (!objectModel)
         {
-            objectModel = DynamicObject.create(this.gapiModel,name,"generated");
-            this.modelLoader.addObject(name,objectModel);
+            objectModel = DynamicObject.create(DynamicKnowledge.ModelLoader.getModel(),name,"generated");
+            DynamicKnowledge.ModelLoader.addObject(name,objectModel);
         }
         if (!objectModel.hasState(this.state))
         {
@@ -72,7 +78,18 @@ define(function(require,exports,module){
             objectModel.createState(this.state);
         }
 
-        var controller = new DynamicObjectController({objectDef:objectModel,view:view});
+        var controllerOptions = {objectDef:objectModel,view:params.view};
+
+        if (params.options)
+        {
+            for (var o in params.options)
+            {
+                controllerOptions[o] = params.options[o];
+            }
+        }
+
+        var controller = new DynamicObjectController(controllerOptions);
+
         this.modelLoader.registerController(name,controller);
         DynamicKnowledge.EditManager.registerController(controller);
         this.addController(controller);
@@ -80,13 +97,18 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.createEditTrigger = function()
     {
+        if (this.options.editingDisabled)
+        {
+            return;
+        }
+
         this.destroyEditTrigger();
 
         var trigger = new BoxView({
             size: [undefined, undefined],
             clickable: true,
-            color: 600,
-            position:[0,0,5],
+            color: Colors.EditColor,
+            position:[0,0,100],
             viewAlign:[0,0.5],
             viewOrigin:[0,0.5],
             //style:"noBorder",
@@ -114,7 +136,8 @@ define(function(require,exports,module){
     DynamicObjectController.prototype.makeMenuBar = function()
     {
         var menuBar = new MenuBar({
-            viewOrigin:[0,1]
+            viewOrigin:[0,1],
+            position:[0,0,110]
         });
         this.objectView.add(menuBar.getModifier()).add(menuBar.getRenderController());
         return menuBar;
@@ -196,7 +219,11 @@ define(function(require,exports,module){
 	{
 		var editors = [];
 
-        if (editContext.isGlobal)
+        if (this.options.editingDisabled)
+        {
+            return editors;
+        }
+        else if (editContext.isGlobal)
         {
             editors.push("add");
             editors.push("stateLinking");
@@ -232,6 +259,9 @@ define(function(require,exports,module){
 
     DynamicObjectController.prototype.setObjectState = function(state)
     {
+        if (this.options.respectViewState)
+            return;
+
         if (this.objectDef.hasState(this.state))
         {
             this.objectView.show();
@@ -244,36 +274,9 @@ define(function(require,exports,module){
             if (this.objectView.hide)
                 this.objectView.hide();
             else
-                console.error("Can't hide object '" + this.objectView._globalId + "'");
+                console.error("Can't hide object '" + this.objectView.getViewName() + "'");
         }
     };
-
-
-	DynamicObjectController.prototype.getOutputs = function()
-	{
-		var outputs = AbstractObjectController.prototype.getOutputs.call(this);
-		if (this.objectView.getOutputEvents)
-		{
-			outputs.push(this.objectView.getOutputEvents());
-		}
-
-		return outputs;
-	};
-
-	DynamicObjectController.prototype.getInputs = function(name)
-	{
-        var inputs = AbstractObjectController.prototype.getInputs.call(this);
-
-		if (this.objectView.getInputEvents)
-		{
-			var objectInputs = this.objectView.getInputEvents();
-
-            if (!name || objectInputs[name])
-                inputs.push(objectInputs);
-		}
-
-		return inputs;
-	};
 
 	DynamicObjectController.prototype.getView = function()
 	{
@@ -380,7 +383,7 @@ define(function(require,exports,module){
             color:800,
             visible: false,
             viewOrigin:[0,1],
-            position:[0,0,20]
+            position:[0,0,100]
         });
 
         this.objectView.add(enableButton.getModifier()).add(enableButton.getRenderController());
@@ -398,7 +401,7 @@ define(function(require,exports,module){
             color:800,
             visible: false,
             viewOrigin:[0,0],
-            position:[0,0,20],
+            position:[0,0,100],
             clickable:true
         });
 
@@ -411,8 +414,69 @@ define(function(require,exports,module){
     }
 
 
+    function _getEventOutputs()
+    {
+        var outputs = AbstractObjectController.prototype.getOutputs.call(this);
+        if (this.objectView.getOutputEvents)
+        {
+            outputs.push(this.objectView.getOutputEvents());
+        }
+
+        return outputs;
+    }
+
+    function _getEventInputs(name)
+    {
+        var inputs = AbstractObjectController.prototype.getInputs.call(this);
+
+        if (this.objectView.getInputEvents)
+        {
+            var objectInputs = this.objectView.getInputEvents();
+
+            if (!name || objectInputs[name])
+                inputs.push(objectInputs);
+        }
+
+        return inputs;
+    }
+
+
+    DynamicObjectController.prototype.disableMode = function()
+    {
+        console.log("Disabling mode '" + this._activeMode + "' LastMode = '" + this._lastMode + "'");
+        switch (this._activeMode)
+        {
+            case "edit":
+                this._activeModeContext.trigger.hide();
+                break;
+        }
+
+        if (this._lastMode == "edit")
+        {
+            this._lastModeContext.trigger.show();
+            this._activeMode = "edit";
+            this._activeModeContext = this._lastModeContext;
+        }
+        this._lastModeContext = undefined;
+        this._lastMode = undefined;
+    };
+
     DynamicObjectController.prototype.enableMode = function(mode, modeContext)
     {
+        if (this.options.disabledModes && this.options.disabledModes[mode])
+            return false;
+        if (this.options.allowedModes && !(this.options.allowedModes[mode]))
+            return false;
+
+
+        this.disableMode();
+
+        if (mode != this._activeMode)
+        {
+            this._lastMode = this._activeMode;
+            this._lastModeContext = this._activeModeContext;
+        }
+
         switch (mode)
         {
             case "stateLinking":
@@ -425,7 +489,16 @@ define(function(require,exports,module){
             case "connectingLines":
                 modeContext.vertices.push(_makeVertexObject.call(this));
                 break;
+            case "edit":
+                modeContext.trigger = this.createEditTrigger();
+                modeContext.trigger.show();
+                break;
         }
+
+        this._activeMode = mode;
+        this._activeModeContext = modeContext;
+
+        return true;
     };
 
     function _addContainer()
