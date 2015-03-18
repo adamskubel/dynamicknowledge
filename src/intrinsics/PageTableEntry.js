@@ -28,9 +28,9 @@ define(function(require,exports,module){
         //controller.addDynamicObject(this.simpleView);
         //controller.addDynamicObject(this.detailedView);
 
-        controller.addDynamicObject({view:this});
+        controller.addDynamicObject({view:this, options:{disabledModes:{"connectingLines":true}}});
 
-        var options = { respectViewState:true, editingDisabled:true, allowedModes:["connectingLines"]};
+        var options = { respectViewState:true, editingDisabled:true, allowedModes:{"connectingLines":true}};
 
         controller.addDynamicObject({view:this.detailedView.pte_addressView,options:options});
         controller.addDynamicObject({view:this.detailedView.pte_validFlag,options:options});

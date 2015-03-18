@@ -15,6 +15,10 @@ define(function(require,exports,module){
     {
         this.options = options;
         this.containerView = this.makeContainerView();
+        if (!options.disabledModes)
+            options.disabledModes = {};
+        options.disabledModes["connectingLines"] = true;
+
         AbstractObjectController.call(this,options);
     }
 

@@ -15,6 +15,7 @@ define(function(require,exports,module)
     {
         this.controller = parentController;
         this._objectsToHide = [];
+        this._activeContexts = [];
         this._activeVertexCleanupFunctions = [];
         this._modelLoader = parentController.modelLoader;
     }
@@ -50,6 +51,17 @@ define(function(require,exports,module)
             this._hideObjectFunction();
     };
 
+    function _cleanupContext(context)
+    {
+        if (context && context.cleanupFunctions)
+        {
+            for (var i = 0; i < context.cleanupFunctions.length; i++)
+            {
+                context.cleanupFunctions[i]();
+            }
+        }
+    }
+
     function _stopEditing()
     {
         for (var i=0;i<this._objectsToHide.length;i++)
@@ -58,9 +70,14 @@ define(function(require,exports,module)
             object.hide();
         }
 
-        this._objectsToHide = [];
+        for (i=0;i<this._activeContexts.length;i++)
+        {
+            _cleanupContext(this._activeContexts[i]);
+        }
 
-        this.controller.disableMode();
+
+        this._activeContexts = [];
+        this._objectsToHide = [];
     }
 
     function _deactivateVertex()
@@ -131,11 +148,13 @@ define(function(require,exports,module)
             };
 
             controller.enableMode("connectingLines",stateModeContext);
+
+            this._activeContexts.push(stateModeContext);
+
         }.bind(this));
 
         for (var i=0;i<lineVertices.length;i++)
         {
-            this._objectsToHide.push(lineVertices[i].button);
             _prepareVertex.call(this,lineVertices[i],lineVertices);
         }
     }

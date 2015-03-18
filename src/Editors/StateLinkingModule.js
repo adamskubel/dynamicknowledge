@@ -9,6 +9,7 @@ define(function(require,exports,module)
     {
         this.controller = parentController;
         this._objectsToHide = [];
+        this._activeContexts = [];
         this._activeTriggerCleanupFunctions = [];
     }
 
@@ -42,6 +43,17 @@ define(function(require,exports,module)
 
     };
 
+    function _cleanupContext(context)
+    {
+        if (context && context.cleanupFunctions)
+        {
+            for (var i = 0; i < context.cleanupFunctions.length; i++)
+            {
+                context.cleanupFunctions[i]();
+            }
+        }
+    }
+
     function _stopEditing()
     {
         _deactivateTrigger.call(this);
@@ -52,9 +64,13 @@ define(function(require,exports,module)
             object.hide();
         }
 
-        this._objectsToHide = [];
+        for (i=0;i<this._activeContexts.length;i++)
+        {
+            _cleanupContext(this._activeContexts[i]);
+        }
 
-        this.controller.disableMode();
+        this._activeContexts = [];
+        this._objectsToHide = [];
     }
 
 
@@ -151,8 +167,11 @@ define(function(require,exports,module)
                 listenEnablers:triggerListenEnablers
             };
 
+
             controller.enableMode("stateLinking",stateModeContext);
-        });
+
+            this._activeContexts.push(stateModeContext);
+        }.bind(this));
 
 
         function prepareTrigger(stateTrigger)
@@ -168,7 +187,6 @@ define(function(require,exports,module)
 
         for (var i=0;i<stateTriggers.length;i++)
         {
-            this._objectsToHide.push(stateTriggers[i].button);
             prepareTrigger.call(this,stateTriggers[i]);
         }
     }

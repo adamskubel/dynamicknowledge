@@ -94,9 +94,8 @@ define(function(require,exports,module){
                 }.bind(this));
                 break;
             case "ReadOnly":
-                controller.enableMode();
                 controller.destroyEditors();
-                //controller.destroyEditTrigger();
+                controller.destroyEditTrigger();
                 break;
             case "Global":
                 editContext = {

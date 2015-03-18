@@ -115,7 +115,7 @@ define(function(require,exports,module){
             isAnimated:false
         });
 
-        trigger.setOpacity(0.3);
+        trigger.setOpacity(0.7);
         trigger.setAnimated(false);
 
         this.objectView.add(trigger.getModifier()).add(trigger.getRenderController());
@@ -441,41 +441,22 @@ define(function(require,exports,module){
     }
 
 
-    DynamicObjectController.prototype.disableMode = function()
-    {
-        console.log("Disabling mode '" + this._activeMode + "' LastMode = '" + this._lastMode + "'");
-        switch (this._activeMode)
-        {
-            case "edit":
-                this._activeModeContext.trigger.hide();
-                break;
-        }
-
-        if (this._lastMode == "edit")
-        {
-            this._lastModeContext.trigger.show();
-            this._activeMode = "edit";
-            this._activeModeContext = this._lastModeContext;
-        }
-        this._lastModeContext = undefined;
-        this._lastMode = undefined;
-    };
-
     DynamicObjectController.prototype.enableMode = function(mode, modeContext)
     {
         if (this.options.disabledModes && this.options.disabledModes[mode])
-            return false;
-        if (this.options.allowedModes && !(this.options.allowedModes[mode]))
-            return false;
-
-
-        this.disableMode();
-
-        if (mode != this._activeMode)
         {
-            this._lastMode = this._activeMode;
-            this._lastModeContext = this._activeModeContext;
+            console.log("Mode '" + mode + "' is disabled");
+            return false;
         }
+        if (this.options.allowedModes && !(this.options.allowedModes[mode]))
+        {
+            console.log("Mode '" + mode + "' is not allowed");
+            return false;
+        }
+
+
+        if (!modeContext.cleanupFunctions)
+            modeContext.cleanupFunctions = [];
 
         switch (mode)
         {
@@ -485,14 +466,30 @@ define(function(require,exports,module){
 
                 var listenEnabler = _makeStateTriggerListener.call(this);
                 modeContext.listenEnablers.push(listenEnabler);
+                modeContext.cleanupFunctions.push(function(b){
+                    b.button.hide();
+                }.bind(this,listenEnabler));
                 break;
             case "connectingLines":
-                modeContext.vertices.push(_makeVertexObject.call(this));
+                var vertexObject = _makeVertexObject.call(this);
+                modeContext.vertices.push(vertexObject);
+                modeContext.cleanupFunctions.push(function(){
+                    vertexObject.button.hide();
+                });
                 break;
             case "edit":
                 modeContext.trigger = this.createEditTrigger();
                 modeContext.trigger.show();
                 break;
+        }
+
+        if (this._activeMode == "edit" && mode != "edit")
+        {
+            this._activeModeContext.trigger.hide();
+
+            modeContext.cleanupFunctions.push(function(editTrigger){
+                editTrigger.show();
+            }.bind(this,this._activeModeContext.trigger));
         }
 
         this._activeMode = mode;
