@@ -19,6 +19,8 @@ define(function(require,exports,module){
     var ListSelector = require('Views/ListSelector');
     var ToggleButton = require('Views/ToggleButton');
 
+    var PositionableView = require('PositioningLayouts/PositionableView');
+
 	function DynamicObjectController(options)
 	{
         var objectView = options.view;
@@ -104,19 +106,41 @@ define(function(require,exports,module){
 
         this.destroyEditTrigger();
 
-        var trigger = new BoxView({
-            size: [undefined, undefined],
-            clickable: true,
-            color: Colors.EditColor,
-            position:[0,0,100],
-            viewAlign:[0,0.5],
-            viewOrigin:[0,0.5],
-            //style:"noBorder",
-            isAnimated:false
+        var trigger = new PositionableView({
+            size: [undefined, undefined]
         });
 
-        trigger.setOpacity(0.7);
-        trigger.setAnimated(false);
+        var tWidth = 10;
+
+        function makeEdgeTrigger(size,align,position)
+        {
+            var edgeTrigger = new BoxView({
+                size: size,
+                clickable: true,
+                color: Colors.EditColor,
+                position: position,
+                viewAlign: align,
+                viewOrigin: [0.5,0.5],
+                style:"noBorder",
+                isAnimated: false
+            });
+
+            edgeTrigger.setOpacity(0.9);
+            edgeTrigger.setAnimated(false);
+
+            trigger.add(edgeTrigger.getModifier()).add(edgeTrigger);
+
+            edgeTrigger.on('click',function(){
+                trigger._eventOutput.emit('click');
+            });
+
+            return edgeTrigger;
+        }
+
+        makeEdgeTrigger([tWidth,undefined],[0,0.5],[0.5*tWidth, 0, Utils.ZIndex.Trigger]);
+        makeEdgeTrigger([undefined,tWidth],[0.5,0],[0, 0.5*tWidth, Utils.ZIndex.Trigger]);
+        makeEdgeTrigger([tWidth,undefined],[1,0.5],[-0.5*tWidth, 0, Utils.ZIndex.Trigger]);
+        makeEdgeTrigger([undefined,tWidth],[0.5,1],[0, -0.5*tWidth, Utils.ZIndex.Trigger]);
 
         this.objectView.add(trigger.getModifier()).add(trigger.getRenderController());
 
@@ -172,7 +196,7 @@ define(function(require,exports,module){
 
         if (!editContext.isGlobal)
         {
-            menuBar.addChild(MenuBar.makeMenuButton(this.state));
+            //menuBar.addChild(MenuBar.makeMenuButton(this.state));
 
             _loadObjectEditors.call(this,menuBar);
 
@@ -255,7 +279,6 @@ define(function(require,exports,module){
 
 		return editors;
 	};
-
 
     DynamicObjectController.prototype.setObjectState = function(state)
     {
@@ -345,7 +368,7 @@ define(function(require,exports,module){
                 });
                 var items = this.objectDef.getAllStates();
                 items.push("+");
-                items.splice(0,0,["---"])
+                items.splice(0,0,["---"]);
                 stateSelector.setItems(items);
                 stateSelector.setSelectedItem(this._specifiedState || 0);
 

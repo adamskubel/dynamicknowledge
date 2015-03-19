@@ -9,7 +9,7 @@ define(function (require, exports, module)
     var Transitionable = require('famous/transitions/Transitionable');
     var Easing = require('famous/transitions/Easing');
     var Utils = require('../Utils');
-    var Vector = require('../ProperVector');
+    var Vector = require('ProperVector');
     var RenderController = require("famous/views/RenderController");
 
     var id;
@@ -192,6 +192,9 @@ define(function (require, exports, module)
 
         if (properties.size)
             this.setSize(properties.size);
+
+        if (properties.align)
+            this.setAlign(properties.align);
     };
 
     PositionableView.prototype.setAnimated = function (isAnimated)
@@ -216,12 +219,17 @@ define(function (require, exports, module)
         }
     }
 
-    PositionableView.prototype.setPosition = function (position)
+    PositionableView.prototype.setPosition = function (_position)
     {
-        if (!position)
+        var position;
+        if (!_position)
             position = [0,0,0];
+        if (_position instanceof Array)
+            position = _position;
+        else if (_position instanceof Vector)
+            position = _position.toArray();
 
-        _setPosition.call(this,position);
+        _setPosition.call(this,_position);
         this.position = position;
     };
 
@@ -289,15 +297,13 @@ define(function (require, exports, module)
         };
     };
 
-    PositionableView.prototype.layout = function (layoutSize, layoutPosition)
+    PositionableView.prototype.layout = function (layoutSize)
     {
         _setSize.call(this,layoutSize);
 
-        if (layoutPosition)
-            _setPosition.call(this,layoutPosition);
-
         this._size = layoutSize;
         this._layoutDirty = false;
+        this._eventOutput.emit('layout');
     };
 
     PositionableView.prototype.requestLayout = function ()

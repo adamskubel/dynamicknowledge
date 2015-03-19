@@ -39,13 +39,14 @@ define(function(require, exports, module) {
 		this.add(surface);
 	};
 
-	SurfaceWrappingView.prototype.calculateSize = function() {
-		if (this.parent)
-			return this.parent.calculateChildSize(this);
+	SurfaceWrappingView.prototype.calculateSize = function()
+    {
+        var surfaceSize = this.getSize() || [0,0];
 
-        var surfaceSize = this.getSize();
-        if (surfaceSize) return surfaceSize;
-        return [0,0];
+        if (this.parent)
+            return this.parent.calculateChildSize(this,surfaceSize);
+
+        return surfaceSize;
 	};
 
 	SurfaceWrappingView.prototype.setAnimated = function(isAnimated) {

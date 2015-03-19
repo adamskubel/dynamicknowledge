@@ -120,6 +120,11 @@ define(function(require,exports,module){
         }
     };
 
+    DynamicContainerController.prototype.enableMode = function(mode, editContext)
+    {
+        return DynamicObjectController.prototype.enableMode.call(this,mode,editContext);
+    };
+
     DynamicContainerController.prototype.createEditRules = function(editContext)
     {
         var editors = [];

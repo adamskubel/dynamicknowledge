@@ -12,6 +12,10 @@ define(function (require, exports, module)
 
     }
 
+    Utils.ZIndex = {
+        Trigger: 100
+    };
+
     Utils.prototype.nextIdentifier = function(name){
 
         var nameMap = Utils.nameMap;
